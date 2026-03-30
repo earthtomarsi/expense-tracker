@@ -10,38 +10,58 @@
 
   <link rel="stylesheet" href="style.css">
 </head>
+
 <body>
-    <h1>Expense Tracker</h1>
+
+  <div class="header-full">
+    <h1 class="logo">Spend<span class="f">ƒ </span>low</h1>
+    <p>Track your spending</p>
+  </div>
+
+  <div class="app">
+
+    <h2>Dashboard</h2>
 
     <div class="container">
-    
-      <div class="input-section">
-        <input id="name" placeholder="Expense name">
 
-        <div class="field-group">
+      <div class="input-section">
+
+        <div class="input-row">
+
+          <input id="name" placeholder="Expense name">
+
+          <div class="field-group">
             <input id="amount" type="text" inputmode="decimal" placeholder="Amount">
             <small id="amount-helper"></small>
+          </div>
+
+          <div class="select-wrapper">
+            <select id="category">
+                <option>Food</option>
+                <option>Transport</option>
+                <option>Bills</option>
+                <option>Leisure</option>
+            </select>
+          </div>
+
+          <button id="add-btn">Add Expense</button>
+
         </div>
-        
-        <select id="category">
-          <option>Food</option>
-          <option>Transport</option>
-          <option>Bills</option>
-          <option>Leisure</option>
-        </select>
-    
-        <button id="add-btn">Add Expense</button>
+
       </div>
-    
+
       <ul id="expense-list"></ul>
-    
+
       <div class="summary">
         <h3>Total: <span id="total">0</span></h3>
         <div id="category-totals"></div>
       </div>
-    
+
     </div>
-    
-    <script src="script.js"></script>
+
+  </div>
+
+  <script src="script.js"></script>
+
 </body>
 </html>

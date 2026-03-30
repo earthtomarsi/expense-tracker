@@ -58,7 +58,7 @@ function renderExpenses() {
 
     li.innerHTML = `
       <span>${expense.name} (${formatCurrency(expense.amount)}) - ${expense.category}</span>
-      <button onclick="deleteExpense(${index})">X</button>
+        <button class="delete-btn" onclick="deleteExpense(${index})">×</button>
     `;
 
     list.appendChild(li);
