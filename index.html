@@ -9,10 +9,37 @@
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <div class="header-full">
-    <h1 class="logo">Spend<span class="f">ƒ </span>low</h1>
-    <p>Track your spending</p>
-  </div>
+<div class="header-full">
+
+    <div class="header-left">
+        <h1 class="logo" onclick="location.reload()" style="cursor:pointer;">
+        Spend<span class="f">ƒ </span>low
+        </h1>
+        <p>Track your spending</p>
+    </div>
+    
+    <div class="header-right">
+    
+        <div class="profile">
+        <img class="profile-pic" src="https://www.gravatar.com/avatar/?d=mp" alt="Profile">
+    
+        <div class="profile-info">
+            <div class="username-wrapper">
+                <span class="username">Marsi</span>
+                <span class="arrow">›</span>
+            </div>
+    
+            <div id="dropdown" class="dropdown hidden">
+            <li class="logout" onclick="logout()">Log out</li>
+            </div>
+        </div>
+    
+      </div>
+    
+    </div>
+    
+</div>
+    
   <div class="app">
     <h2>Dashboard</h2>
     <div class="container">

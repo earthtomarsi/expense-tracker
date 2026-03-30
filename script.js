@@ -150,5 +150,19 @@ function formatCurrency(amount) {
   });
 }
 
-// Initial render
 renderExpenses();
+  
+function logout() {
+    alert("Logged out");
+}
+
+const usernameWrapper = document.querySelector(".username-wrapper");
+const profile = document.querySelector(".profile");
+
+usernameWrapper.addEventListener("click", function () {
+    this.classList.toggle("active");
+});
+
+profile.addEventListener("mouseleave", () => {
+    usernameWrapper.classList.remove("active");
+});

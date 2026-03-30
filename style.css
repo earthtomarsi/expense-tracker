@@ -37,7 +37,10 @@ body {
     padding-bottom: 20px;
     padding-left: 20px;
     padding-right: 30px;
-    border-bottom: 1px solid #eee;
+    border-bottom: 1px solid #262626;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
 }
 
 .header-full .logo {
@@ -75,6 +78,124 @@ body {
     margin: 4px 0 0;
 }
 
+.header-left {
+    display: flex;
+    flex-direction: column;
+}
+
+.header-right {
+    display: flex;
+    align-items: center;
+}
+
+.profile {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    position: relative;
+}
+
+.profile-pic {
+    width: 42px;
+    height: 42px;
+    border-radius: 50%;
+    border: 1px solid #262626;
+    object-fit: cover;
+    flex-shrink: 0;
+}
+
+.profile-meta {
+    display: flex;
+    align-items: center;
+    position: relative;
+}
+
+.username-wrapper {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    cursor: pointer;
+    padding: 6px 8px;
+    border-radius: 6px;
+    transition: background 0.15s ease;
+}
+
+.username-wrapper:hover {
+    background: rgba(255, 255, 255, 0.06);
+}
+
+.username {
+    font-weight: 500;
+    font-size: 14px;
+    color: #A1A1A1;
+    cursor: pointer;
+    line-height: 1;
+    transition: color 0.15s ease;
+}
+
+.arrow {
+    font-size: 14px;
+    color: #a1a1a1;
+    transition: transform 0.15s ease, color 0.15s ease;
+}
+
+.username-wrapper:hover .username,
+.username-wrapper:hover .arrow {
+    color: #fafafa;
+}
+
+.username-wrapper.active .username,
+.username-wrapper.active .arrow {
+    color: var(--accent-green);
+}
+
+.username-wrapper:hover .arrow {
+    transform: rotate(90deg);
+}
+
+.dropdown {
+    position: absolute;
+    top: 45px;
+    right: 0;
+    background: #fafafa;
+    border: 1px solid #262626;
+    border-radius: 8px;
+    min-width: 120px;
+    padding: 6px;
+    overflow: hidden;
+
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(-5px);
+    transition: all 0.15s ease;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.08);
+}
+
+.profile:hover .dropdown,
+.dropdown:hover {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0);
+}
+
+.dropdown li {
+    padding: 10px 12px;
+    font-size: 13px;
+    color: #a1a1a1;
+    cursor: pointer;
+    border-radius: 6px;
+    transition: background 0.2s ease, color 0.2s ease;
+}
+
+.dropdown li:hover {
+    background: #ddd;
+    color: #0a0a0a;
+}
+
+.logout {
+    color: #0a0a0a;
+}
+
 .container {
     display: flex;
     flex-direction: column;
@@ -84,7 +205,7 @@ body {
     display: grid;
     grid-template-columns: 2.5fr 1.4fr 1.6fr auto;
     column-gap: 8px;
-    align-items: start; /* changed from center so errors don't misalign */
+    align-items: start;
     gap: 10px;
 }
 
@@ -97,7 +218,7 @@ input, select {
     border-radius: 8px;
     font-size: 16px;
     outline: none;
-    transition: 0.2s ease;
+    transition: 0.15s ease;
     appearance: none;
 }
 
@@ -123,7 +244,7 @@ input, select {
     content: "⌄";
     position: absolute;
     right: 14px;
-    top: 20px; /* fixed: align to input height instead of 50% since parent is align-items: start */
+    top: 20px;
     transform: translateY(-50%);
     font-size: 14px;
     color: #888;
@@ -138,7 +259,6 @@ input.error {
     border: 1px solid #e74c3c;
 }
 
-/* field-group wraps an input + its error/helper below it */
 .field-group {
     display: flex;
     flex-direction: column;
@@ -157,10 +277,10 @@ input.error {
 }
 
 #amount-helper {
-    display: none; /* hidden by default, shown only when there's content */
+    display: none;
     font-size: 12px;
     color: #888;
-    transition: 0.2s ease;
+    transition: 0.15s ease;
     margin: 0;
 }
 
