@@ -3,65 +3,54 @@
 <head>
   <meta charset="UTF-8">
   <title>Expense Tracker</title>
-
   <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="preconnect" href="https://fonts.gstatic.com/" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
-
   <link rel="stylesheet" href="style.css">
 </head>
-
 <body>
-
   <div class="header-full">
     <h1 class="logo">Spend<span class="f">ƒ </span>low</h1>
     <p>Track your spending</p>
   </div>
-
   <div class="app">
-
     <h2>Dashboard</h2>
-
     <div class="container">
-
       <div class="input-section">
-
         <div class="input-row">
 
-          <input id="name" placeholder="Expense name">
+          <!-- Name field with its own error -->
+          <div class="field-group">
+            <input id="name" placeholder="Expense name">
+            <p id="name-error" class="error-text"></p>
+          </div>
 
+          <!-- Amount field with helper + error -->
           <div class="field-group">
             <input id="amount" type="text" inputmode="decimal" placeholder="Amount">
             <small id="amount-helper"></small>
+            <p id="amount-error" class="error-text"></p>
           </div>
 
           <div class="select-wrapper">
             <select id="category">
-                <option>Food</option>
-                <option>Transport</option>
-                <option>Bills</option>
-                <option>Leisure</option>
+              <option>Food</option>
+              <option>Transport</option>
+              <option>Bills</option>
+              <option>Leisure</option>
             </select>
           </div>
 
           <button id="add-btn">Add Expense</button>
-
         </div>
-
       </div>
-
       <ul id="expense-list"></ul>
-
       <div class="summary">
         <h3>Total: <span id="total">0</span></h3>
         <div id="category-totals"></div>
       </div>
-
     </div>
-
   </div>
-
   <script src="script.js"></script>
-
 </body>
 </html>

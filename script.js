@@ -5,36 +5,79 @@ const nameInput = document.getElementById("name");
 const amountInput = document.getElementById("amount");
 const categoryInput = document.getElementById("category");
 const addBtn = document.getElementById("add-btn");
-document.getElementById("total").textContent = formatCurrency(0);
+const nameError = document.getElementById("name-error");
+const amountError = document.getElementById("amount-error");
 
 // Event listeners
 addBtn.addEventListener("click", addExpense);
 
-nameInput.addEventListener("input", validateInputs);
-amountInput.addEventListener("input", validateInputs);
-categoryInput.addEventListener("change", validateInputs);
+// Clear name error as user types in name
+nameInput.addEventListener("input", () => {
+  nameError.textContent = "";
+});
 
-// Initial state
-validateInputs();
+// Clear amount error + live validation as user types in amount
+amountInput.addEventListener("input", () => {
+  amountError.textContent = "";
+  validateAmountLive();
+});
 
 function addExpense() {
-  const name = nameInput.value.trim();
-  const amount = Number(amountInput.value);
-  const amountRaw = amountInput.value;
-  const category = categoryInput.value;
+    const name = nameInput.value.trim();
+    const amountRaw = amountInput.value;
+    const amount = Number(amountRaw);
+    const category = categoryInput.value;
+  
+    nameError.textContent = "";
+    amountError.textContent = "";
+  
+    let hasError = false;
+  
+    // NAME validation
+    if (!name) {
+      nameError.textContent = "Please enter an expense name";
+      hasError = true;
+    }
+  
+    // AMOUNT validation
+    if (!amountRaw) {
+      amountError.textContent = "Please enter an expense amount";
+      hasError = true;
+    } else if (isNaN(amount) || amount <= 0) {
+      amountError.textContent = "Please enter a valid amount greater than 0";
+      hasError = true;
+    }
+  
+    if (hasError) return;
+  
+    expenses.push({ name, amount, category });
+    renderExpenses();
+  
+    // Clear inputs
+    nameInput.value = "";
+    amountInput.value = "";
+    document.getElementById("amount-helper").textContent = "";
+}
 
-  if (!name || isNaN(amount)) return;
-
-  const expense = { name, amount, category };
-  expenses.push(expense);
-
-  renderExpenses();
-
-  // clear inputs
-  nameInput.value = "";
-  amountInput.value = "";
-
-  validateInputs();
+function validateAmountLive() {
+    const amountRaw = amountInput.value;
+    const helper = document.getElementById("amount-helper");
+  
+    helper.textContent = "";
+    helper.classList.remove("error");
+    amountInput.classList.remove("error");
+  
+    if (amountRaw === "") return;
+  
+    const amount = Number(amountRaw);
+  
+    if (isNaN(amount)) {
+      helper.textContent = "Please enter a valid number";
+      helper.classList.add("error");
+    } else if (amount <= 0) {
+      helper.textContent = "Amount must be greater than 0";
+      helper.classList.add("error");
+    }
 }
 
 function renderExpenses() {
@@ -55,17 +98,15 @@ function renderExpenses() {
 
     const li = document.createElement("li");
     li.className = "expense-item";
-
     li.innerHTML = `
       <span>${expense.name} (${formatCurrency(expense.amount)}) - ${expense.category}</span>
-        <button class="delete-btn" onclick="deleteExpense(${index})">×</button>
+      <button class="delete-btn" onclick="deleteExpense(${index})">×</button>
     `;
 
     list.appendChild(li);
   });
 
   document.getElementById("total").textContent = formatCurrency(total);
-
   updateCategoryTotals();
 }
 
@@ -101,45 +142,5 @@ function formatCurrency(amount) {
   });
 }
 
-function validateInputs() {
-    const name = nameInput.value.trim();
-    const amountRaw = amountInput.value;
-    const helper = document.getElementById("amount-helper");
-  
-    let amountValid = true;
-  
-    helper.textContent = "";
-    helper.classList.remove("error");
-    amountInput.classList.remove("error");
-  
-    // ✅ Empty input (no error message)
-    if (amountRaw === "") {
-      amountValid = false;
-    }
-  
-    else {
-      const amount = Number(amountRaw);
-  
-      // Invalid number
-      if (isNaN(amount)) {
-        helper.textContent = "Please enter a valid number";
-        helper.classList.add("error");
-        amountInput.classList.add("error");
-        amountValid = false;
-      }
-  
-      // Zero or negative
-      else if (amount <= 0) {
-        helper.textContent = "Amount must be greater than 0";
-        helper.classList.add("error");
-        amountInput.classList.add("error");
-        amountValid = false;
-      }
-    }
-  
-    const isFormValid =
-      name !== "" &&
-      amountValid;
-  
-    addBtn.disabled = !isFormValid;
-}
+// Initial render
+renderExpenses();
