@@ -1,26 +1,36 @@
 let expenses = [];
 
 function addExpense() {
-  const name = document.getElementById("name").value;
-  const amount = Number(document.getElementById("amount").value);
-  const category = document.getElementById("category").value;
+  const nameInput = document.getElementById("name");
+  const amountInput = document.getElementById("amount");
+  const categoryInput = document.getElementById("category");
+
+  const name = nameInput.value;
+  const amount = Number(amountInput.value);
+  const category = categoryInput.value;
 
   if (!name || !amount) return;
 
-  const expense = {
-    name: name,
-    amount: amount,
-    category: category
-  };
-
+  const expense = { name, amount, category };
   expenses.push(expense);
 
   renderExpenses();
+
+  // clear inputs
+  nameInput.value = "";
+  amountInput.value = "";
 }
 
 function renderExpenses() {
   const list = document.getElementById("expense-list");
   list.innerHTML = "";
+
+  if (expenses.length === 0) {
+    list.innerHTML = "<p>No expenses yet</p>";
+    document.getElementById("total").textContent = "0";
+    document.getElementById("category-totals").innerHTML = "";
+    return;
+  }
 
   let total = 0;
 
