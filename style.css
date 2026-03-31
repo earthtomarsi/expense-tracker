@@ -207,6 +207,7 @@ body {
     column-gap: 8px;
     align-items: start;
     gap: 10px;
+    padding-bottom: 12px;
 }
 
 input, select {
@@ -293,15 +294,6 @@ input.error {
     color: #2ecc71;
 }
 
-#expense-list {
-    list-style: none;
-    padding: 0;
-    margin-bottom: 12px;
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-}
-
 #empty-state {
     font-size: 0.85rem;
     color: #A1A1A1;
@@ -309,33 +301,164 @@ input.error {
     margin-top: 16px;
 }
 
-#expense-list:not(:empty) {
+#expense-table {
+    width: 100%;
+    border-collapse: separate;
+    border: 1px solid #ddd;
+    border-radius: 6px;
     margin-top: 20px;
+    font-size: 14px;
+
+    table-layout: fixed;
 }
 
-#expense-list li {
-    position: relative;
-    background: #fafafa;
+#expense-table thead th {
+    border-bottom: 1px solid #ddd;
+}
+
+#expense-table th:nth-child(1),
+#expense-table td:nth-child(1) { width: 38%; }
+
+#expense-table th:nth-child(2),
+#expense-table td:nth-child(2) { width: 21.5%; }
+
+#expense-table th:nth-child(3),
+#expense-table td:nth-child(3) {
+    width: 36%;
+    padding: 0 12px;
+}
+
+#expense-table th:nth-child(4),
+#expense-table td:nth-child(4) {
+    width: 28px;
+    padding: 0;
+}
+
+#expense-table th {
+    text-align: left;
+    font-size: 13px;
+    color: #262626;
+    font-weight: 600;
     padding: 12px;
-    padding-right: 32px;
-    border-radius: 8px;
+}
+
+#expense-table tr {
+    background: transparent;
+    color: #A1A1A1;
+}
+
+#expense-table td input,
+#expense-table td select {
+    background: transparent;
+    height: 100%;
+    display: block;
+    align-items: center;
+    color: #A1A1A1;
+}
+
+#expense-table td:not(:last-child):focus-within,
+#expense-table tr.active td:not(:last-child) {
+    background: #fafafa;
+    color: #0a0a0a;
+    border: 1px solid var(--accent-green);
+    border-radius: 2px;
+}
+
+#expense-table td:focus-within select,
+#expense-table td:focus-within input,
+#expense-table tr.active td select {
+    color: #0a0a0a;
+}
+
+#expense-table td {
+    display: table-cell;
+    vertical-align: middle;
+    position: relative;
+    height: 44px;
+    padding: 0px 12px;
+
+    color: #a1a1a1;
+    vertical-align: middle;
+
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+
+    transition: background 0.15s ease, color 0.15s ease;
+}
+
+#expense-table td select {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+
+    border: none;
+    background: transparent;
+
     font-size: 14px;
+
+    padding: 0;
+    margin: 0;
+}
+
+#expense-table th:first-child,
+#expense-table td:first-child {
+    text-align: left;
+}
+
+#expense-table tr td:first-child {
+    border-radius: 8px 0 0 8px;
+}
+
+#expense-table tr td:last-child {
+    border-radius: 0 8px 8px 0;
+    padding-right: 6px;
+}
+
+.editable {
+    color: inherit;
+    outline: none;
+    display: inline-block;
+    min-width: 60px;
+}
+
+.editable:focus {
+    position: relative;
+    z-index: 2;
+
+    background: #fafafa;
+    color: #0a0a0a;
+
+    border: 1px solid var(--accent-green);
+    border-radius: 2px;
+
+    padding: 4px 6px;
+
+    outline: none;
+
+    display: inline-block;
+    width: auto;
 }
 
 .delete-btn {
-    all: unset;
     position: absolute;
-    top: 6px;
+    top: 50%;
     right: 6px;
-    width: 22px;
-    height: 22px;
+    transform: translateY(-50%);
+    width: 18px;
+    height: 18px;
+    
     padding: 0;
+    margin: 0;
+
     background: transparent;
     color: #A1A1A1;
     border: none;
     border-radius: 2px;
+    
     font-size: 20px;
-    line-height: 0.4;
+    line-height: 1;
     cursor: pointer;
     display: flex;
     align-items: center;
@@ -344,9 +467,16 @@ input.error {
 }
 
 .delete-btn:hover {
-    background: #bbb;
-    opacity: 0.8;
-    color: #fafafa;
+    background: transparent;
+    color: #262626;
+}
+
+.delete-btn:focus {
+    outline: none;
+}
+
+.delete-btn:focus-visible {
+    outline: none;
 }
 
 button {
