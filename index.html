@@ -7,6 +7,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com/" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="style.css">
+  <script src="https:cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body>
 <div class="header-full">
@@ -40,61 +41,83 @@
     
 </div>
     
-  <div class="app">
-    <h2>Dashboard</h2>
+  <div class="add">
+    <h2>Track an Expense</h2>
     <div class="container">
       <div class="input-section">
         <div class="input-row">
 
-          <!-- Name field with its own error -->
-          <div class="field-group">
-            <input id="name" placeholder="Expense name">
-            <p id="name-error" class="error-text"></p>
-          </div>
-
-          <!-- Amount field with helper + error -->
-          <div class="field-group">
-            <input id="amount" type="text" inputmode="decimal" placeholder="Amount">
-            <small id="amount-helper"></small>
-            <p id="amount-error" class="error-text"></p>
-          </div>
-
-          <div class="select-wrapper">
-            <select id="category">
+            <div class="field-group">
+              <input id="expenseName" placeholder="Title">
+              <p id="expenseName-error" class="error-text"></p>
+            </div>
+          
+            <div class="field-group">
+              <input id="amount" type="text" inputmode="decimal" placeholder="Amount">
+              <small id="amount-helper"></small>
+              <p id="amount-error" class="error-text"></p>
+            </div>
+          
+            <div class="select-wrapper">
+              <select id="category">
                 <option>Food</option>
                 <option>Transport</option>
                 <option>Bills</option>
                 <option>Leisure</option>
-            </select>
-        
-            <span class="select-arrow">›</span>
-          </div>
-
-          <button id="add-btn">Add Expense</button>
+              </select>
+              <span class="select-arrow">›</span>
+            </div>
+          
+            <div class="field-group">
+              <input id="date" type="date">
+              <small id="date-helper"></small>
+              <p id="date-error" class="error-text"></p>
+            </div>
+          
+            <div class="field-group description-group">
+              <input id="description" maxlength="70" placeholder="Description">
+              <div class="desc-info">
+              <p id="desc-error" class="error-text"></p>
+              <small id="desc-counter">0/70</small>
+              </div>
+            </div>
         </div>
-      </div>
-      <table id="expense-table">
-        <thead>
-          <tr>
-            <th>Item</th>
-            <th>Amount</th>
-            <th>Type</th>
-            <th></th>
-          </tr>
-        </thead>
-      
-        <tbody id="expense-body">
-            <tr id="empty-row">
-              <td colspan="4" id="empty-state">No expenses yet</td>
-            </tr>
-        </tbody>
-      </table>
-      <div class="summary">
-        <h3>Total: <span id="total">0</span></h3>
-        <div id="category-totals"></div>
+    <div class="button-section">    
+    <button id="add-btn">Add Expense</button>
+    </div>    
       </div>
     </div>
   </div>
+<div class="table-section">
+  <h3>Expense History</h3>
+<table id="expense-table">
+<thead>
+    <tr>
+    <th>Title</th>
+    <th>Amount</th>
+    <th>Category</th>
+    <th>Date</th>
+    <th>Description</th>
+    <th></th>
+    </tr>
+</thead>
+
+<tbody id="expense-body">
+    <tr id="empty-row">
+        <td colspan="6" id="empty-state">No expenses yet</td>
+    </tr>
+</tbody>
+</table>
+<div class="summary">
+<h3>Total: <span id="total">0</span></h3>
+<div id="category-totals"></div>
+</div>
+</div>
+
+<div class="chart-container">
+<h3>Monthly Spending Trend</h3>
+<canvas id="categoryChart"></canvas>
+</div>
   <script src="script.js"></script>
 </body>
 </html>

@@ -14,20 +14,21 @@ body {
     overflow-x: hidden;
 }
 
-.app {
+.add {
     max-width: 1380px;
     margin: 30px auto;
     background: white;
-    padding: 24px;
+    padding: 6px 40px 40px 30px;
     border-radius: 14px;
+    border: 1px solid #ddd;
     box-shadow: 0 8px 24px rgba(0,0,0,0.06);
 }
 
-.app h2 {
-    margin: 0 0 30px;
-    font-size: 26px;
-    font-weight: 700;
+.add h2 {
+    font-size: 24px;
+    font-weight: 800;
     letter-spacing: -0.4px;
+    padding-bottom: 10px;
 }
 
 .header-full {
@@ -201,13 +202,52 @@ body {
     flex-direction: column;
 }
 
-.input-row {
+/*.input-row {
     display: grid;
-    grid-template-columns: 2.5fr 1.4fr 1.6fr auto;
+    grid-template-columns: 1.74fr 0.98fr 1.66fr 0.2fr;
     column-gap: 8px;
     align-items: start;
-    gap: 10px;
-    padding-bottom: 12px;
+    gap: 6px;
+    padding-bottom: 6px;
+}*/
+
+.input-row {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    column-gap: 4px;
+    gap: 8px;
+    padding-bottom: 6px;
+}
+
+.description-group {
+    grid-column: span 2;
+}
+
+.button-section {
+    display: flex;
+    justify-content: flex-end;
+}
+
+.date-cell {
+    display: flex;
+    flex-direction: column;
+}
+
+.date-cell .date-inline-error {
+    margin-top: 2px;
+    display: block;
+    font-size: 12px;
+    color: #e74c3c;
+    margin-top: 4px;
+    min-height: 14px;
+}
+
+#add-btn {
+    margin-top: 12px;
+    right: 20px;
+    width: 150px;
+    height: 40px;
+    display: flex;
 }
 
 input, select {
@@ -224,18 +264,30 @@ input, select {
 }
 
 input:focus, select:focus {
-    border-color: #111;
+    border: 1px solid var(--accent-green);
 }
 
-input.error {
+input.error, select.error {
     border: 1px solid #e74c3c;
+}
+
+input.error:focus, select.error:focus {
+    border: 1px solid #e74c3c;
+}
+
+input[type="date"] {
+    color: #A1A1A1;
+}
+
+input[type="date"].has-value {
+    color: #0a0a0a !important;
 }
 
 .select-wrapper {
     position: relative;
     width: 100%;
+    height: 40px;
     display: flex;
-    align-items: center;
 }
 
 .select-wrapper select {
@@ -266,6 +318,12 @@ input.error {
     gap: 4px;
 }
 
+.field-group #date {
+    font-family: inherit;
+    color: #A1A1A1;
+    font-size: 16px;
+}
+
 .error-text {
     font-size: 12px;
     color: #e74c3c;
@@ -289,9 +347,33 @@ input.error {
     color: #e74c3c;
 }
 
-#amount-helper.success {
+#date-helper {
+    display: none;
+    font-size: 12px;
+    color: #888;
+    transition: 0.15s ease;
+    margin: 0;
+}
+
+#date-helper.error {
     display: block;
-    color: #2ecc71;
+    color: #e74c3c;
+}
+
+.desc-info {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+}
+
+#desc-error.error {
+    color: #e74c3c;
+}
+
+#desc-counter {
+    font-size: 12px;
+    color: #888;
+    margin-left: auto;
 }
 
 #empty-state {
@@ -299,6 +381,22 @@ input.error {
     color: #A1A1A1;
     text-align: center;
     margin-top: 16px;
+}
+
+.empty-state-cell {
+    text-align: center;
+    color: #a1a1a1;
+    padding: 16px;
+}
+
+.table-section {
+    max-width: 1380px;
+    margin: 30px auto;
+    background: white;
+    padding: 24px 24px 24px;
+    border-radius: 14px;
+    border: 1px solid #ddd;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.06);
 }
 
 #expense-table {
@@ -316,7 +414,7 @@ input.error {
     border-bottom: 1px solid #ddd;
 }
 
-#expense-table th:nth-child(1),
+/*#expense-table th:nth-child(1),
 #expense-table td:nth-child(1) { width: 38%; }
 
 #expense-table th:nth-child(2),
@@ -332,7 +430,7 @@ input.error {
 #expense-table td:nth-child(4) {
     width: 28px;
     padding: 0;
-}
+}*/
 
 #expense-table th {
     text-align: left;
@@ -360,7 +458,7 @@ input.error {
 #expense-table tr.active td:not(:last-child) {
     background: #fafafa;
     color: #0a0a0a;
-    border: 1px solid var(--accent-green);
+    border: 2px solid var(--accent-green);
     border-radius: 2px;
 }
 
@@ -397,6 +495,7 @@ input.error {
     background: transparent;
 
     font-size: 14px;
+    color: #A1A1A1;
 
     padding: 0;
     margin: 0;
@@ -417,20 +516,20 @@ input.error {
 }
 
 .editable {
+    width: 100%;
     color: inherit;
     outline: none;
     display: inline-block;
     min-width: 60px;
 }
 
-.editable:focus {
+/*.editable:hover {
     position: relative;
     z-index: 2;
 
-    background: #fafafa;
-    color: #0a0a0a;
+    color: #262626 !important;
 
-    border: 1px solid var(--accent-green);
+    border: 1px solid transparent;
     border-radius: 2px;
 
     padding: 4px 6px;
@@ -441,10 +540,61 @@ input.error {
     width: auto;
 }
 
+.editable:focus {
+    position: relative;
+    z-index: 2;
+
+    background: #fafafa;
+    color: #0a0a0a;
+
+    border: 1px solid #262626;
+    border-radius: 2px;
+
+    padding: 4px 6px;
+
+    outline: none;
+
+    display: inline-block;
+    width: auto;
+}*/
+
+.table-section .editable {
+    color: #a1a1a1;
+    transition: 0.15s ease;
+    outline: none;
+    border: 2px solid transparent;
+    border-radius: 6px;
+    padding: 4px 6px;
+}
+
+.table-section .editable.invalid {
+    border: 2px solid #e74c3c !important;
+    color: #e74c3c;
+}
+
+.table-section td.editable {
+    border: 2px solid transparent;
+    transition: 0.15s ease;
+}
+  
+  /* HOVER (ALL editable cells) */
+  .table-section td.editable:hover {
+    color: #0a0a0a;
+}
+  
+  /* FOCUS / EDIT STATE */
+  .table-section td.editable:focus,
+  .table-section td.editable.editing {
+    border: 2px solid var(--accent-green);
+    color: #0a0a0a;
+    outline: none;
+    background: #fafafa;
+}
+
 .delete-btn {
     position: absolute;
     top: 50%;
-    right: 6px;
+    right: 20px;
     transform: translateY(-50%);
     width: 18px;
     height: 18px;
@@ -483,12 +633,14 @@ button {
     background: #111;
     color: white;
     border: none;
-    width: 200px;
+    width: 40px;
     height: 40px;
-    padding: 0 12px;
+    padding: 8px;
     border-radius: 8px;
-    margin-left: 8px;
-    font-size: 14px;
+    margin-left: 4px;
+    font-size: 16px;
+    justify-content: center;
+    align-items: center;
     cursor: pointer;
     transition: 0.15s ease;
 }
@@ -501,12 +653,36 @@ button:active {
     transform: scale(0.98);
 }
 
+.table-section h3 {
+    font-size: 18px;
+    font-weight: 700;
+    letter-spacing: -0.4px;
+    margin: 0;
+}
+
 .summary {
     margin-top: 20px;
     padding-top: 15px;
     border-top: 1px solid #eee;
 }
 
-.summary h3 {
+.chart-container {
+    margin-top: 20px;
+    padding: 26px;
+    background: #fafafa;
+    border: 1px solid #eee;
+    border-radius: 12px;
+    width: 100%;
+    max-width: 1380px;
+}
+
+.chart-container h3 {
     margin: 0 0 10px;
+    margin-top: 6px;
+    text-align: center;
+}
+
+#categoryChart {
+    width: 1000px !important;
+    margin: 0 auto;
 }
