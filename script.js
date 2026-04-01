@@ -231,7 +231,7 @@ function renderExpenses() {
         ${expense.amount}
       </td>
 
-      <td>
+      <td class="category-cell">
         <select class="editable"
                 onchange="updateExpense(${index}, 'category', this.value)">
           ${categoryOptions}

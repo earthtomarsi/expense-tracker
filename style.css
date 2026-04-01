@@ -406,6 +406,7 @@ input[type="date"].has-value {
     border-radius: 6px;
     margin-top: 20px;
     font-size: 14px;
+    border-spacing: 0 6px;
 
     table-layout: fixed;
 }
@@ -445,8 +446,7 @@ input[type="date"].has-value {
     color: #A1A1A1;
 }
 
-#expense-table td input,
-#expense-table td select {
+#expense-table td input {
     background: transparent;
     height: 100%;
     display: block;
@@ -494,11 +494,12 @@ input[type="date"].has-value {
     border: none;
     background: transparent;
 
-    font-size: 14px;
-    color: #A1A1A1;
-
     padding: 0;
     margin: 0;
+}
+
+#expense-table td.category-cell:hover select {
+    color: #0a0a0a !important;
 }
 
 #expense-table th:first-child,
@@ -513,6 +514,14 @@ input[type="date"].has-value {
 #expense-table tr td:last-child {
     border-radius: 0 8px 8px 0;
     padding-right: 6px;
+}
+
+#expense-table tr td:first-child:focus-within {
+    border-radius: 8px 0 0 8px;
+}
+
+#expense-table tr td:last-child:focus-within {
+    border-radius: 0 8px 8px 0;
 }
 
 .editable {
@@ -578,17 +587,36 @@ input[type="date"].has-value {
 }
   
   /* HOVER (ALL editable cells) */
-  .table-section td.editable:hover {
-    color: #0a0a0a;
+.table-section td.editable:hover {
+color: #0a0a0a !important;
+background: #eee !important;
+margin: 2px !important;
+border-radius: 4px !important;
+}
+
+/* FOCUS / EDIT STATE */
+.table-section td.editable:focus,
+.table-section td.editable.editing {
+border: 2px solid var(--accent-green);
+color: #0a0a0a;
+outline: none;
+background: #fafafa;
+}
+
+.table-section td.category-cell:hover,
+.tale-section td.category-cell:hover select {
+color: #0a0a0a !important;
+background: #eee !important;
+border-radius: 4px !important;
 }
   
   /* FOCUS / EDIT STATE */
-  .table-section td.editable:focus,
-  .table-section td.editable.editing {
-    border: 2px solid var(--accent-green);
-    color: #0a0a0a;
-    outline: none;
-    background: #fafafa;
+.table-section td.category-cell:focus,
+.table-section td.category-cell.editing {
+border: 2px solid var(--accent-green);
+color: #0a0a0a;
+outline: none;
+background: #fafafa;
 }
 
 .delete-btn {
@@ -618,7 +646,7 @@ input[type="date"].has-value {
 
 .delete-btn:hover {
     background: transparent;
-    color: #262626;
+    color: #e74c3c;
 }
 
 .delete-btn:focus {
