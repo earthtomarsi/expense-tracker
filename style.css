@@ -264,7 +264,7 @@ input, select {
 }
 
 input:focus, select:focus {
-    border: 1px solid var(--accent-green);
+    border: 1px solid #262626;
 }
 
 input.error, select.error {
