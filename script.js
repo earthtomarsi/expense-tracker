@@ -1,5 +1,7 @@
 let expenses = [];
 let categoryChart = null;
+let currentFilter = "All";
+let currentSort = "date-desc";
 
 // DOM elements
 const expenseNameInput = document.getElementById("expenseName");
@@ -41,6 +43,23 @@ descInput.addEventListener("input", () => {
     } else {
       descError.textContent = "";
     }
+});
+
+document.querySelectorAll(".filter-btn").forEach(btn => {
+  btn.addEventListener("click", () => {
+
+    document.querySelectorAll(".filter-btn").forEach(b => b.classList.remove("active"));
+    btn.classList.add("active");
+
+    currentFilter = btn.dataset.category;
+
+    renderExpenses();
+  });
+});
+
+document.getElementById("sort-select").addEventListener("change", (e) => {
+  currentSort = e.target.value;
+  renderExpenses();
 });
 
 dateInput.addEventListener("input", () => {
@@ -190,6 +209,38 @@ function renderExpenses() {
 
   body.innerHTML = "";
 
+  // APPLY FILTER + SORT
+let filtered = [...expenses];
+
+// FILTER
+if (currentFilter !== "All") {
+  filtered = filtered.filter(exp => exp.category === currentFilter);
+}
+
+// SORT
+filtered.sort((a, b) => {
+  switch (currentSort) {
+    case "amount-asc":
+      return a.amount - b.amount;
+
+    case "amount-desc":
+      return b.amount - a.amount;
+
+    case "name-asc":
+      return a.expenseName.localeCompare(b.expenseName);
+
+    case "name-desc":
+      return b.expenseName.localeCompare(a.expenseName);
+
+    case "date-asc":
+      return new Date(a.date) - new Date(b.date);
+
+    case "date-desc":
+    default:
+      return new Date(b.date) - new Date(a.date);
+  }
+});
+
   if (expenses.length === 0) {
     body.innerHTML = `
       <tr>
@@ -206,7 +257,8 @@ function renderExpenses() {
 
   let total = 0;
 
-  expenses.forEach((expense, index) => {
+  filtered.forEach((expense) => {
+    const index = expenses.indexOf(expense);
     total += expense.amount;
 
     const row = document.createElement("tr");

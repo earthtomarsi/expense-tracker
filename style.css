@@ -45,7 +45,7 @@ body {
 }
 
 .header-full .logo {
-    font-size: 32px;
+    font-size: 26.4px;
     font-weight: 700;
     letter-spacing: -0.4px;
     color: #fafafa;
@@ -60,7 +60,7 @@ body {
 
 .header-full p {
     margin: 4.6px 0 0;
-    font-size: 12.4px;
+    font-size: 11px;
     letter-spacing: .82px;
     color: #A1A1A1;
 }
@@ -475,7 +475,7 @@ input[type="date"].has-value {
     height: 44px;
     padding: 0px 12px;
 
-    color: #a1a1a1;
+    color: #666;
     vertical-align: middle;
 
     overflow: hidden;
@@ -568,7 +568,7 @@ input[type="date"].has-value {
 }*/
 
 .table-section .editable {
-    color: #a1a1a1;
+    color: #666;
     transition: 0.15s ease;
     outline: none;
     border: 2px solid transparent;
@@ -589,7 +589,7 @@ input[type="date"].has-value {
   /* HOVER (ALL editable cells) */
 .table-section td.editable:hover {
 color: #0a0a0a !important;
-background: #eee !important;
+background: #F5F5F5 !important;
 margin: 2px !important;
 border-radius: 4px !important;
 }
@@ -606,7 +606,7 @@ background: #fafafa;
 .table-section td.category-cell:hover,
 .tale-section td.category-cell:hover select {
 color: #0a0a0a !important;
-background: #eee !important;
+background: #F5F5F5 !important;
 border-radius: 4px !important;
 }
   
@@ -624,8 +624,8 @@ background: #fafafa;
     top: 50%;
     right: 20px;
     transform: translateY(-50%);
-    width: 18px;
-    height: 18px;
+    width: 22px;
+    height: 22px;
     
     padding: 0;
     margin: 0;
@@ -645,7 +645,7 @@ background: #fafafa;
 }
 
 .delete-btn:hover {
-    background: transparent;
+    background: #F5F5F5;
     color: #e74c3c;
 }
 
@@ -658,8 +658,8 @@ background: #fafafa;
 }
 
 button {
-    background: #111;
-    color: white;
+    background: #0a0a0a;
+    color: #fafafa;
     border: none;
     width: 40px;
     height: 40px;
@@ -701,7 +701,6 @@ button:active {
     border: 1px solid #eee;
     border-radius: 12px;
     width: 100%;
-    max-width: 1380px;
 }
 
 .chart-container h3 {
@@ -713,4 +712,94 @@ button:active {
 #categoryChart {
     width: 1000px !important;
     margin: 0 auto;
+}
+
+.table-controls {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 12px;
+    gap: 10px;
+}
+
+.filters {
+    padding-left: 30px;
+    margin-top: 20px;
+    display: flex;
+    gap: 2px;
+}
+
+.filter-btn {
+    width: auto;
+    min-width: 90px;
+    padding: 2px 12px;
+    border-radius: 20px;
+    border: 1px solid #ddd;
+    background: #fafafa;
+    cursor: pointer;
+    font-size: 14px;
+    color: #666;
+    transition: 0.15s ease;
+}
+
+.filter-btn:hover {
+    background: #eee;
+    color: #0a0a0a;
+}
+
+.filter-btn.active {
+    background: #0a0a0a;
+    color: #fafafa;
+    border: none;
+}
+
+.sort {
+    display: inline-flex;
+    margin-top: 20px;
+    padding-right: 30px;
+    align-items: center;
+    gap: 10px;
+}
+
+.sort-container {
+    display: flex;
+    justify-content: flex-start;
+}
+
+.sort span {
+    font-size: 14px;
+    color: #666;
+    white-space: nowrap;
+    font-weight: 500;
+}
+
+.sort-select-wrapper {
+    position: relative;
+    display: inline-flex;
+}
+
+.sort select {
+    width: auto;
+    min-width: 140px;
+    padding: 4px 40px 4px 14px;
+    height: 40px;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    font-size: 14px;
+    appearance: none;
+}
+
+.sort-select-wrapper .select-arrow {
+    position: absolute;
+    right: 20px;
+    top: 50%;
+    transform: translateY(-50%) rotate(90deg);
+    pointer-events: none;
+    color: #a1a1a1;
+    font-size: 14px;
+}
+
+.sort select:focus {
+    border: 1px solid #A1A1A1 !important;
+    outline: none;
 }
