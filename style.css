@@ -16,7 +16,7 @@ body {
 
 .add {
     max-width: 1380px;
-    margin: 30px auto;
+    margin: 46px 30px 30px 30px;
     background: white;
     padding: 6px 40px 40px 30px;
     border-radius: 14px;
@@ -802,4 +802,88 @@ button:active {
 .sort select:focus {
     border: 1px solid #A1A1A1 !important;
     outline: none;
+}
+
+/* ===== SUMMARY SECTION ===== */
+.summary-section {
+    margin-top: 30px;
+    padding-top: 20px;
+    border-top: 1px solid #eee;
+}
+
+.summary-section h3 {
+    margin-bottom: 16px;
+}
+
+/* GRID LAYOUT */
+.summary-grid {
+    display: grid;
+    grid-template-columns: 1.2fr 1fr;
+    gap: 24px;
+    align-items: start;
+}
+
+/* LEFT SIDE */
+.summary-left {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+/* TOTAL CARD */
+.total-card {
+    background: #fafafa;
+    border: 1px solid #eee;
+    border-radius: 12px;
+    padding: 18px 20px;
+}
+
+.total-card p {
+    font-size: 13px;
+    color: #888;
+    margin: 0;
+}
+
+.total-card h2 {
+    margin: 6px 0 0;
+    font-size: 28px;
+    letter-spacing: -0.5px;
+}
+
+/* CATEGORY LIST */
+.category-breakdown {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.category-item {
+    display: flex;
+    justify-content: space-between;
+    padding: 10px 14px;
+    background: #fafafa;
+    border: 1px solid #eee;
+    border-radius: 8px;
+    font-size: 14px;
+}
+
+.category-item span:first-child {
+    color: #666;
+}
+
+.category-item span:last-child {
+    font-weight: 500;
+    color: #0a0a0a;
+}
+
+/* RIGHT SIDE (PIE) */
+.summary-right {
+    background: white;
+    border: 1px solid transparent;
+    border-radius: 12px;
+    padding: 16px;
+}
+
+#pieChart {
+    max-width: 100%;
 }

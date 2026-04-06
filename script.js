@@ -1,5 +1,6 @@
 let expenses = [];
 let categoryChart = null;
+let pieChart = null;
 let currentFilter = "All";
 let currentSort = "date-desc";
 
@@ -27,8 +28,22 @@ expenseNameInput.addEventListener("input", () => {
 
 // Clear amount error + live validation as user types in amount
 amountInput.addEventListener("input", () => {
+  const raw = amountInput.value.trim();
+  const helper = document.getElementById("amount-helper");
+
   amountError.textContent = "";
-  amountInput.classList.remove("error"); 
+  amountInput.classList.remove("error");
+  helper.textContent = "";
+  helper.classList.remove("error");
+
+  if (hasInvalidLeadingZero(raw)) {
+    amountInput.value = "";
+    helper.textContent = "Amount cannot start with 0";
+    helper.classList.add("error");
+    amountInput.classList.add("error");
+    return;
+  }
+
   validateAmountLive();
 });
 
@@ -104,10 +119,14 @@ dateInput.addEventListener("input", () => {
   dateInput.classList.remove("error");
 });
 
+function hasInvalidLeadingZero(value) {
+  return /^0\d/.test(value.trim());
+}
+
 function addExpense() {
   const expenseName = expenseNameInput.value.trim();
   const amountRaw = amountInput.value;
-  const amount = Number(amountRaw);
+  const amount = amountRaw === "" ? null : Number(amountRaw);
   const category = categoryInput.value;
   const date = dateInput.value;
   const description = descInput.value.trim();
@@ -129,13 +148,21 @@ function addExpense() {
   }
 
   // AMOUNT validation
-  if (!amountRaw) {
+  if (amountRaw === "" || amount === null) {
     amountError.textContent = "Please enter an expense amount";
-    amountInput.classList.add("error"); 
+    amountInput.classList.add("error");
+    hasError = true;
+  } else if (isNaN(amount)) {
+    amountError.textContent = "Please enter a valid number";
+    amountInput.classList.add("error");
+    hasError = true;
+  } else if (hasInvalidLeadingZero(amountRaw)) {
+    amountError.textContent = "Amount cannot start with 0";
+    amountInput.classList.add("error");
     hasError = true;
   } else if (amount <= 0) {
     amountError.textContent = "Please enter a valid amount greater than 0";
-    amountInput.classList.add("error"); 
+    amountInput.classList.add("error");
     hasError = true;
   } else {
     amountInput.classList.remove("error");
@@ -241,19 +268,35 @@ filtered.sort((a, b) => {
   }
 });
 
-  if (expenses.length === 0) {
-    body.innerHTML = `
-      <tr>
-        <td colspan="6" style="text-align:center; color:#a1a1a1; padding:16px;">
-          No expenses yet
-        </td>
-      </tr>
-    `;
+if (expenses.length === 0) {
+  body.innerHTML = `
+    <tr>
+      <td colspan="6" style="text-align:center; color:#a1a1a1; padding:16px;">
+        No expenses yet
+      </td>
+    </tr>
+  `;
 
-    document.getElementById("total").textContent = formatCurrency(0);
-    document.getElementById("category-totals").innerHTML = "";
-    return;
+  document.getElementById("total").textContent = formatCurrency(0);
+  document.getElementById("category-totals").innerHTML = "";
+
+  if (pieChart) {
+    pieChart.destroy();
+    pieChart = null;
   }
+
+  if (categoryChart) {
+    categoryChart.destroy();
+    categoryChart = null;
+  }
+
+  const lineChartContainer = document.querySelector(".chart-container");
+  if (lineChartContainer) {
+    lineChartContainer.style.display = "none";
+  }
+
+  return;
+}
 
   let total = 0;
 
@@ -263,7 +306,6 @@ filtered.sort((a, b) => {
 
     const row = document.createElement("tr");
 
-    // clone category options for dropdown
     const categoryOptions = Array.from(categoryInput.options)
       .map(opt => `<option value="${opt.value}" ${opt.value === expense.category ? "selected" : ""}>${opt.text}</option>`)
       .join("");
@@ -308,9 +350,15 @@ filtered.sort((a, b) => {
     body.appendChild(row);
   });
 
+const lineChartContainer = document.querySelector(".chart-container");
+if (lineChartContainer) {
+  lineChartContainer.style.display = "block";
+}
+
   document.getElementById("total").textContent = formatCurrency(total);
   updateCategoryTotals();
   renderChart();
+  renderPieChart();
 }
 
 function getCategoryTotals() {
@@ -326,26 +374,88 @@ function getCategoryTotals() {
     return totals;
   }
 
-function updateCategoryTotals() {
+  function updateCategoryTotals() {
     const totals = {};
-  
-    let grandTotal = 0;
   
     expenses.forEach(exp => {
       totals[exp.category] = (totals[exp.category] || 0) + exp.amount;
-      grandTotal += exp.amount;
     });
   
     const container = document.getElementById("category-totals");
     container.innerHTML = "";
   
     for (let category in totals) {
-      const percent = ((totals[category] / grandTotal) * 100).toFixed(1);
-  
       const div = document.createElement("div");
-      div.textContent = `${category}: ${formatCurrency(totals[category])} (${percent}%)`;
+      div.className = "category-item";
+  
+      div.innerHTML = `
+        <span>${category}</span>
+        <span>${formatCurrency(totals[category])}</span>
+      `;
+  
       container.appendChild(div);
     }
+  }
+function renderPieChart() {
+  const totals = {};
+  let grandTotal = 0;
+
+  expenses.forEach(exp => {
+    totals[exp.category] = (totals[exp.category] || 0) + exp.amount;
+    grandTotal += exp.amount;
+  });
+
+  const categoryColors = {
+    Food: "#F59E0B",
+    Bills: "#10B981",
+    Transport: "#3B82F6",
+    Leisure: "#EF4444",
+    Shopping: "#EC4899"
+  };
+
+  const labels = Object.keys(totals);
+  const data = labels.map(label => totals[label]);
+  const backgroundColor = labels.map(label => categoryColors[label] || "#ccc");
+
+  const ctx = document.getElementById("pieChart");
+
+  if (pieChart) pieChart.destroy();
+
+  pieChart = new Chart(ctx, {
+    type: "pie",
+    data: {
+      labels,
+      datasets: [{
+        data,
+        backgroundColor,
+        borderWidth: 0
+      }]
+    },
+    options: {
+      responsive: true,
+      plugins: {
+        legend: {
+          position: "bottom"
+        },
+
+        tooltip: {
+          callbacks: {
+            label: function(context) {
+              const value = context.raw;
+
+              const formatted = value.toLocaleString("en-US", {
+                style: "currency",
+                currency: "USD",
+                minimumFractionDigits: 2
+              });
+
+              return `${context.label}: ${formatted}`;
+            }
+          }
+        }
+      }
+    }
+  });
 }
 
 function formatCurrency(amount) {
@@ -419,38 +529,35 @@ function updateExpense(index, field, value, el = null) {
   }
 
   if (field === "amount") {
-    const elValue = value;
-
+    const elValue = value.trim();
     const previousValue = expenses[index].amount.toString();
-
+  
+    if (hasInvalidLeadingZero(elValue)) {
+      if (el) el.innerText = previousValue;
+      return;
+    }
+  
     const isValid = /^\d+(\.\d{1,2})?$/.test(elValue);
-
+  
     if (!isValid) {
       if (el) el.innerText = previousValue;
       return;
     }
-
+  
     const numericValue = Number(elValue);
-
+  
     if (numericValue <= 0 || isNaN(numericValue)) {
-      if (el) el.innerText = expenses[index].amount.toString();
+      if (el) el.innerText = previousValue;
       return;
     }
-
+  
     expenses[index].amount = numericValue;
-    expenses[index].amountRaw = elValue;
-
-    const hasLeadingZeros =
-      elValue.length > 1 &&
-      elValue.startsWith("0") &&
-      !elValue.startsWith("0.");
-
+  
     if (el) {
-      el.innerText = hasLeadingZeros ? elValue : String(numericValue);
+      el.innerText = String(numericValue);
     }
-
+  
     renderExpenses();
-
     return;
   }
 
