@@ -89,35 +89,40 @@
       </div>
     </div>
   </div>
-  <div class="table-controls">
+<div class="table-controls">
 
-    <!-- FILTERS -->
-    <div class="filters">
-      <button class="filter-btn active" data-category="All">All</button>
-      <button class="filter-btn" data-category="Food">Food</button>
-      <button class="filter-btn" data-category="Transport">Transport</button>
-      <button class="filter-btn" data-category="Bills">Bills</button>
-      <button class="filter-btn" data-category="Leisure">Leisure</button>
-      <button class="filter-btn" data-category="Shopping">Shopping</button>
+  <div class="filters">
+    <button class="filter-btn active" data-category="All">All</button>
+    <button class="filter-btn" data-category="Food">Food</button>
+    <button class="filter-btn" data-category="Transport">Transport</button>
+    <button class="filter-btn" data-category="Bills">Bills</button>
+    <button class="filter-btn" data-category="Leisure">Leisure</button>
+    <button class="filter-btn" data-category="Shopping">Shopping</button>
+  </div>
+
+  <div class="controls-right">
+    <div class="month-filter">
+      <span>Month</span>
+      <input id="month-filter" type="month">
+      <button id="clear-month" type="button">Clear</button>
     </div>
-  
-    <!-- SORT -->
+
     <div class="sort">
       <span>Sort by</span>
-
       <div class="select-wrapper">
-      <select id="sort-select">
-        <option value="date-desc">Date: Newest</option>
-        <option value="date-asc">Date: Oldest</option>
-        <option value="amount-asc">Amount: Low to High</option>
-        <option value="amount-desc">Amount: High to Low</option>
-        <option value="name-asc">Name: A to Z</option>
-        <option value="name-desc">Name: Z to A</option>
-      </select>
-
-      <span class="select-arrow">›</span>
+        <select id="sort-select">
+          <option value="date-desc">Date: Newest</option>
+          <option value="date-asc">Date: Oldest</option>
+          <option value="amount-asc">Amount: Low to High</option>
+          <option value="amount-desc">Amount: High to Low</option>
+          <option value="name-asc">Name: A to Z</option>
+          <option value="name-desc">Name: Z to A</option>
+        </select>
+        <span class="select-arrow">›</span>
+      </div>
     </div>
   </div>
+
 </div>
   
 <div class="table-section">

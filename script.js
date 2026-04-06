@@ -3,6 +3,7 @@ let categoryChart = null;
 let pieChart = null;
 let currentFilter = "All";
 let currentSort = "date-desc";
+let currentMonthFilter = "All";
 
 // DOM elements
 const expenseNameInput = document.getElementById("expenseName");
@@ -16,6 +17,8 @@ const dateError = document.getElementById("date-error");
 const descInput = document.getElementById("description");
 const descError = document.getElementById("desc-error");
 const descCounter = document.getElementById("desc-counter");
+const monthFilterInput = document.getElementById("month-filter");
+const clearMonthBtn = document.getElementById("clear-month");
 
 // Event listeners
 addBtn.addEventListener("click", addExpense);
@@ -74,6 +77,19 @@ document.querySelectorAll(".filter-btn").forEach(btn => {
 
 document.getElementById("sort-select").addEventListener("change", (e) => {
   currentSort = e.target.value;
+  renderExpenses();
+});
+
+monthFilterInput.addEventListener("change", (e) => {
+  currentMonthFilter = e.target.value || "All";
+  syncMonthFilterState();
+  renderExpenses();
+});
+
+clearMonthBtn.addEventListener("click", () => {
+  currentMonthFilter = "All";
+  monthFilterInput.value = "";
+  syncMonthFilterState();
   renderExpenses();
 });
 
@@ -239,7 +255,12 @@ function renderExpenses() {
   // APPLY FILTER + SORT
 let filtered = [...expenses];
 
-// FILTER
+// MONTH FILTER
+if (currentMonthFilter !== "All") {
+  filtered = filtered.filter(exp => exp.date && exp.date.slice(0, 7) === currentMonthFilter);
+}
+
+// CATEGORY FILTER
 if (currentFilter !== "All") {
   filtered = filtered.filter(exp => exp.category === currentFilter);
 }
@@ -294,6 +315,18 @@ if (expenses.length === 0) {
 if (trendSection) {
   trendSection.style.display = "none";
 }
+
+  return;
+}
+
+if (filtered.length === 0) {
+  body.innerHTML = `
+    <tr>
+      <td colspan="6" class="empty-state-cell">
+        No expenses found for this filter
+      </td>
+    </tr>
+  `;
 
   return;
 }
@@ -397,6 +430,14 @@ function getSortedCategoryEntries() {
   }
 
   return entries;
+}
+
+function syncMonthFilterState() {
+  if (monthFilterInput.value) {
+    monthFilterInput.classList.add("has-value");
+  } else {
+    monthFilterInput.classList.remove("has-value");
+  }
 }
 
 function updateCategoryTotals() {
@@ -686,14 +727,14 @@ function renderChart() {
         {
           label: "Monthly Spending",
           data,
-          borderColor: "#3B82F6",
-          backgroundColor: "rgba(59, 130, 246, 0.10)",
+          borderColor: "#2ecc71",
+          backgroundColor: "rgba(54, 227, 112, 0.1)",
           tension: 0.35,
           fill: true,
           pointRadius: 4,
           pointHoverRadius: 6,
-          pointBackgroundColor: "#3B82F6",
-          pointBorderColor: "#3B82F6",
+          pointBackgroundColor: "#2ecc71",
+          pointBorderColor: "#2ecc71",
           borderWidth: 3
         },
         {
@@ -796,4 +837,5 @@ function setTodayDate() {
 }
 
 setTodayDate();
+syncMonthFilterState();
 renderExpenses();
