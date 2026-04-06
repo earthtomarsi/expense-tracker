@@ -271,7 +271,7 @@ filtered.sort((a, b) => {
 if (expenses.length === 0) {
   body.innerHTML = `
     <tr>
-      <td colspan="6" style="text-align:center; color:#a1a1a1; padding:16px;">
+      <td colspan="6" class="empty-state-cell">
         No expenses yet
       </td>
     </tr>
@@ -290,10 +290,10 @@ if (expenses.length === 0) {
     categoryChart = null;
   }
 
-  const lineChartContainer = document.querySelector(".chart-container");
-  if (lineChartContainer) {
-    lineChartContainer.style.display = "none";
-  }
+  const trendSection = document.querySelector(".trend-section");
+if (trendSection) {
+  trendSection.style.display = "none";
+}
 
   return;
 }
@@ -350,9 +350,9 @@ if (expenses.length === 0) {
     body.appendChild(row);
   });
 
-const lineChartContainer = document.querySelector(".chart-container");
-if (lineChartContainer) {
-  lineChartContainer.style.display = "block";
+const trendSection = document.querySelector(".trend-section");
+if (trendSection) {
+  trendSection.style.display = "block";
 }
 
   document.getElementById("total").textContent = formatCurrency(total);
@@ -374,36 +374,60 @@ function getCategoryTotals() {
     return totals;
   }
 
-  function updateCategoryTotals() {
-    const totals = {};
-  
-    expenses.forEach(exp => {
-      totals[exp.category] = (totals[exp.category] || 0) + exp.amount;
-    });
-  
-    const container = document.getElementById("category-totals");
-    container.innerHTML = "";
-  
-    for (let category in totals) {
-      const div = document.createElement("div");
-      div.className = "category-item";
-  
-      div.innerHTML = `
-        <span>${category}</span>
-        <span>${formatCurrency(totals[category])}</span>
-      `;
-  
-      container.appendChild(div);
-    }
-  }
-function renderPieChart() {
+function getSortedCategoryEntries() {
   const totals = {};
-  let grandTotal = 0;
 
   expenses.forEach(exp => {
     totals[exp.category] = (totals[exp.category] || 0) + exp.amount;
-    grandTotal += exp.amount;
   });
+
+  let entries = Object.entries(totals);
+
+  // sort highest to lowest
+  entries.sort((a, b) => b[1] - a[1]);
+
+  // if filtered, move selected category to the front
+  if (currentFilter !== "All") {
+    const selectedIndex = entries.findIndex(([category]) => category === currentFilter);
+
+    if (selectedIndex > -1) {
+      const [selectedEntry] = entries.splice(selectedIndex, 1);
+      entries.unshift(selectedEntry);
+    }
+  }
+
+  return entries;
+}
+
+function updateCategoryTotals() {
+  const container = document.getElementById("category-totals");
+  container.innerHTML = "";
+
+  const entries = getSortedCategoryEntries();
+
+  entries.forEach(([category, total]) => {
+    const div = document.createElement("div");
+    div.className = "category-item";
+
+    div.innerHTML = `
+      <span>${category}</span>
+      <span>${formatCurrency(total)}</span>
+    `;
+
+    container.appendChild(div);
+  });
+}
+  
+function renderPieChart() {
+  const entries = getSortedCategoryEntries();
+
+  if (entries.length === 0) {
+    if (pieChart) {
+      pieChart.destroy();
+      pieChart = null;
+    }
+    return;
+  }
 
   const categoryColors = {
     Food: "#F59E0B",
@@ -413,11 +437,12 @@ function renderPieChart() {
     Shopping: "#EC4899"
   };
 
-  const labels = Object.keys(totals);
-  const data = labels.map(label => totals[label]);
+  const labels = entries.map(([category]) => category);
+  const data = entries.map(([, total]) => total);
   const backgroundColor = labels.map(label => categoryColors[label] || "#ccc");
 
   const ctx = document.getElementById("pieChart");
+  if (!ctx) return;
 
   if (pieChart) pieChart.destroy();
 
@@ -431,25 +456,65 @@ function renderPieChart() {
         borderWidth: 0
       }]
     },
+    plugins: [{
+      id: "sliceLabels",
+      afterDatasetsDraw(chart) {
+        const { ctx } = chart;
+        const meta = chart.getDatasetMeta(0);
+        const total = data.reduce((sum, value) => sum + value, 0);
+  
+        const rootStyles = getComputedStyle(document.documentElement);
+        const pieLabelColor = rootStyles.getPropertyValue("--pie-label-color").trim() || "#ffffff";
+        const pieLabelFontFamily = rootStyles.getPropertyValue("--pie-label-font-family").trim() || "Inter, Arial, sans-serif";
+        const pieLabelFontWeight = rootStyles.getPropertyValue("--pie-label-font-weight").trim() || "700";
+        const pieLabelFontSize = parseInt(rootStyles.getPropertyValue("--pie-label-font-size"), 10) || 14;
+        const pieLabelFontSizeSmall = parseInt(rootStyles.getPropertyValue("--pie-label-font-size-small"), 10) || 10;
+
+        ctx.save();
+        ctx.fillStyle = pieLabelColor;
+        ctx.textAlign = "center";
+        ctx.textBaseline = "middle";
+
+        meta.data.forEach((slice, index) => {
+          const value = data[index];
+          const percentage = total ? (value / total) * 100 : 0;
+
+          const fontSize = percentage < 8 ? pieLabelFontSizeSmall : pieLabelFontSize;
+          ctx.font = `${pieLabelFontWeight} ${fontSize}px ${pieLabelFontFamily}`;
+  
+          // place text slightly inward so it fits better
+          const angle = (slice.startAngle + slice.endAngle) / 2;
+          const radius = slice.outerRadius * 0.62;
+          const x = slice.x + Math.cos(angle) * radius;
+          const y = slice.y + Math.sin(angle) * radius;
+  
+          ctx.fillText(`${percentage.toFixed(0)}%`, x, y);
+        });
+  
+        ctx.restore();
+      }
+    }],
     options: {
       responsive: true,
+      layout: {
+        padding: {
+          bottom: 18
+        }
+      },
       plugins: {
         legend: {
-          position: "bottom"
+          position: "bottom",
+          labels: {
+            padding: 28,
+            usePointStyle: false
+          }
         },
-
         tooltip: {
+          displayColors: false,
           callbacks: {
+            title: () => "",
             label: function(context) {
-              const value = context.raw;
-
-              const formatted = value.toLocaleString("en-US", {
-                style: "currency",
-                currency: "USD",
-                minimumFractionDigits: 2
-              });
-
-              return `${context.label}: ${formatted}`;
+              return `${context.label}: ${formatCurrency(context.raw)}`;
             }
           }
         }
@@ -466,10 +531,9 @@ function formatCurrency(amount) {
 }
 
 function deleteExpense(index) {
-    expenses.splice(index, 1);
-    renderExpenses();
-    renderChart();
-  }
+  expenses.splice(index, 1);
+  renderExpenses();
+}
   
   function isValidDate(value) {
     if (!/^\d{4}-\d{2}-\d{2}$/.test(value)) return false;
@@ -580,62 +644,128 @@ function updateTotalsOnly() {
 }
   
 function renderChart() {
-    const monthlyTotals = {};
-  
-    expenses.forEach(exp => {
-      if (!exp.date) return;
-  
-      const date = new Date(exp.date);
-  
-      // Format: Jan 2026
-      const monthKey = date.toLocaleString("en-US", {
-        month: "short",
-        year: "numeric"
-      });
-  
-      monthlyTotals[monthKey] = (monthlyTotals[monthKey] || 0) + exp.amount;
+  const monthlyTotals = {};
+
+  expenses.forEach(exp => {
+    if (!exp.date) return;
+
+    const date = new Date(exp.date);
+
+    const monthKey = date.toLocaleString("en-US", {
+      month: "short",
+      year: "numeric"
     });
-  
-    const sorted = Object.entries(monthlyTotals).sort((a, b) => {
-        return new Date(a[0]) - new Date(b[0]);
-    });
-      
-    const labels = sorted.map(item => item[0]);
-    const data = sorted.map(item => item[1]);
-  
-    const ctx = document.getElementById("categoryChart");
-  
-    if (categoryChart) categoryChart.destroy();
-  
-    categoryChart = new Chart(ctx, {
-      type: "line",
-      data: {
-        labels,
-        datasets: [{
+
+    monthlyTotals[monthKey] = (monthlyTotals[monthKey] || 0) + exp.amount;
+  });
+
+  const sorted = Object.entries(monthlyTotals).sort((a, b) => {
+    return new Date(a[0]) - new Date(b[0]);
+  });
+
+  const labels = sorted.map(item => item[0]);
+  const data = sorted.map(item => item[1]);
+
+  const average =
+    data.length > 0
+      ? data.reduce((sum, value) => sum + value, 0) / data.length
+      : 0;
+
+  const averageLine = labels.map(() => average);
+
+  const ctx = document.getElementById("categoryChart");
+  if (!ctx) return;
+
+  if (categoryChart) categoryChart.destroy();
+
+  categoryChart = new Chart(ctx, {
+    type: "line",
+    data: {
+      labels,
+      datasets: [
+        {
           label: "Monthly Spending",
           data,
-          borderColor: "#2ecc71",
-          backgroundColor: "rgba(46, 204, 113, 0.1)",
-          tension: 0.3,
+          borderColor: "#3B82F6",
+          backgroundColor: "rgba(59, 130, 246, 0.10)",
+          tension: 0.35,
           fill: true,
           pointRadius: 4,
-          pointHoverRadius: 6
-        }]
+          pointHoverRadius: 6,
+          pointBackgroundColor: "#3B82F6",
+          pointBorderColor: "#3B82F6",
+          borderWidth: 3
+        },
+        {
+          label: "Average Monthly Spending",
+          data: averageLine,
+          borderColor: "#EF4444",
+          borderDash: [6, 6],
+          pointRadius: 0,
+          pointHoverRadius: 0,
+          fill: false,
+          borderWidth: 2
+        }
+      ]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      layout: {
+        padding: {
+          top: 8,
+          right: 6,
+          bottom: 8,
+          left: 6
+        }
       },
-      options: {
-        responsive: true,
-        plugins: {
-          legend: {
-            display: false
+      plugins: {
+        legend: {
+          display: true,
+          labels: {
+            usePointStyle: true,
+            boxWidth: 8,
+            boxHeight: 8,
+            padding: 18
           }
         },
-        scales: {
-          y: {
-            beginAtZero: true
+        tooltip: {
+          callbacks: {
+            label: function(context) {
+              return `${context.dataset.label}: ${formatCurrency(context.raw)}`;
+            }
+          }
+        }
+      },
+      scales: {
+        x: {
+          offset: false,
+          ticks: {
+            padding: 14,
+            maxRotation: 0,
+            minRotation: 0,
+            align: "inner"
+          },
+          grid: {
+            display: false,
+            drawBorder: false
+          }
+        },
+        y: {
+          beginAtZero: true,
+          ticks: {
+            padding: 10,
+            callback: function(value) {
+              return formatCurrency(Number(value));
+            }
+          },
+          grid: {
+            drawBorder: false
           }
         }
       }
-    });
+    }
+  });
 }
 
 const usernameWrapper = document.querySelector(".username-wrapper");

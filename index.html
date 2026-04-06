@@ -98,6 +98,7 @@
       <button class="filter-btn" data-category="Transport">Transport</button>
       <button class="filter-btn" data-category="Bills">Bills</button>
       <button class="filter-btn" data-category="Leisure">Leisure</button>
+      <button class="filter-btn" data-category="Shopping">Shopping</button>
     </div>
   
     <!-- SORT -->
@@ -162,11 +163,16 @@
 
   </div>
 </div>
-
-<div class="chart-container">
-<h3>Monthly Spending Trend</h3>
-<canvas id="categoryChart"></canvas>
 </div>
+
+<section class="trend-section">
+  <div class="trend-inner">
+    <div class="chart-container">
+      <h3>Monthly Spending Trend</h3>
+      <canvas id="categoryChart"></canvas>
+    </div>
+  </div>
+</section>
 
   <script src="script.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>

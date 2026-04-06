@@ -4,6 +4,12 @@
 
 :root {
     --accent-green: #2ecc71;
+
+    --pie-label-color: #ffffff;
+    --pie-label-font-family: Inter, Arial, sans-serif;
+    --pie-label-font-weight: 700;
+    --pie-label-font-size: 14px;
+    --pie-label-font-size-small: 10px;
 }
 
 body {
@@ -435,10 +441,10 @@ input[type="date"].has-value {
 
 #expense-table th {
     text-align: left;
-    font-size: 13px;
+    font-size: 15px;
     color: #262626;
     font-weight: 600;
-    padding: 12px;
+    padding: 14px 12px;
 }
 
 #expense-table tr {
@@ -472,11 +478,12 @@ input[type="date"].has-value {
     display: table-cell;
     vertical-align: middle;
     position: relative;
-    height: 44px;
-    padding: 0px 12px;
+    height: 52px;
+    padding: 0 12px;
 
     color: #666;
-    vertical-align: middle;
+    font-size: 15px;
+    line-height: 1.4;
 
     overflow: hidden;
     white-space: nowrap;
@@ -494,6 +501,9 @@ input[type="date"].has-value {
     border: none;
     background: transparent;
 
+    font-size: 15px;
+    color: inherit;
+
     padding: 0;
     margin: 0;
 }
@@ -505,6 +515,12 @@ input[type="date"].has-value {
 #expense-table th:first-child,
 #expense-table td:first-child {
     text-align: left;
+}
+
+#expense-table td.empty-state-cell {
+    text-align: center !important;
+    color: #a1a1a1;
+    padding: 16px;
 }
 
 #expense-table tr td:first-child {
@@ -569,11 +585,12 @@ input[type="date"].has-value {
 
 .table-section .editable {
     color: #666;
+    font-size: 15px;
     transition: 0.15s ease;
     outline: none;
     border: 2px solid transparent;
     border-radius: 6px;
-    padding: 4px 6px;
+    padding: 6px 8px;
 }
 
 .table-section .editable.invalid {
@@ -694,13 +711,29 @@ button:active {
     border-top: 1px solid #eee;
 }
 
-.chart-container {
-    margin-top: 20px;
-    padding: 26px;
-    background: #fafafa;
-    border: 1px solid #eee;
-    border-radius: 12px;
+.trend-section {
     width: 100%;
+    margin-top: 30px;
+    padding: 0;
+}
+
+.trend-inner {
+    width: 100%;
+    max-width: 100%;
+    margin: 0;
+    padding: 36px 0px;
+}
+
+.chart-container {
+    width: 100%;
+    height: 500px;
+    padding: 32px 36px 26px;
+    background: #fafafa;
+    border-top: 1px solid #eee;
+    border-bottom: 1px solid #eee;
+    border-left: none;
+    border-right: none;
+    border-radius: 0;
 }
 
 .chart-container h3 {
@@ -710,8 +743,9 @@ button:active {
 }
 
 #categoryChart {
-    width: 1000px !important;
-    margin: 0 auto;
+    width: 100% !important;
+    height: 100% !important;
+    display: block;
 }
 
 .table-controls {
