@@ -647,6 +647,30 @@ function renderExpenses() {
     `;
 
     body.appendChild(row);
+
+    const rowCells = row.querySelectorAll("td");
+    const categorySelect = row.querySelector("td.category-cell select");
+    const titleText = row.querySelector(".cell-text");
+
+    if (titleText) {
+      titleText.title = expense.expenseName || "";
+    }
+
+    if (rowCells[1]) {
+      rowCells[1].title = expense.amount != null ? String(expense.amount) : "";
+    }
+
+    if (categorySelect) {
+      categorySelect.title = expense.category || "";
+    }
+
+    if (rowCells[3]) {
+      rowCells[3].title = formatDateDisplay(expense.date) || "";
+    }
+
+    if (rowCells[4]) {
+      rowCells[4].title = expense.description || "";
+}
   });
 
   const trendSection = document.querySelector(".trend-section");

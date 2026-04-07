@@ -500,6 +500,26 @@ input[type="date"].has-value {
     padding-right: 6px;
 }
 
+#expense-table th:nth-child(2),
+#expense-table td:nth-child(2) {
+    width: 12%;
+}
+
+#expense-table th:nth-child(3),
+#expense-table td:nth-child(3) {
+    width: 16%;
+}
+
+#expense-table th:nth-child(4),
+#expense-table td:nth-child(4) {
+    width: 16%;
+}
+
+#expense-table th:nth-child(5),
+#expense-table td:nth-child(5) {
+    width: 24%;
+}
+
 #expense-table td.empty-state-cell,
 #expense-table td.empty-state-cell:first-child {
     text-align: center !important;
