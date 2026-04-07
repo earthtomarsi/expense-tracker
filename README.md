@@ -54,36 +54,47 @@ One challenge was converting the original front-end-only version into a database
 
 ## How to Run the Project
 
-### 1. Install dependencies:
+### 1. Install dependencies
 
-   ```bash
-   npm install
+```bash
+npm install
+```
 
-### 2. Set up the MySQL database
+### 2. Create the database
 
-Create a MySQL database named expense_tracker.
+Open MySQL and create a database called `expense_tracker`.
+
+```sql
 CREATE DATABASE expense_tracker;
+```
 
 ### 3. Import the database export
 
-Import the included SQL file to recreate the same schema and sample data used for this project.
-If mysql is available on your PATH:
+If `mysql` is available on your PATH:
+
+```bash
 mysql -u root -p expense_tracker < expense_tracker.sql
+```
 
-If mysql is not on your PATH, use your MySQL binary path instead, for example:
+If `mysql` is not available on your PATH, use the full MySQL binary path instead:
+
+```bash
 /usr/local/mysql/bin/mysql -u root -p expense_tracker < expense_tracker.sql
+```
 
-### 4. Configure the database connection
+### 4. Check the database connection settings
 
-Check db.js and make sure the MySQL connection details match your local setup, such as username, password, host, and database name.
+Open `db.js` and make sure the MySQL connection details match your local setup.
 
 ### 5. Start the backend server
 
+```bash
 node server.js
+```
 
 ### 6. Open the application
 
-Open index.html in your browser, or use a local live server if needed.
+Open `index.html` in your browser, or use a local live server if needed.
 
 ## API Overview
 
@@ -100,10 +111,10 @@ Search affects the table view only, while the charts and summary cards continue 
 Edit mode uses a Save / Cancel workflow so multiple table changes can be reviewed before being committed to the database.
 Submission Files Included
 
-##This repository includes:
+## Submission Files Included
 
-### source code
-### backend files
-### MySQL database export
-### README documentation
-### static assets
+- Source code
+- Backend files
+- MySQL database export
+- README documentation
+- Static assets
