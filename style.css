@@ -20,6 +20,43 @@ body {
     overflow-x: hidden;
 }
 
+.sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+}
+
+.logo-clickable {
+    cursor: pointer;
+}
+
+.status-message {
+    max-width: 1380px;
+    margin: 18px auto 0;
+    padding: 12px 16px;
+    border-radius: 8px;
+    border: 1px solid transparent;
+    font-size: 14px;
+}
+
+.status-message.error {
+    background: #fff5f5;
+    border-color: #f5c2c7;
+    color: #b42318;
+}
+
+.status-message.success {
+    background: #f0fdf4;
+    border-color: #bbf7d0;
+    color: #166534;
+}
+
 .add {
     max-width: 1380px;
     margin: 46px 30px 30px 30px;
@@ -82,20 +119,6 @@ body {
     color: #A1A1A1;
 }
 
-.brand h1 {
-    font-size: 30px;
-    font-weight: 700;
-    letter-spacing: -0.5px;
-    color: #111;
-    margin: 0;
-}
-
-.brand p {
-    font-size: 13px;
-    color: #777;
-    margin: 4px 0 0;
-}
-
 .header-left {
     display: flex;
     flex-direction: column;
@@ -120,12 +143,6 @@ body {
     border: 1px solid #262626;
     object-fit: cover;
     flex-shrink: 0;
-}
-
-.profile-meta {
-    display: flex;
-    align-items: center;
-    position: relative;
 }
 
 .username-wrapper {
@@ -171,6 +188,11 @@ body {
     transform: rotate(90deg);
 }
 
+.username-wrapper:focus-visible {
+    outline: 2px solid var(--accent-green);
+    outline-offset: 2px;
+}
+
 .dropdown {
     position: absolute;
     top: 45px;
@@ -195,21 +217,21 @@ body {
     transform: translateY(0);
 }
 
-.dropdown li {
+.logout-btn {
+    width: 100%;
+    height: auto;
+    margin-left: 0;
     padding: 10px 12px;
-    font-size: 13px;
-    color: #a1a1a1;
-    cursor: pointer;
     border-radius: 6px;
-    transition: background 0.2s ease, color 0.2s ease;
-}
-
-.dropdown li:hover {
-    background: #ddd;
+    background: transparent;
     color: #0a0a0a;
+    text-align: left;
+    font-size: 13px;
+    line-height: 1.2;
 }
 
-.logout {
+.logout-btn:hover {
+    background: #ddd;
     color: #0a0a0a;
 }
 
@@ -459,6 +481,16 @@ input[type="date"].has-value {
     color: #262626;
     font-weight: 600;
     padding: 14px 12px;
+    overflow: hidden;
+}
+
+#expense-table th .th-text {
+    display: block;
+    width: 100%;
+    min-width: 0;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
 }
 
 #expense-table th:first-child {
@@ -562,7 +594,6 @@ input[type="date"].has-value {
     outline: none;
 }
 
-/* regular editable cells except title + category */
 #expense-table td.editable:not(.title-cell):not(.category-cell):not(.locked):hover {
     background: #F5F5F5;
     color: #666;
@@ -578,20 +609,26 @@ input[type="date"].has-value {
     outline: none;
 }
 
-/* TITLE CELL */
 #expense-table td.title-cell {
     padding-left: 20px !important;
     padding-right: 12px;
+    overflow: hidden;
 }
 
 #expense-table td.title-cell .cell-text {
-    display: flex;
-    align-items: center;
-    min-height: 52px;
+    display: block;
     width: 100%;
+    max-width: 100%;
+    min-width: 0;
+    height: 48px;
+    line-height: 44px;
     padding: 0 12px;
     border: 2px solid transparent;
     border-radius: 4px;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    box-sizing: border-box;
     transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease;
 }
 
@@ -615,7 +652,6 @@ input[type="date"].has-value {
     border-color: transparent !important;
 }
 
-/* CATEGORY CELL */
 #expense-table td.category-cell {
     padding: 0 12px;
 }
@@ -666,7 +702,6 @@ input[type="date"].has-value {
     color: #666 !important;
 }
 
-/* delete */
 .hidden-delete {
     display: none !important;
 }
@@ -941,11 +976,14 @@ button:active {
     margin-top: 20px;
 }
 
-.month-filter span {
+.month-filter label,
+.sort label {
     font-size: 14px;
     color: #666;
     white-space: nowrap;
     font-weight: 500;
+    line-height: 1.2;
+    flex: 0 0 auto;
 }
 
 .month-filter input[type="month"] {
@@ -992,14 +1030,40 @@ button:active {
     margin-top: 20px;
     padding-right: 0;
     align-items: center;
-    gap: 10px;
+    gap: 12px;
 }
 
-.sort span {
+.sort label {
+    min-width: 52px;
+}
+
+.sort .select-wrapper {
+    min-width: 190px;
+}
+
+.sort select {
+    width: auto;
+    min-width: 190px;
+    padding: 4px 46px 4px 14px;
+    height: 40px;
+    border: 1px solid #ddd;
+    border-radius: 6px;
     font-size: 14px;
-    color: #666;
-    white-space: nowrap;
-    font-weight: 500;
+    appearance: none;
+}
+
+.sort .select-wrapper .select-arrow {
+    right: 16px;
+    top: 50%;
+    transform: translateY(-50%) rotate(90deg);
+    pointer-events: none;
+    color: #a1a1a1;
+    font-size: 14px;
+}
+
+.sort select:focus {
+    border: 1px solid #A1A1A1 !important;
+    outline: none;
 }
 
 .filter-btn {
@@ -1026,43 +1090,6 @@ button:active {
     border: none;
 }
 
-.sort-container {
-    display: flex;
-    justify-content: flex-start;
-}
-
-.sort-select-wrapper {
-    position: relative;
-    display: inline-flex;
-}
-
-.sort select {
-    width: auto;
-    min-width: 140px;
-    padding: 4px 40px 4px 14px;
-    height: 40px;
-    border: 1px solid #ddd;
-    border-radius: 6px;
-    font-size: 14px;
-    appearance: none;
-}
-
-.sort-select-wrapper .select-arrow {
-    position: absolute;
-    right: 20px;
-    top: 50%;
-    transform: translateY(-50%) rotate(90deg);
-    pointer-events: none;
-    color: #a1a1a1;
-    font-size: 14px;
-}
-
-.sort select:focus {
-    border: 1px solid #A1A1A1 !important;
-    outline: none;
-}
-
-/* ===== SUMMARY SECTION ===== */
 .summary-section {
     margin-top: 30px;
     padding-top: 20px;
@@ -1193,14 +1220,20 @@ button:active {
         justify-content: space-between;
     }
 
+    .month-filter label,
+    .sort label {
+        min-width: 0;
+    }
+
     .month-filter input[type="month"],
     .sort select {
         width: 100%;
         min-width: 0;
     }
 
-    .sort-select-wrapper {
+    .sort .select-wrapper {
         width: 100%;
+        min-width: 0;
     }
 }
 

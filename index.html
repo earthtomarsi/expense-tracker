@@ -2,212 +2,220 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Spendflow</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com/" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="style.css">
-  <script src="https:cdn.jsdelivr.net/npm/chart.js"></script>
   <link rel="icon" type="image/png" href="Assets/favicon.png">
 </head>
 <body>
-<div class="header-full">
-
+  <header class="header-full">
     <div class="header-left">
-      <h1 class="logo" onclick="resetDashboardView()" style="cursor:pointer;">
+      <h1 id="brand-home" class="logo logo-clickable">
         Spend<span class="f">ƒ </span>low
-        </h1>
-        <p>Track your spending</p>
+      </h1>
+      <p>Track your spending</p>
     </div>
-    
-    <div class="header-right">
-    
-        <div class="profile">
-        <img class="profile-pic" src="https://www.gravatar.com/avatar/?d=mp" alt="Profile">
-    
-        <div class="profile-info">
-            <div class="username-wrapper">
-                <span class="username">Marsi</span>
-                <span class="arrow">›</span>
-            </div>
-    
-            <div id="dropdown" class="dropdown hidden">
-                  <li class="logout" onclick="logout()">Log out</li>
-            </div>
-        </div>
-    
-      </div>
-    
-    </div>
-    
-</div>
-    
-  <div class="add">
-    <h2>Track an Expense</h2>
-    <div class="container">
-      <div class="input-section">
-        <div class="input-row">
 
+    <div class="header-right">
+      <div class="profile">
+        <img class="profile-pic" src="https://www.gravatar.com/avatar/?d=mp" alt="Default profile avatar">
+
+        <div class="profile-info">
+          <div
+            class="username-wrapper"
+            role="button"
+            tabindex="0"
+            aria-expanded="false"
+            aria-controls="dropdown"
+          >
+            <span class="username">Marsi</span>
+            <span class="arrow">›</span>
+          </div>
+
+          <div id="dropdown" class="dropdown">
+            <button id="logout-btn" class="logout-btn" type="button">Log out</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <div id="app-status" class="status-message" role="alert" aria-live="assertive" hidden></div>
+
+    <div class="add">
+      <h2>Track an Expense</h2>
+
+      <div class="container">
+        <div class="input-section">
+          <div class="input-row">
             <div class="field-group">
+              <label class="sr-only" for="expenseName">Expense title</label>
               <input id="expenseName" placeholder="Title">
               <p id="expenseName-error" class="error-text"></p>
             </div>
-          
+
             <div class="field-group">
+              <label class="sr-only" for="amount">Expense amount</label>
               <input id="amount" type="text" inputmode="decimal" placeholder="Amount">
               <small id="amount-helper"></small>
               <p id="amount-error" class="error-text"></p>
             </div>
-          
-            <div class="select-wrapper">
-              <select id="category">
-                <option>Food</option>
-                <option>Transport</option>
-                <option>Bills</option>
-                <option>Leisure</option>
-                <option>Shopping</option>
-              </select>
-              <span class="select-arrow">›</span>
-            </div>
-          
+
             <div class="field-group">
+              <label class="sr-only" for="category">Expense category</label>
+              <div class="select-wrapper">
+                <select id="category">
+                  <option>Food</option>
+                  <option>Transport</option>
+                  <option>Bills</option>
+                  <option>Leisure</option>
+                  <option>Shopping</option>
+                </select>
+                <span class="select-arrow">›</span>
+              </div>
+            </div>
+
+            <div class="field-group">
+              <label class="sr-only" for="date">Expense date</label>
               <input id="date" type="date">
               <small id="date-helper"></small>
               <p id="date-error" class="error-text"></p>
             </div>
-          
+
             <div class="field-group description-group">
+              <label class="sr-only" for="description">Expense description</label>
               <input id="description" maxlength="70" placeholder="Description">
               <div class="desc-info">
-              <p id="desc-error" class="error-text"></p>
-              <small id="desc-counter">0/70</small>
+                <p id="desc-error" class="error-text"></p>
+                <small id="desc-counter">0/70</small>
               </div>
             </div>
+          </div>
+
+          <div class="button-section">
+            <button id="add-btn" type="button">Add Expense</button>
+          </div>
         </div>
-    <div class="button-section">    
-    <button id="add-btn">Add Expense</button>
-    </div>    
       </div>
     </div>
-  </div>
-<div class="table-controls">
 
-  <div class="filters">
-    <button class="filter-btn active" data-category="All">All</button>
-    <button class="filter-btn" data-category="Food">Food</button>
-    <button class="filter-btn" data-category="Transport">Transport</button>
-    <button class="filter-btn" data-category="Bills">Bills</button>
-    <button class="filter-btn" data-category="Leisure">Leisure</button>
-    <button class="filter-btn" data-category="Shopping">Shopping</button>
-  </div>
-
-  <div class="controls-right">
-    <div class="month-filter">
-      <span>Month</span>
-      <input id="month-filter" type="month">
-      <button id="clear-month" type="button">Clear</button>
-    </div>
-
-    <div class="sort">
-      <span>Sort by</span>
-      <div class="select-wrapper">
-        <select id="sort-select">
-          <option value="date-desc">Date: Newest</option>
-          <option value="date-asc">Date: Oldest</option>
-          <option value="amount-asc">Amount: Low to High</option>
-          <option value="amount-desc">Amount: High to Low</option>
-          <option value="name-asc">Name: A to Z</option>
-          <option value="name-desc">Name: Z to A</option>
-        </select>
-        <span class="select-arrow">›</span>
-      </div>
-    </div>
-  </div>
-
-</div>
-  
-<div class="table-section">
-<div class="table-header">
-  <h3>Expense History</h3>
-
-  <div class="table-topbar">
-    <div class="table-search">
-      <input id="expense-search" type="text" placeholder="Search by title">
-      <button type="button" class="search-icon-btn" aria-label="Search" disabled>
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <circle cx="11" cy="11" r="7"></circle>
-          <path d="M20 20L16.65 16.65"></path>
-        </svg>
-      </button>
-    </div>
-
-    <div class="table-pagination">
-      <span id="page-indicator">1-10 of 12</span>
-      <button id="prev-page-btn" type="button" class="page-btn" aria-label="Previous page">&#8249;</button>
-      <button id="next-page-btn" type="button" class="page-btn" aria-label="Next page">&#8250;</button>
-    </div>
-  </div>
-</div>
-
-<table id="expense-table">
-<thead>
-    <tr>
-    <th>Title</th>
-    <th>Amount</th>
-    <th>Category</th>
-    <th>Date</th>
-    <th>Description</th>
-    <th></th>
-    </tr>
-</thead>
-
-<tbody id="expense-body">
-    <tr id="empty-row">
-        <td colspan="6" id="empty-state">No expenses yet</td>
-    </tr>
-</tbody>
-</table>
-
-<div class="table-actions">
-  <button id="edit-table-btn" type="button" class="table-action-btn">Edit</button>
-  <button id="cancel-table-btn" type="button" class="table-action-btn secondary">Cancel</button>
-</div>
-
-<div class="summary-section">
-  <h3>Summary</h3>
-
-  <div class="summary-grid">
-    
-    <!-- LEFT: totals -->
-    <div class="summary-left">
-      <div class="total-card">
-        <p>Total Spending</p>
-        <h2 id="total">0</h2>
+    <div class="table-controls">
+      <div class="filters">
+        <button class="filter-btn active" data-category="All" type="button">All</button>
+        <button class="filter-btn" data-category="Food" type="button">Food</button>
+        <button class="filter-btn" data-category="Transport" type="button">Transport</button>
+        <button class="filter-btn" data-category="Bills" type="button">Bills</button>
+        <button class="filter-btn" data-category="Leisure" type="button">Leisure</button>
+        <button class="filter-btn" data-category="Shopping" type="button">Shopping</button>
       </div>
 
-      <div class="category-breakdown" id="category-totals"></div>
+      <div class="controls-right">
+        <div class="month-filter">
+          <label for="month-filter">Month</label>
+          <input id="month-filter" type="month">
+          <button id="clear-month" type="button">Clear</button>
+        </div>
+
+        <div class="sort">
+          <label for="sort-select">Sort by</label>
+          <div class="select-wrapper">
+            <select id="sort-select">
+              <option value="date-desc">Date: Newest</option>
+              <option value="date-asc">Date: Oldest</option>
+              <option value="amount-asc">Amount: Low to High</option>
+              <option value="amount-desc">Amount: High to Low</option>
+              <option value="name-asc">Name: A to Z</option>
+              <option value="name-desc">Name: Z to A</option>
+            </select>
+            <span class="select-arrow">›</span>
+          </div>
+        </div>
+      </div>
     </div>
 
-    <!-- RIGHT: pie chart -->
-    <div class="summary-right">
-      <canvas id="pieChart"></canvas>
+    <div class="table-section">
+      <div class="table-header">
+        <h3>Expense History</h3>
+
+        <div class="table-topbar">
+          <div class="table-search">
+            <label class="sr-only" for="expense-search">Search expense titles</label>
+            <input id="expense-search" type="text" placeholder="Search by title">
+            <button type="button" class="search-icon-btn" aria-label="Search" disabled>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="11" cy="11" r="7"></circle>
+                <path d="M20 20L16.65 16.65"></path>
+              </svg>
+            </button>
+          </div>
+
+          <div class="table-pagination">
+            <span id="page-indicator">0-0 of 0</span>
+            <button id="prev-page-btn" type="button" class="page-btn" aria-label="Previous page">&#8249;</button>
+            <button id="next-page-btn" type="button" class="page-btn" aria-label="Next page">&#8250;</button>
+          </div>
+        </div>
+      </div>
+
+      <table id="expense-table">
+        <thead>
+          <tr>
+            <th><span class="th-text">Title</span></th>
+            <th><span class="th-text">Amount</span></th>
+            <th><span class="th-text">Category</span></th>
+            <th><span class="th-text">Date</span></th>
+            <th><span class="th-text">Description</span></th>
+            <th></th>
+          </tr>
+        </thead>
+
+        <tbody id="expense-body">
+          <tr id="empty-row">
+            <td colspan="6" id="empty-state">No expenses yet</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <div class="table-actions">
+        <button id="edit-table-btn" type="button" class="table-action-btn">Edit</button>
+        <button id="cancel-table-btn" type="button" class="table-action-btn secondary">Cancel</button>
+      </div>
+
+      <div class="summary-section">
+        <h3>Summary</h3>
+
+        <div class="summary-grid">
+          <div class="summary-left">
+            <div class="total-card">
+              <p>Total Spending</p>
+              <h2 id="total">0</h2>
+            </div>
+
+            <div class="category-breakdown" id="category-totals"></div>
+          </div>
+
+          <div class="summary-right">
+            <canvas id="pieChart"></canvas>
+          </div>
+        </div>
+      </div>
     </div>
 
-  </div>
-</div>
-</div>
+    <section class="trend-section">
+      <div class="trend-inner">
+        <div class="chart-container">
+          <h3>Monthly Spending Trend</h3>
+          <canvas id="categoryChart"></canvas>
+        </div>
+      </div>
+    </section>
+  </main>
 
-<section class="trend-section">
-  <div class="trend-inner">
-    <div class="chart-container">
-      <h3>Monthly Spending Trend</h3>
-      <canvas id="categoryChart"></canvas>
-    </div>
-  </div>
-</section>
-
-  <script src="script.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-
+  <script src="script.js"></script>
 </body>
 </html>

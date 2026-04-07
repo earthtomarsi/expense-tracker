@@ -34,7 +34,14 @@ const searchIconBtn = document.querySelector(".search-icon-btn");
 const prevPageBtn = document.getElementById("prev-page-btn");
 const nextPageBtn = document.getElementById("next-page-btn");
 const pageIndicator = document.getElementById("page-indicator");
+const expenseBody = document.getElementById("expense-body");
+const statusMessage = document.getElementById("app-status");
+const brandHome = document.getElementById("brand-home");
+const usernameWrapper = document.querySelector(".username-wrapper");
+const logoutBtn = document.getElementById("logout-btn");
+const trendSection = document.querySelector(".trend-section");
 
+// ---------- Helpers ----------
 function cloneExpenses(expenseList) {
   return expenseList.map(exp => ({ ...exp }));
 }
@@ -65,6 +72,61 @@ function formatDateDisplay(value) {
 
   const [year, month, day] = value.split("-");
   return `${month}/${day}/${year}`;
+}
+
+function escapeHtml(value) {
+  return String(value ?? "")
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#039;");
+}
+
+function showStatus(message, type = "error") {
+  if (!statusMessage) return;
+  statusMessage.textContent = message;
+  statusMessage.className = `status-message ${type}`;
+  statusMessage.hidden = false;
+}
+
+function clearStatus() {
+  if (!statusMessage) return;
+  statusMessage.hidden = true;
+  statusMessage.textContent = "";
+  statusMessage.className = "status-message";
+}
+
+function updatePaginationDisplay(totalItems, startIndex = 0, endIndex = 0) {
+  if (!pageIndicator || !prevPageBtn || !nextPageBtn) return;
+
+  if (totalItems === 0) {
+    pageIndicator.textContent = "0-0 of 0";
+    prevPageBtn.disabled = true;
+    nextPageBtn.disabled = true;
+    return;
+  }
+
+  pageIndicator.textContent = `${startIndex}-${endIndex} of ${totalItems}`;
+  prevPageBtn.disabled = currentPage === 1;
+  nextPageBtn.disabled = endIndex >= totalItems;
+}
+
+function destroyCharts() {
+  if (pieChart) {
+    pieChart.destroy();
+    pieChart = null;
+  }
+
+  if (categoryChart) {
+    categoryChart.destroy();
+    categoryChart = null;
+  }
+}
+
+function toggleTrendSection(show) {
+  if (!trendSection) return;
+  trendSection.style.display = show ? "block" : "none";
 }
 
 function getFilteredExpenses(sourceExpenses, includeSearch = true) {
@@ -105,6 +167,209 @@ function getFilteredExpenses(sourceExpenses, includeSearch = true) {
   return filtered;
 }
 
+function syncMonthFilterState() {
+  if (!monthFilterInput) return;
+
+  if (monthFilterInput.value) {
+    monthFilterInput.classList.add("has-value");
+  } else {
+    monthFilterInput.classList.remove("has-value");
+  }
+}
+
+function hasInvalidLeadingZero(value) {
+  return /^0\d/.test(value.trim());
+}
+
+function isValidDate(value) {
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(value)) return false;
+
+  const [year, month, day] = value.split("-").map(Number);
+  const today = getTodayLocalDate();
+
+  if (month < 1 || month > 12) return false;
+  if (day < 1 || day > 31) return false;
+  if (value > today) return false;
+
+  const date = new Date(value);
+
+  return (
+    date.getFullYear() === year &&
+    date.getMonth() + 1 === month &&
+    date.getDate() === day
+  );
+}
+
+function setTodayDate() {
+  const today = getTodayLocalDate();
+  dateInput.max = today;
+  dateInput.value = today;
+  dateInput.classList.add("has-value");
+}
+
+function getSortedCategoryEntries() {
+  const totals = {};
+
+  expenses.forEach(exp => {
+    totals[exp.category] = (totals[exp.category] || 0) + exp.amount;
+  });
+
+  let entries = Object.entries(totals);
+  entries.sort((a, b) => b[1] - a[1]);
+
+  if (currentFilter !== "All") {
+    const selectedIndex = entries.findIndex(([category]) => category === currentFilter);
+    if (selectedIndex > -1) {
+      const [selectedEntry] = entries.splice(selectedIndex, 1);
+      entries.unshift(selectedEntry);
+    }
+  }
+
+  return entries;
+}
+
+function formatCurrency(amount) {
+  return amount.toLocaleString("en-US", {
+    style: "currency",
+    currency: "USD"
+  });
+}
+
+function isExpenseDifferent(a, b) {
+  return (
+    a.expenseName !== b.expenseName ||
+    a.category !== b.category ||
+    Number(a.amount) !== Number(b.amount) ||
+    a.date !== b.date ||
+    a.description !== b.description
+  );
+}
+
+function getCategoryOptions(selectedCategory) {
+  return Array.from(categoryInput.options)
+    .map(opt => {
+      const value = escapeHtml(opt.value);
+      const text = escapeHtml(opt.text);
+      const selected = opt.value === selectedCategory ? "selected" : "";
+      return `<option value="${value}" ${selected}>${text}</option>`;
+    })
+    .join("");
+}
+
+function applyRowTooltips(row, expense) {
+  const rowCells = row.querySelectorAll("td");
+  const titleText = row.querySelector(".cell-text");
+  const categorySelect = row.querySelector("td.category-cell select");
+
+  if (titleText) {
+    titleText.title = expense.expenseName || "";
+  }
+
+  if (rowCells[1]) {
+    rowCells[1].title = expense.amount != null ? String(expense.amount) : "";
+  }
+
+  if (categorySelect) {
+    categorySelect.title = expense.category || "";
+  }
+
+  if (rowCells[3]) {
+    rowCells[3].title = formatDateDisplay(expense.date) || "";
+  }
+
+  if (rowCells[4]) {
+    rowCells[4].title = expense.description || "";
+  }
+}
+
+function createExpenseRow(expense, index) {
+  const row = document.createElement("tr");
+  const lockedClass = !isEditMode ? "locked" : "";
+  const editableValue = isEditMode ? "true" : "false";
+  const categoryOptions = getCategoryOptions(expense.category);
+
+  row.innerHTML = `
+    <td
+      class="editable title-cell ${lockedClass}"
+      data-field="expenseName"
+      data-index="${index}"
+      contenteditable="${editableValue}"
+    >
+      <span class="cell-text">${escapeHtml(expense.expenseName)}</span>
+    </td>
+
+    <td
+      class="editable ${lockedClass}"
+      data-field="amount"
+      data-index="${index}"
+      contenteditable="${editableValue}"
+    >
+      ${escapeHtml(expense.amount)}
+    </td>
+
+    <td class="category-cell ${lockedClass}">
+      <select
+        class="editable"
+        data-field="category"
+        data-index="${index}"
+        ${!isEditMode ? "disabled" : ""}
+      >
+        ${categoryOptions}
+      </select>
+    </td>
+
+    <td
+      class="editable date-cell ${lockedClass}"
+      data-field="date"
+      data-index="${index}"
+      contenteditable="${editableValue}"
+    >
+      ${escapeHtml(formatDateDisplay(expense.date) || "")}
+    </td>
+
+    <td
+      class="editable ${lockedClass}"
+      data-field="description"
+      data-index="${index}"
+      contenteditable="${editableValue}"
+    >
+      ${escapeHtml(expense.description || "")}
+    </td>
+
+    <td>
+      <button
+        class="delete-btn ${!isEditMode ? "hidden-delete" : ""}"
+        type="button"
+        data-action="delete"
+        data-index="${index}"
+        aria-label="Delete expense"
+      >
+        ×
+      </button>
+    </td>
+  `;
+
+  applyRowTooltips(row, expense);
+  return row;
+}
+
+function renderLoadFailureState() {
+  expenseBody.innerHTML = `
+    <tr>
+      <td colspan="6" class="empty-state-cell">
+        Could not load expenses. Please check the server connection.
+      </td>
+    </tr>
+  `;
+
+  document.getElementById("total").textContent = formatCurrency(0);
+  document.getElementById("category-totals").innerHTML = "";
+  destroyCharts();
+  toggleTrendSection(false);
+  updatePaginationDisplay(0);
+}
+
+// ---------- Database ----------
 async function createExpenseInDatabase(expense) {
   const response = await fetch(`${API_BASE}/expenses`, {
     method: "POST",
@@ -149,16 +414,6 @@ async function deleteExpenseFromDatabase(id) {
   return await response.json();
 }
 
-function isExpenseDifferent(a, b) {
-  return (
-    a.expenseName !== b.expenseName ||
-    a.category !== b.category ||
-    Number(a.amount) !== Number(b.amount) ||
-    a.date !== b.date ||
-    a.description !== b.description
-  );
-}
-
 async function saveDraftChanges() {
   const savedById = new Map(expenses.map(exp => [exp.id, exp]));
   const draftById = new Map(draftExpenses.map(exp => [exp.id, exp]));
@@ -183,6 +438,11 @@ async function saveDraftChanges() {
 async function loadExpenses() {
   try {
     const response = await fetch(`${API_BASE}/expenses`);
+
+    if (!response.ok) {
+      throw new Error("Failed to load expenses");
+    }
+
     const data = await response.json();
 
     expenses = data.map(exp => ({
@@ -191,542 +451,16 @@ async function loadExpenses() {
     }));
 
     draftExpenses = cloneExpenses(expenses);
+    clearStatus();
     renderExpenses();
   } catch (error) {
     console.error("Failed to load expenses:", error);
+    showStatus("Could not load saved expenses. Check your server connection and refresh the page.", "error");
+    renderLoadFailureState();
   }
 }
 
-// Event listeners
-addBtn.addEventListener("click", addExpense);
-
-expenseNameInput.addEventListener("input", () => {
-  expenseNameError.textContent = "";
-  expenseNameInput.classList.remove("error");
-});
-
-amountInput.addEventListener("input", () => {
-  const raw = amountInput.value.trim();
-  const helper = document.getElementById("amount-helper");
-
-  amountError.textContent = "";
-  amountInput.classList.remove("error");
-  helper.textContent = "";
-  helper.classList.remove("error");
-
-  if (hasInvalidLeadingZero(raw)) {
-    amountInput.value = "";
-    helper.textContent = "Amount cannot start with 0";
-    helper.classList.add("error");
-    amountInput.classList.add("error");
-    return;
-  }
-
-  validateAmountLive();
-});
-
-descInput.addEventListener("input", () => {
-  descInput.classList.remove("error");
-
-  const length = descInput.value.length;
-  descCounter.textContent = `${length}/70`;
-
-  if (length >= 70) {
-    descError.textContent = "Max 70 characters";
-  } else {
-    descError.textContent = "";
-  }
-});
-
-document.querySelectorAll(".filter-btn").forEach(btn => {
-  btn.addEventListener("click", () => {
-    document.querySelectorAll(".filter-btn").forEach(b => b.classList.remove("active"));
-    btn.classList.add("active");
-
-    currentFilter = btn.dataset.category;
-    currentPage = 1;
-    renderExpenses();
-  });
-});
-
-document.getElementById("sort-select").addEventListener("change", (e) => {
-  currentSort = e.target.value;
-  currentPage = 1;
-  renderExpenses();
-});
-
-monthFilterInput.addEventListener("change", (e) => {
-  currentMonthFilter = e.target.value || "All";
-  currentPage = 1;
-  syncMonthFilterState();
-  renderExpenses();
-});
-
-clearMonthBtn.addEventListener("click", () => {
-  currentMonthFilter = "All";
-  monthFilterInput.value = "";
-  currentPage = 1;
-  syncMonthFilterState();
-  renderExpenses();
-});
-
-editTableBtn.addEventListener("click", async () => {
-  if (!isEditMode) {
-    isEditMode = true;
-    draftExpenses = cloneExpenses(expenses);
-    editTableBtn.textContent = "Save";
-    cancelTableBtn.classList.remove("inactive");
-    renderExpenses();
-    return;
-  }
-
-  try {
-    await saveDraftChanges();
-    isEditMode = false;
-    editTableBtn.textContent = "Edit";
-    cancelTableBtn.classList.add("inactive");
-    draftExpenses = cloneExpenses(expenses);
-    renderExpenses();
-  } catch (error) {
-    console.error("Save failed:", error);
-    alert("Failed to save changes");
-  }
-});
-
-cancelTableBtn.addEventListener("click", () => {
-  draftExpenses = cloneExpenses(expenses);
-  isEditMode = false;
-  editTableBtn.textContent = "Edit";
-  cancelTableBtn.classList.add("inactive");
-  renderExpenses();
-});
-
-expenseSearchInput.addEventListener("input", (e) => {
-  pendingSearch = e.target.value.trim().toLowerCase();
-
-  if (searchIconBtn) {
-    searchIconBtn.disabled = pendingSearch === "";
-  }
-
-  if (pendingSearch === "") {
-    currentSearch = "";
-    currentPage = 1;
-    renderExpenses();
-  }
-});
-
-if (searchIconBtn) {
-  searchIconBtn.addEventListener("click", () => {
-    currentSearch = pendingSearch;
-    currentPage = 1;
-    renderExpenses();
-    expenseSearchInput.focus();
-  });
-}
-
-expenseSearchInput.addEventListener("keydown", (e) => {
-  if (e.key === "Enter") {
-    currentSearch = pendingSearch;
-    currentPage = 1;
-    renderExpenses();
-  }
-});
-
-dateInput.addEventListener("input", () => {
-  const value = dateInput.value;
-  const today = getTodayLocalDate();
-
-  dateError.textContent = "";
-  dateInput.classList.remove("error");
-
-  if (!value) {
-    dateError.textContent = "Please select a valid date";
-    dateInput.classList.add("error");
-    return;
-  }
-
-  if (!/^\d{4}-\d{2}-\d{2}$/.test(value)) {
-    dateError.textContent = "Use format YYYY-MM-DD";
-    dateInput.classList.add("error");
-    return;
-  }
-
-  const date = new Date(value);
-
-  if (
-    date.getFullYear() !== Number(value.slice(0, 4)) ||
-    date.getMonth() + 1 !== Number(value.slice(5, 7)) ||
-    date.getDate() !== Number(value.slice(8, 10))
-  ) {
-    dateError.textContent = "Please enter a valid calendar date";
-    dateInput.classList.add("error");
-    return;
-  }
-
-  if (value > today) {
-    dateError.textContent = "Date cannot be after today";
-    dateInput.classList.add("error");
-    return;
-  }
-
-  dateError.textContent = "";
-  dateInput.classList.remove("error");
-});
-
-if (prevPageBtn) {
-  prevPageBtn.addEventListener("click", () => {
-    if (currentPage > 1) {
-      currentPage--;
-      renderExpenses();
-    }
-  });
-}
-
-if (nextPageBtn) {
-  nextPageBtn.addEventListener("click", () => {
-    currentPage++;
-    renderExpenses();
-  });
-}
-
-function hasInvalidLeadingZero(value) {
-  return /^0\d/.test(value.trim());
-}
-
-async function addExpense() {
-  if (isEditMode) {
-    alert("Save or cancel your table edits before adding a new expense.");
-    return;
-  }
-
-  const expenseName = expenseNameInput.value.trim();
-  const amountRaw = amountInput.value;
-  const amount = amountRaw === "" ? null : Number(amountRaw);
-  const category = categoryInput.value;
-  const date = dateInput.value;
-  const description = descInput.value.trim();
-
-  expenseNameError.textContent = "";
-  amountError.textContent = "";
-  dateError.textContent = "";
-  descError.textContent = "";
-
-  let hasError = false;
-
-  if (!expenseName) {
-    expenseNameError.textContent = "Please enter an expense name";
-    expenseNameInput.classList.add("error");
-    hasError = true;
-  } else {
-    expenseNameInput.classList.remove("error");
-  }
-
-  if (amountRaw === "" || amount === null) {
-    amountError.textContent = "Please enter an expense amount";
-    amountInput.classList.add("error");
-    hasError = true;
-  } else if (isNaN(amount)) {
-    amountError.textContent = "Please enter a valid number";
-    amountInput.classList.add("error");
-    hasError = true;
-  } else if (hasInvalidLeadingZero(amountRaw)) {
-    amountError.textContent = "Amount cannot start with 0";
-    amountInput.classList.add("error");
-    hasError = true;
-  } else if (amount <= 0) {
-    amountError.textContent = "Please enter a valid amount greater than 0";
-    amountInput.classList.add("error");
-    hasError = true;
-  } else {
-    amountInput.classList.remove("error");
-  }
-
-  if (dateInput.value === "" || dateInput.value == null) {
-    dateError.textContent = "Please select a date";
-    dateInput.classList.add("error");
-    hasError = true;
-  } else if (date > getTodayLocalDate()) {
-    dateError.textContent = "Date cannot be after today";
-    dateInput.classList.add("error");
-    hasError = true;
-  } else {
-    dateInput.classList.remove("error");
-  }
-
-  if (!description) {
-    descError.textContent = "Please enter a description";
-    descInput.classList.add("error");
-    hasError = true;
-  } else if (description.length > 70) {
-    descError.textContent = "Max 70 characters";
-    descInput.classList.add("error");
-    hasError = true;
-  } else {
-    descInput.classList.remove("error");
-  }
-
-  if (hasError) return;
-
-  try {
-    const newExpense = await createExpenseInDatabase({
-      expenseName,
-      amount,
-      category,
-      date,
-      description
-    });
-
-    const normalized = { ...newExpense, dateError: "" };
-    expenses.push(normalized);
-    draftExpenses = cloneExpenses(expenses);
-    currentPage = 1;
-    renderExpenses();
-  } catch (error) {
-    console.error("Create failed:", error);
-    alert("Failed to save expense to database");
-    return;
-  }
-
-  expenseNameInput.value = "";
-  amountInput.value = "";
-  dateInput.value = "";
-  descInput.value = "";
-  descCounter.textContent = "0/70";
-
-  setTodayDate();
-}
-
-function validateAmountLive() {
-  const amountRaw = amountInput.value;
-  const helper = document.getElementById("amount-helper");
-
-  helper.textContent = "";
-  helper.classList.remove("error");
-  amountInput.classList.remove("error");
-
-  if (amountRaw === "") return;
-
-  const amount = Number(amountRaw);
-
-  if (isNaN(amount)) {
-    helper.textContent = "Please enter a valid number";
-    helper.classList.add("error");
-    amountInput.classList.add("error");
-  } else if (amount <= 0) {
-    helper.textContent = "Amount must be greater than 0";
-    helper.classList.add("error");
-    amountInput.classList.add("error");
-  } else {
-    amountInput.classList.remove("error");
-  }
-}
-
-function renderExpenses() {
-  const body = document.getElementById("expense-body");
-  body.innerHTML = "";
-
-  const sourceExpenses = getTableExpenses();
-  const filtered = getFilteredExpenses(sourceExpenses, true);
-  const savedFiltered = getFilteredExpenses(expenses, false);
-
-  const totalPages = Math.max(1, Math.ceil(filtered.length / rowsPerPage));
-
-  if (currentPage > totalPages) {
-    currentPage = totalPages;
-  }
-
-  const startIndex = (currentPage - 1) * rowsPerPage;
-  const endIndex = startIndex + rowsPerPage;
-  const paginatedExpenses = filtered.slice(startIndex, endIndex);
-
-  if (expenses.length === 0) {
-    body.innerHTML = `
-      <tr>
-        <td colspan="6" class="empty-state-cell">
-          No expenses yet
-        </td>
-      </tr>
-    `;
-
-    document.getElementById("total").textContent = formatCurrency(0);
-    document.getElementById("category-totals").innerHTML = "";
-
-    if (pieChart) {
-      pieChart.destroy();
-      pieChart = null;
-    }
-
-    if (categoryChart) {
-      categoryChart.destroy();
-      categoryChart = null;
-    }
-
-    const trendSection = document.querySelector(".trend-section");
-    if (trendSection) {
-      trendSection.style.display = "none";
-    }
-
-    if (pageIndicator) pageIndicator.textContent = "0-0 of 0";
-    if (prevPageBtn) prevPageBtn.disabled = true;
-    if (nextPageBtn) nextPageBtn.disabled = true;
-
-    return;
-  }
-
-  if (filtered.length === 0) {
-    body.innerHTML = `
-      <tr>
-        <td colspan="6" class="empty-state-cell">
-          No expenses found
-        </td>
-      </tr>
-    `;
-
-    document.getElementById("total").textContent = formatCurrency(
-      savedFiltered.reduce((sum, exp) => sum + exp.amount, 0)
-    );
-    updateCategoryTotals();
-    renderChart();
-    renderPieChart();
-
-    if (pageIndicator) pageIndicator.textContent = "Page 1 of 1";
-    if (prevPageBtn) prevPageBtn.disabled = true;
-    if (nextPageBtn) nextPageBtn.disabled = true;
-
-    return;
-  }
-
-  paginatedExpenses.forEach((expense) => {
-    const index = sourceExpenses.indexOf(expense);
-    const categoryOptions = Array.from(categoryInput.options)
-      .map(opt => `<option value="${opt.value}" ${opt.value === expense.category ? "selected" : ""}>${opt.text}</option>`)
-      .join("");
-
-    const row = document.createElement("tr");
-
-    row.innerHTML = `
-      <td class="editable title-cell ${!isEditMode ? "locked" : ""}"
-          contenteditable="${isEditMode}"
-          onfocus="if(${isEditMode}) this.classList.add('editing')"
-          onblur="this.classList.remove('editing'); if(${isEditMode}) updateExpense(${index}, 'expenseName', this.innerText)">
-        <span class="cell-text">${expense.expenseName}</span>
-      </td>
-
-      <td class="editable ${!isEditMode ? "locked" : ""}"
-          contenteditable="${isEditMode}"
-          onfocus="if(${isEditMode}) this.classList.add('editing')"
-          onblur="this.classList.remove('editing'); if(${isEditMode}) updateExpense(${index}, 'amount', this.innerText, this)">
-        ${expense.amount}
-      </td>
-
-      <td class="category-cell ${!isEditMode ? "locked" : ""}">
-        <select class="editable"
-                ${!isEditMode ? "disabled" : ""}
-                onchange="updateExpense(${index}, 'category', this.value)">
-          ${categoryOptions}
-        </select>
-      </td>
-
-      <td class="editable date-cell ${!isEditMode ? "locked" : ""}"
-          contenteditable="${isEditMode}"
-          onfocus="if(${isEditMode}) this.classList.add('editing')"
-          onblur="this.classList.remove('editing'); if(${isEditMode}) updateExpense(${index}, 'date', this.innerText, this)">
-        ${formatDateDisplay(expense.date) || ""}
-      </td>
-
-      <td class="editable ${!isEditMode ? "locked" : ""}"
-          contenteditable="${isEditMode}"
-          onfocus="if(${isEditMode}) this.classList.add('editing')"
-          onblur="this.classList.remove('editing'); if(${isEditMode}) updateExpense(${index}, 'description', this.innerText)">
-        ${expense.description || ""}
-      </td>
-
-      <td>
-        <button class="delete-btn ${!isEditMode ? "hidden-delete" : ""}" onclick="deleteExpense(${index})">×</button>
-      </td>
-    `;
-
-    body.appendChild(row);
-
-    const rowCells = row.querySelectorAll("td");
-    const categorySelect = row.querySelector("td.category-cell select");
-    const titleText = row.querySelector(".cell-text");
-
-    if (titleText) {
-      titleText.title = expense.expenseName || "";
-    }
-
-    if (rowCells[1]) {
-      rowCells[1].title = expense.amount != null ? String(expense.amount) : "";
-    }
-
-    if (categorySelect) {
-      categorySelect.title = expense.category || "";
-    }
-
-    if (rowCells[3]) {
-      rowCells[3].title = formatDateDisplay(expense.date) || "";
-    }
-
-    if (rowCells[4]) {
-      rowCells[4].title = expense.description || "";
-}
-  });
-
-  const trendSection = document.querySelector(".trend-section");
-  if (trendSection) {
-    trendSection.style.display = "block";
-  }
-
-  document.getElementById("total").textContent = formatCurrency(
-    savedFiltered.reduce((sum, exp) => sum + exp.amount, 0)
-  );
-  updateCategoryTotals();
-  renderChart();
-  renderPieChart();
-
-  const startDisplay = filtered.length === 0 ? 0 : startIndex + 1;
-  const endDisplay = filtered.length === 0 ? 0 : Math.min(endIndex, filtered.length);
-
-  if (pageIndicator) {
-    pageIndicator.textContent = `${startDisplay}-${endDisplay} of ${filtered.length}`;
-  }
-
-  if (prevPageBtn) prevPageBtn.disabled = currentPage === 1;
-  if (nextPageBtn) nextPageBtn.disabled = endDisplay >= filtered.length || filtered.length === 0;
-}
-
-function getSortedCategoryEntries() {
-  const totals = {};
-
-  expenses.forEach(exp => {
-    totals[exp.category] = (totals[exp.category] || 0) + exp.amount;
-  });
-
-  let entries = Object.entries(totals);
-
-  entries.sort((a, b) => b[1] - a[1]);
-
-  if (currentFilter !== "All") {
-    const selectedIndex = entries.findIndex(([category]) => category === currentFilter);
-
-    if (selectedIndex > -1) {
-      const [selectedEntry] = entries.splice(selectedIndex, 1);
-      entries.unshift(selectedEntry);
-    }
-  }
-
-  return entries;
-}
-
-function syncMonthFilterState() {
-  if (monthFilterInput.value) {
-    monthFilterInput.classList.add("has-value");
-  } else {
-    monthFilterInput.classList.remove("has-value");
-  }
-}
-
+// ---------- Rendering ----------
 function updateCategoryTotals() {
   const container = document.getElementById("category-totals");
   container.innerHTML = "";
@@ -736,12 +470,10 @@ function updateCategoryTotals() {
   entries.forEach(([category, total]) => {
     const div = document.createElement("div");
     div.className = "category-item";
-
     div.innerHTML = `
-      <span>${category}</span>
+      <span>${escapeHtml(category)}</span>
       <span>${formatCurrency(total)}</span>
     `;
-
     container.appendChild(div);
   });
 }
@@ -850,139 +582,6 @@ function renderPieChart() {
   });
 }
 
-function formatCurrency(amount) {
-  return amount.toLocaleString("en-US", {
-    style: "currency",
-    currency: "USD"
-  });
-}
-
-async function deleteExpense(index) {
-  if (isEditMode) {
-    draftExpenses.splice(index, 1);
-    renderExpenses();
-    return;
-  }
-
-  try {
-    const expenseId = expenses[index].id;
-    await deleteExpenseFromDatabase(expenseId);
-    expenses.splice(index, 1);
-    draftExpenses = cloneExpenses(expenses);
-    renderExpenses();
-  } catch (error) {
-    console.error("Delete failed:", error);
-    alert("Failed to delete expense from database");
-  }
-}
-
-function isValidDate(value) {
-  if (!/^\d{4}-\d{2}-\d{2}$/.test(value)) return false;
-
-  const [year, month, day] = value.split("-").map(Number);
-  const today = getTodayLocalDate();
-
-  if (month < 1 || month > 12) return false;
-  if (day < 1 || day > 31) return false;
-  if (value > today) return false;
-
-  const date = new Date(value);
-
-  return (
-    date.getFullYear() === year &&
-    date.getMonth() + 1 === month &&
-    date.getDate() === day
-  );
-}
-
-function placeCursorAtEnd(el) {
-  const range = document.createRange();
-  const sel = window.getSelection();
-  range.selectNodeContents(el);
-  range.collapse(false);
-  sel.removeAllRanges();
-  sel.addRange(range);
-}
-
-function updateExpense(index, field, value, el = null) {
-  if (!isEditMode) return;
-
-  const targetExpenses = draftExpenses;
-  value = value.trim();
-
-  if (field === "date") {
-    const trimmed = value;
-
-    const match = trimmed.match(/^(\d{2})\/(\d{2})\/(\d{4})$/);
-
-    if (!match) {
-      if (el) el.innerText = formatDateDisplay(targetExpenses[index].date || "");
-      return;
-    }
-
-    const [, month, day, year] = match;
-    const isoDate = `${year}-${month}-${day}`;
-
-    if (!isValidDate(isoDate)) {
-      targetExpenses[index].dateError = "Invalid calendar date";
-      if (el) el.innerText = formatDateDisplay(targetExpenses[index].date || "");
-      renderExpenses();
-      return;
-    }
-
-    targetExpenses[index].dateError = "";
-    targetExpenses[index].date = isoDate;
-    renderExpenses();
-    return;
-  }
-
-  if (field === "amount") {
-    const elValue = value.trim();
-    const previousValue = targetExpenses[index].amount.toString();
-
-    if (hasInvalidLeadingZero(elValue)) {
-      if (el) el.innerText = previousValue;
-      return;
-    }
-
-    const isValid = /^\d+(\.\d{1,2})?$/.test(elValue);
-
-    if (!isValid) {
-      if (el) el.innerText = previousValue;
-      return;
-    }
-
-    const numericValue = Number(elValue);
-
-    if (numericValue <= 0 || isNaN(numericValue)) {
-      if (el) el.innerText = previousValue;
-      return;
-    }
-
-    targetExpenses[index].amount = numericValue;
-
-    if (el) {
-      el.innerText = String(numericValue);
-    }
-
-    renderExpenses();
-    return;
-  }
-
-  targetExpenses[index][field] = value;
-  renderExpenses();
-}
-
-function updateTotalsOnly() {
-  const filtered = getFilteredExpenses(expenses, false);
-  const total = filtered.reduce((sum, exp) => sum + exp.amount, 0);
-
-  document.getElementById("total").textContent = formatCurrency(total);
-
-  updateCategoryTotals();
-  renderChart();
-}
-
 function renderChart() {
   const monthlyTotals = {};
 
@@ -990,7 +589,6 @@ function renderChart() {
     if (!exp.date) return;
 
     const date = new Date(exp.date);
-
     const monthKey = date.toLocaleString("en-US", {
       month: "short",
       year: "numeric"
@@ -999,10 +597,7 @@ function renderChart() {
     monthlyTotals[monthKey] = (monthlyTotals[monthKey] || 0) + exp.amount;
   });
 
-  const sorted = Object.entries(monthlyTotals).sort((a, b) => {
-    return new Date(a[0]) - new Date(b[0]);
-  });
-
+  const sorted = Object.entries(monthlyTotals).sort((a, b) => new Date(a[0]) - new Date(b[0]));
   const labels = sorted.map(item => item[0]);
   const data = sorted.map(item => item[1]);
 
@@ -1108,32 +703,293 @@ function renderChart() {
   });
 }
 
-const usernameWrapper = document.querySelector(".username-wrapper");
-const profile = document.querySelector(".profile");
+function renderExpenses() {
+  expenseBody.innerHTML = "";
 
-usernameWrapper.addEventListener("click", function () {
-  this.classList.toggle("active");
-});
+  const sourceExpenses = getTableExpenses();
+  const filtered = getFilteredExpenses(sourceExpenses, true);
+  const savedFiltered = getFilteredExpenses(expenses, false);
 
-profile.addEventListener("mouseleave", () => {
-  usernameWrapper.classList.remove("active");
-});
+  const totalPages = Math.max(1, Math.ceil(filtered.length / rowsPerPage));
 
-function logout() {
-  alert("Logged out");
+  if (currentPage > totalPages) {
+    currentPage = totalPages;
+  }
+
+  const startIndex = (currentPage - 1) * rowsPerPage;
+  const endIndex = startIndex + rowsPerPage;
+  const paginatedExpenses = filtered.slice(startIndex, endIndex);
+
+  if (expenses.length === 0) {
+    expenseBody.innerHTML = `
+      <tr>
+        <td colspan="6" class="empty-state-cell">
+          No expenses yet
+        </td>
+      </tr>
+    `;
+
+    document.getElementById("total").textContent = formatCurrency(0);
+    document.getElementById("category-totals").innerHTML = "";
+    destroyCharts();
+    toggleTrendSection(false);
+    updatePaginationDisplay(0);
+    return;
+  }
+
+  if (filtered.length === 0) {
+    expenseBody.innerHTML = `
+      <tr>
+        <td colspan="6" class="empty-state-cell">
+          No expenses found
+        </td>
+      </tr>
+    `;
+
+    document.getElementById("total").textContent = formatCurrency(
+      savedFiltered.reduce((sum, exp) => sum + exp.amount, 0)
+    );
+
+    updateCategoryTotals();
+    renderChart();
+    renderPieChart();
+    toggleTrendSection(true);
+    updatePaginationDisplay(0);
+    return;
+  }
+
+  paginatedExpenses.forEach((expense) => {
+    const index = sourceExpenses.indexOf(expense);
+    const row = createExpenseRow(expense, index);
+    expenseBody.appendChild(row);
+  });
+
+  document.getElementById("total").textContent = formatCurrency(
+    savedFiltered.reduce((sum, exp) => sum + exp.amount, 0)
+  );
+
+  updateCategoryTotals();
+  renderChart();
+  renderPieChart();
+  toggleTrendSection(true);
+
+  const startDisplay = startIndex + 1;
+  const endDisplay = Math.min(endIndex, filtered.length);
+  updatePaginationDisplay(filtered.length, startDisplay, endDisplay);
 }
 
-document.addEventListener("focusout", (e) => {
-  if (e.target.classList.contains("editable")) {
-    e.target.classList.remove("editing");
-  }
-});
+// ---------- Form validation ----------
+function validateAmountLive() {
+  const amountRaw = amountInput.value;
+  const helper = document.getElementById("amount-helper");
 
-function setTodayDate() {
-  const today = getTodayLocalDate();
-  dateInput.max = today;
-  dateInput.value = today;
-  dateInput.classList.add("has-value");
+  helper.textContent = "";
+  helper.classList.remove("error");
+  amountInput.classList.remove("error");
+
+  if (amountRaw === "") return;
+
+  const amount = Number(amountRaw);
+
+  if (isNaN(amount)) {
+    helper.textContent = "Please enter a valid number";
+    helper.classList.add("error");
+    amountInput.classList.add("error");
+  } else if (amount <= 0) {
+    helper.textContent = "Amount must be greater than 0";
+    helper.classList.add("error");
+    amountInput.classList.add("error");
+  }
+}
+
+// ---------- Actions ----------
+async function addExpense() {
+  if (isEditMode) {
+    showStatus("Save or cancel your table edits before adding a new expense.", "error");
+    return;
+  }
+
+  const expenseName = expenseNameInput.value.trim();
+  const amountRaw = amountInput.value;
+  const amount = amountRaw === "" ? null : Number(amountRaw);
+  const category = categoryInput.value;
+  const date = dateInput.value;
+  const description = descInput.value.trim();
+
+  expenseNameError.textContent = "";
+  amountError.textContent = "";
+  dateError.textContent = "";
+  descError.textContent = "";
+
+  let hasError = false;
+
+  if (!expenseName) {
+    expenseNameError.textContent = "Please enter an expense name";
+    expenseNameInput.classList.add("error");
+    hasError = true;
+  } else {
+    expenseNameInput.classList.remove("error");
+  }
+
+  if (amountRaw === "" || amount === null) {
+    amountError.textContent = "Please enter an expense amount";
+    amountInput.classList.add("error");
+    hasError = true;
+  } else if (isNaN(amount)) {
+    amountError.textContent = "Please enter a valid number";
+    amountInput.classList.add("error");
+    hasError = true;
+  } else if (hasInvalidLeadingZero(amountRaw)) {
+    amountError.textContent = "Amount cannot start with 0";
+    amountInput.classList.add("error");
+    hasError = true;
+  } else if (amount <= 0) {
+    amountError.textContent = "Please enter a valid amount greater than 0";
+    amountInput.classList.add("error");
+    hasError = true;
+  } else {
+    amountInput.classList.remove("error");
+  }
+
+  if (dateInput.value === "" || dateInput.value == null) {
+    dateError.textContent = "Please select a date";
+    dateInput.classList.add("error");
+    hasError = true;
+  } else if (date > getTodayLocalDate()) {
+    dateError.textContent = "Date cannot be after today";
+    dateInput.classList.add("error");
+    hasError = true;
+  } else {
+    dateInput.classList.remove("error");
+  }
+
+  if (!description) {
+    descError.textContent = "Please enter a description";
+    descInput.classList.add("error");
+    hasError = true;
+  } else if (description.length > 70) {
+    descError.textContent = "Max 70 characters";
+    descInput.classList.add("error");
+    hasError = true;
+  } else {
+    descInput.classList.remove("error");
+  }
+
+  if (hasError) return;
+
+  try {
+    const newExpense = await createExpenseInDatabase({
+      expenseName,
+      amount,
+      category,
+      date,
+      description
+    });
+
+    const normalized = { ...newExpense, dateError: "" };
+    expenses.push(normalized);
+    draftExpenses = cloneExpenses(expenses);
+    currentPage = 1;
+    clearStatus();
+    renderExpenses();
+  } catch (error) {
+    console.error("Create failed:", error);
+    showStatus("Failed to save expense. Please check the server and try again.", "error");
+    return;
+  }
+
+  expenseNameInput.value = "";
+  amountInput.value = "";
+  dateInput.value = "";
+  descInput.value = "";
+  descCounter.textContent = "0/70";
+  setTodayDate();
+}
+
+async function deleteExpense(index) {
+  if (isEditMode) {
+    draftExpenses.splice(index, 1);
+    renderExpenses();
+    return;
+  }
+
+  try {
+    const expenseId = expenses[index].id;
+    await deleteExpenseFromDatabase(expenseId);
+    expenses.splice(index, 1);
+    draftExpenses = cloneExpenses(expenses);
+    clearStatus();
+    renderExpenses();
+  } catch (error) {
+    console.error("Delete failed:", error);
+    showStatus("Failed to delete expense from the database.", "error");
+  }
+}
+
+function updateExpense(index, field, value, el = null) {
+  if (!isEditMode) return;
+
+  const targetExpenses = draftExpenses;
+  value = value.trim();
+
+  if (field === "date") {
+    const match = value.match(/^(\d{2})\/(\d{2})\/(\d{4})$/);
+
+    if (!match) {
+      if (el) el.innerText = formatDateDisplay(targetExpenses[index].date || "");
+      return;
+    }
+
+    const [, month, day, year] = match;
+    const isoDate = `${year}-${month}-${day}`;
+
+    if (!isValidDate(isoDate)) {
+      targetExpenses[index].dateError = "Invalid calendar date";
+      if (el) el.innerText = formatDateDisplay(targetExpenses[index].date || "");
+      renderExpenses();
+      return;
+    }
+
+    targetExpenses[index].dateError = "";
+    targetExpenses[index].date = isoDate;
+    renderExpenses();
+    return;
+  }
+
+  if (field === "amount") {
+    const previousValue = targetExpenses[index].amount.toString();
+
+    if (hasInvalidLeadingZero(value)) {
+      if (el) el.innerText = previousValue;
+      return;
+    }
+
+    const isValid = /^\d+(\.\d{1,2})?$/.test(value);
+
+    if (!isValid) {
+      if (el) el.innerText = previousValue;
+      return;
+    }
+
+    const numericValue = Number(value);
+
+    if (numericValue <= 0 || isNaN(numericValue)) {
+      if (el) el.innerText = previousValue;
+      return;
+    }
+
+    targetExpenses[index].amount = numericValue;
+
+    if (el) {
+      el.innerText = String(numericValue);
+    }
+
+    renderExpenses();
+    return;
+  }
+
+  targetExpenses[index][field] = value;
+  renderExpenses();
 }
 
 function resetDashboardView() {
@@ -1195,6 +1051,7 @@ function resetDashboardView() {
     amountHelper.classList.remove("error");
   }
 
+  clearStatus();
   setTodayDate();
   renderExpenses();
 
@@ -1202,6 +1059,286 @@ function resetDashboardView() {
     top: 0,
     behavior: "smooth"
   });
+}
+
+function logout() {
+  showStatus("Logged out", "success");
+}
+
+// ---------- Table event delegation ----------
+function handleTableFocusIn(event) {
+  const cell = event.target.closest("td[data-field]");
+  if (!cell || cell.classList.contains("locked")) return;
+  cell.classList.add("editing");
+}
+
+function handleTableFocusOut(event) {
+  const cell = event.target.closest("td[data-field]");
+  if (!cell || cell.classList.contains("locked")) return;
+  if (cell.contains(event.relatedTarget)) return;
+
+  cell.classList.remove("editing");
+
+  const index = Number(cell.dataset.index);
+  const field = cell.dataset.field;
+  const value = cell.innerText;
+
+  if (field === "amount" || field === "date") {
+    updateExpense(index, field, value, cell);
+  } else {
+    updateExpense(index, field, value);
+  }
+}
+
+function handleTableChange(event) {
+  const select = event.target.closest("select[data-field='category']");
+  if (!select) return;
+
+  const index = Number(select.dataset.index);
+  updateExpense(index, "category", select.value);
+}
+
+function handleTableClick(event) {
+  const deleteButton = event.target.closest("button[data-action='delete']");
+  if (!deleteButton) return;
+
+  const index = Number(deleteButton.dataset.index);
+  deleteExpense(index);
+}
+
+// ---------- Static event binding ----------
+function bindEvents() {
+  addBtn.addEventListener("click", addExpense);
+
+  expenseNameInput.addEventListener("input", () => {
+    expenseNameError.textContent = "";
+    expenseNameInput.classList.remove("error");
+  });
+
+  amountInput.addEventListener("input", () => {
+    const raw = amountInput.value.trim();
+    const helper = document.getElementById("amount-helper");
+
+    amountError.textContent = "";
+    amountInput.classList.remove("error");
+    helper.textContent = "";
+    helper.classList.remove("error");
+
+    if (hasInvalidLeadingZero(raw)) {
+      amountInput.value = "";
+      helper.textContent = "Amount cannot start with 0";
+      helper.classList.add("error");
+      amountInput.classList.add("error");
+      return;
+    }
+
+    validateAmountLive();
+  });
+
+  descInput.addEventListener("input", () => {
+    descInput.classList.remove("error");
+
+    const length = descInput.value.length;
+    descCounter.textContent = `${length}/70`;
+
+    if (length >= 70) {
+      descError.textContent = "Max 70 characters";
+    } else {
+      descError.textContent = "";
+    }
+  });
+
+  document.querySelectorAll(".filter-btn").forEach(btn => {
+    btn.addEventListener("click", () => {
+      document.querySelectorAll(".filter-btn").forEach(b => b.classList.remove("active"));
+      btn.classList.add("active");
+
+      currentFilter = btn.dataset.category;
+      currentPage = 1;
+      renderExpenses();
+    });
+  });
+
+  document.getElementById("sort-select").addEventListener("change", (e) => {
+    currentSort = e.target.value;
+    currentPage = 1;
+    renderExpenses();
+  });
+
+  monthFilterInput.addEventListener("change", (e) => {
+    currentMonthFilter = e.target.value || "All";
+    currentPage = 1;
+    syncMonthFilterState();
+    renderExpenses();
+  });
+
+  clearMonthBtn.addEventListener("click", () => {
+    currentMonthFilter = "All";
+    monthFilterInput.value = "";
+    currentPage = 1;
+    syncMonthFilterState();
+    renderExpenses();
+  });
+
+  editTableBtn.addEventListener("click", async () => {
+    if (!isEditMode) {
+      isEditMode = true;
+      draftExpenses = cloneExpenses(expenses);
+      editTableBtn.textContent = "Save";
+      cancelTableBtn.classList.remove("inactive");
+      renderExpenses();
+      return;
+    }
+
+    try {
+      await saveDraftChanges();
+      isEditMode = false;
+      editTableBtn.textContent = "Edit";
+      cancelTableBtn.classList.add("inactive");
+      draftExpenses = cloneExpenses(expenses);
+      clearStatus();
+      renderExpenses();
+    } catch (error) {
+      console.error("Save failed:", error);
+      showStatus("Failed to save table changes. Please try again.", "error");
+    }
+  });
+
+  cancelTableBtn.addEventListener("click", () => {
+    draftExpenses = cloneExpenses(expenses);
+    isEditMode = false;
+    editTableBtn.textContent = "Edit";
+    cancelTableBtn.classList.add("inactive");
+    clearStatus();
+    renderExpenses();
+  });
+
+  expenseSearchInput.addEventListener("input", (e) => {
+    pendingSearch = e.target.value.trim().toLowerCase();
+
+    if (searchIconBtn) {
+      searchIconBtn.disabled = pendingSearch === "";
+    }
+
+    if (pendingSearch === "") {
+      currentSearch = "";
+      currentPage = 1;
+      renderExpenses();
+    }
+  });
+
+  if (searchIconBtn) {
+    searchIconBtn.addEventListener("click", () => {
+      currentSearch = pendingSearch;
+      currentPage = 1;
+      renderExpenses();
+      expenseSearchInput.focus();
+    });
+  }
+
+  expenseSearchInput.addEventListener("keydown", (e) => {
+    if (e.key === "Enter") {
+      currentSearch = pendingSearch;
+      currentPage = 1;
+      renderExpenses();
+    }
+  });
+
+  dateInput.addEventListener("input", () => {
+    const value = dateInput.value;
+    const today = getTodayLocalDate();
+
+    dateError.textContent = "";
+    dateInput.classList.remove("error");
+
+    if (!value) {
+      dateError.textContent = "Please select a valid date";
+      dateInput.classList.add("error");
+      return;
+    }
+
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(value)) {
+      dateError.textContent = "Use format YYYY-MM-DD";
+      dateInput.classList.add("error");
+      return;
+    }
+
+    const date = new Date(value);
+
+    if (
+      date.getFullYear() !== Number(value.slice(0, 4)) ||
+      date.getMonth() + 1 !== Number(value.slice(5, 7)) ||
+      date.getDate() !== Number(value.slice(8, 10))
+    ) {
+      dateError.textContent = "Please enter a valid calendar date";
+      dateInput.classList.add("error");
+      return;
+    }
+
+    if (value > today) {
+      dateError.textContent = "Date cannot be after today";
+      dateInput.classList.add("error");
+      return;
+    }
+
+    dateError.textContent = "";
+    dateInput.classList.remove("error");
+  });
+
+  if (prevPageBtn) {
+    prevPageBtn.addEventListener("click", () => {
+      if (currentPage > 1) {
+        currentPage--;
+        renderExpenses();
+      }
+    });
+  }
+
+  if (nextPageBtn) {
+    nextPageBtn.addEventListener("click", () => {
+      currentPage++;
+      renderExpenses();
+    });
+  }
+
+  if (brandHome) {
+    brandHome.addEventListener("click", resetDashboardView);
+  }
+
+  if (usernameWrapper) {
+    usernameWrapper.addEventListener("click", () => {
+      const expanded = usernameWrapper.getAttribute("aria-expanded") === "true";
+      usernameWrapper.setAttribute("aria-expanded", String(!expanded));
+      usernameWrapper.classList.toggle("active");
+    });
+
+    usernameWrapper.addEventListener("keydown", (event) => {
+      if (event.key === "Enter" || event.key === " ") {
+        event.preventDefault();
+        usernameWrapper.click();
+      }
+    });
+  }
+
+  if (logoutBtn) {
+    logoutBtn.addEventListener("click", logout);
+  }
+
+  if (expenseBody) {
+    expenseBody.addEventListener("focusin", handleTableFocusIn);
+    expenseBody.addEventListener("focusout", handleTableFocusOut);
+    expenseBody.addEventListener("change", handleTableChange);
+    expenseBody.addEventListener("click", handleTableClick);
+  }
+
+  document.addEventListener("focusout", (e) => {
+    const cell = e.target.closest("td[data-field]");
+    if (cell) {
+      cell.classList.remove("editing");
+    }
+  });
+
+  window.addEventListener("scroll", handleHeaderFade);
 }
 
 function handleHeaderFade() {
@@ -1215,9 +1352,9 @@ function handleHeaderFade() {
   }
 }
 
-window.addEventListener("scroll", handleHeaderFade);
+// ---------- Init ----------
+bindEvents();
 handleHeaderFade();
-
 cancelTableBtn.classList.add("inactive");
 editTableBtn.textContent = "Edit";
 
