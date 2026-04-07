@@ -1,24 +1,30 @@
 {
-  "name": "expense-tracker",
+  "name": "spendflow-expense-tracker",
   "version": "1.0.0",
-  "description": "",
-  "main": "script.js",
- "scripts": {
-  "start": "node server.js",
-  "dev": "nodemon server.js"
+  "description": "A single-page expense tracking web application with MySQL-backed CRUD operations, filtering, search, pagination, and charts.",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "nodemon server.js"
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/earthtomarsi/expense-tracker.git"
+    "url": "git+https://github.com/earthtomarsi/spendflow-expense-tracker.git"
   },
-  "keywords": [],
-  "author": "",
+  "keywords": [
+    "expense-tracker",
+    "mysql",
+    "express",
+    "node",
+    "spa"
+  ],
+  "author": "Mariel Guerra",
   "license": "ISC",
   "type": "commonjs",
   "bugs": {
-    "url": "https://github.com/earthtomarsi/expense-tracker/issues"
+    "url": "https://github.com/earthtomarsi/spendflow-expense-tracker/issues"
   },
-  "homepage": "https://github.com/earthtomarsi/expense-tracker#readme",
+  "homepage": "https://github.com/earthtomarsi/spendflow-expense-tracker#readme",
   "dependencies": {
     "cors": "^2.8.6",
     "dotenv": "^17.4.1",

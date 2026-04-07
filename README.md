@@ -109,7 +109,6 @@ The frontend communicates with the backend using these REST endpoints:
 The app is designed as a single-page application, so interactions such as filtering, editing, searching, and pagination happen without navigating away from the main page.
 Search affects the table view only, while the charts and summary cards continue to reflect the saved expense data.
 Edit mode uses a Save / Cancel workflow so multiple table changes can be reviewed before being committed to the database.
-Submission Files Included
 
 ## Submission Files Included
 
