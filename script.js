@@ -4090,11 +4090,39 @@ function resetDashboardView() {
 
 function getStoredUser() {
   try {
-    return JSON.parse(localStorage.getItem(USER_STORAGE_KEY) || "null");
+    return normalizeUser(JSON.parse(localStorage.getItem(USER_STORAGE_KEY) || "null"));
   } catch (error) {
     localStorage.removeItem(USER_STORAGE_KEY);
     return null;
   }
+}
+
+function normalizeUser(user, fallbackLogin = "") {
+  if (!user) return null;
+
+  const id = user.id ?? user.userID ?? null;
+  const name = String(user.name || "").trim();
+  const username = String(user.username || "").trim();
+  const email = String(user.email || "").trim();
+  const role = String(user.role || "user").trim().toLowerCase();
+  const displayName =
+    name ||
+    user.displayName ||
+    username ||
+    getDisplayNameFromLoginValue(email) ||
+    getDisplayNameFromLoginValue(fallbackLogin) ||
+    "User";
+
+  return {
+    ...user,
+    id,
+    userID: id,
+    name,
+    username,
+    email,
+    role,
+    displayName: capitalizeFirstLetter(displayName)
+  };
 }
 
 function cacheLoginElements() {
@@ -4169,6 +4197,12 @@ function ensureAuthPage() {
 
         <form id="register-form" class="auth-form" novalidate hidden>
           <div class="field-group">
+            <label for="register-name">Name</label>
+            <input id="register-name" type="text" placeholder="Name" autocomplete="name">
+            <p id="register-name-error" class="error-text"></p>
+          </div>
+
+          <div class="field-group">
             <label for="register-username">Username</label>
             <input id="register-username" type="text" placeholder="Username" autocomplete="username">
             <p id="register-username-error" class="error-text"></p>
@@ -4239,10 +4273,10 @@ function capitalizeFirstLetter(value) {
 
 function getCurrentDisplayName() {
   const displayName = (
-    currentUser?.displayName ||
-    currentUser?.username ||
-    getDisplayNameFromLoginValue(currentUser?.email) ||
     currentUser?.name ||
+    currentUser?.username ||
+    currentUser?.displayName ||
+    getDisplayNameFromLoginValue(currentUser?.email) ||
     "Marsi"
   );
 
@@ -4304,7 +4338,7 @@ function validateLoginForm() {
 }
 
 function clearRegisterErrors() {
-  ["username", "email", "password"].forEach(field => {
+  ["name", "username", "email", "password"].forEach(field => {
     const input = document.getElementById(`register-${field}`);
     const error = document.getElementById(`register-${field}-error`);
 
@@ -4322,12 +4356,18 @@ function setRegisterFieldError(field, message) {
 }
 
 function validateRegisterForm() {
+  const name = document.getElementById("register-name")?.value.trim() || "";
   const username = document.getElementById("register-username")?.value.trim() || "";
   const email = document.getElementById("register-email")?.value.trim() || "";
   const password = document.getElementById("register-password")?.value || "";
   let hasError = false;
 
   clearRegisterErrors();
+
+  if (!name) {
+    setRegisterFieldError("name", "Name is required");
+    hasError = true;
+  }
 
   if (!username) {
     setRegisterFieldError("username", "Username is required");
@@ -4352,6 +4392,7 @@ function validateRegisterForm() {
 
   return {
     isValid: !hasError,
+    name,
     username,
     email,
     password
@@ -4408,6 +4449,7 @@ async function handleRegisterSubmit(event) {
         "Content-Type": "application/json"
       },
       body: JSON.stringify({
+        name: validation.name,
         username: validation.username,
         email: validation.email,
         password: validation.password
@@ -4480,6 +4522,28 @@ function getAuthHeaders(includeJson = false) {
 
 function isAdminUser() {
   return currentUser?.role === "admin";
+}
+
+async function routeAuthenticatedUser() {
+  if (!isLoggedIn) {
+    renderAuthState();
+    renderExpenses();
+    return;
+  }
+
+  if (isAdminUser()) {
+    isAdminPanelOpen = true;
+    isAdminEditMode = false;
+    selectedAdminUserIndex = null;
+    adminUsersPage = 1;
+    renderAuthState();
+    await loadAdminProfileData();
+    return;
+  }
+
+  isAdminPanelOpen = false;
+  renderAuthState();
+  await loadExpenses();
 }
 
 function ensureAdminProfileControls() {
@@ -5419,18 +5483,8 @@ async function handleLoginSubmit(event) {
       throw new Error(data.message || "Invalid email/username or password");
     }
 
-    const displayName =
-      getDisplayNameFromLoginValue(validation.loginValue) ||
-      data.user?.username ||
-      getDisplayNameFromLoginValue(data.user?.email) ||
-      data.user?.name ||
-      "User";
-
     authToken = data.token;
-    currentUser = {
-      ...(data.user || {}),
-      displayName
-    };
+    currentUser = normalizeUser(data.user || {}, validation.loginValue);
     isLoggedIn = Boolean(authToken);
 
     localStorage.setItem(TOKEN_STORAGE_KEY, authToken);
@@ -5444,9 +5498,7 @@ async function handleLoginSubmit(event) {
 
     closeProfileMenu();
     clearStatus();
-    renderAuthState();
-
-    await loadExpenses();
+    await routeAuthenticatedUser();
 
     showAppToast("Logged in successfully.", "success");
   } catch (error) {
@@ -6038,7 +6090,7 @@ function bindEvents() {
     input?.addEventListener("input", clearLoginErrors);
   });
 
-  ["username", "email", "password"].forEach(field => {
+  ["name", "username", "email", "password"].forEach(field => {
     document.getElementById(`register-${field}`)?.addEventListener("input", clearRegisterErrors);
   });
 
@@ -6599,10 +6651,4 @@ syncFilterMenuState();
 syncSortMenuState();
 setTodayDate();
 syncMonthFilterState();
-renderAuthState();
-
-if (isLoggedIn) {
-  loadExpenses();
-} else {
-  renderExpenses();
-}
+routeAuthenticatedUser();
