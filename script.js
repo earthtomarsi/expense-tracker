@@ -49,6 +49,9 @@ let adminUserSearch = "";
 let adminRoleFilter = "All";
 let adminUserSort = "name-asc";
 let adminUserInvalidCells = {};
+let adminActivitySearch = "";
+let adminActivityActionFilter = "All";
+let adminActivitySort = "time-desc";
 
 // DOM elements
 const expenseNameInput = document.getElementById("expenseName");
@@ -4533,6 +4536,9 @@ function clearSessionData() {
   adminUsersPage = 1;
   isAdminPanelOpen = false;
   adminManagementTab = "users";
+  adminActivitySearch = "";
+  adminActivityActionFilter = "All";
+  adminActivitySort = "time-desc";
 
   localStorage.removeItem(TOKEN_STORAGE_KEY);
   localStorage.removeItem(USER_STORAGE_KEY);
@@ -4757,14 +4763,49 @@ function ensureAdminPanel() {
             </div>
 
             <div id="admin-activity-panel" class="admin-management-panel" role="tabpanel" hidden>
+              <div class="table-toolbar admin-activity-toolbar" aria-label="User activity controls">
+                <div class="table-search admin-activity-search">
+                  <label class="sr-only" for="admin-activity-search">Search activity</label>
+                  <input id="admin-activity-search" type="text" placeholder="Search activity">
+                  <button class="search-icon-btn" type="button" aria-label="Search activity" disabled>
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round">
+                      <circle cx="11" cy="11" r="7"></circle>
+                      <path d="M20 20l-3.4-3.4"></path>
+                    </svg>
+                  </button>
+                </div>
+
+                <details id="admin-activity-action-filter-menu" class="toolbar-menu filter-menu admin-activity-action-filter-menu">
+                  <summary class="toolbar-button filter-menu-trigger">
+                    <span id="admin-activity-action-filter-label">Action: All</span>
+                    <span class="toolbar-chevron" aria-hidden="true">›</span>
+                  </summary>
+                  <div id="admin-activity-action-filter-panel" class="toolbar-menu-panel filter-menu-panel"></div>
+                </details>
+
+                <details id="admin-activity-sort-menu" class="toolbar-menu sort-menu admin-activity-sort-menu">
+                  <summary class="toolbar-button sort-menu-trigger">
+                    <span id="admin-activity-sort-label">Time: Most Recent</span>
+                    <span class="toolbar-chevron" aria-hidden="true">›</span>
+                  </summary>
+                  <div class="toolbar-menu-panel sort-menu-panel">
+                    <button class="admin-activity-sort-option sort-option active" data-admin-activity-sort="time-desc" type="button">Time: Most Recent</button>
+                    <button class="admin-activity-sort-option sort-option" data-admin-activity-sort="time-asc" type="button">Time: Oldest</button>
+                    <button class="admin-activity-sort-option sort-option" data-admin-activity-sort="username-asc" type="button">Username: A to Z</button>
+                    <button class="admin-activity-sort-option sort-option" data-admin-activity-sort="username-desc" type="button">Username: Z to A</button>
+                  </div>
+                </details>
+
+                <button id="admin-activity-clear-btn" class="toolbar-clear" type="button">Clear</button>
+              </div>
               <div class="admin-table-shell">
                 <table class="admin-table admin-activity-table">
                   <thead>
                     <tr>
-                      <th>Time</th>
-                      <th>User</th>
+                      <th>Username</th>
                       <th>Action</th>
                       <th>Details</th>
+                      <th>Time</th>
                     </tr>
                   </thead>
                   <tbody id="admin-activity-body">
@@ -4795,6 +4836,7 @@ function ensureAdminPanel() {
     panel.querySelector("#admin-edit-users-btn")?.addEventListener("click", handleAdminEditUsersClick);
     panel.querySelector("#admin-cancel-users-btn")?.addEventListener("click", cancelAdminUserEdits);
     panel.querySelector("#admin-user-search")?.addEventListener("input", handleAdminUserSearchInput);
+    panel.querySelector("#admin-activity-search")?.addEventListener("input", handleAdminActivitySearchInput);
     panel.addEventListener("focusout", handleAdminUsersFocusOut);
     panel.addEventListener("change", handleAdminPanelChange);
     panel.addEventListener("click", handleAdminPanelClick);
@@ -5175,17 +5217,131 @@ function closeExpenseCategoryMenus(except = null) {
   });
 }
 
+function getAdminActivityUsername(activity = {}) {
+  return String(
+    activity.username ||
+    activity.user_username ||
+    activity.userName ||
+    activity.name ||
+    getDisplayNameFromLoginValue(activity.email) ||
+    "Deleted user"
+  ).trim();
+}
+
+function getAdminActivityActionLabel(action) {
+  return String(action || "Unknown").trim();
+}
+
+function getAdminActivitySortLabel(value) {
+  const labels = {
+    "time-desc": "Time: Most Recent",
+    "time-asc": "Time: Oldest",
+    "username-asc": "Username: A to Z",
+    "username-desc": "Username: Z to A"
+  };
+
+  return labels[value] || labels["time-desc"];
+}
+
+function getVisibleAdminActivity() {
+  const search = adminActivitySearch.trim().toLowerCase();
+
+  return [...adminActivity]
+    .filter(item => {
+      const action = getAdminActivityActionLabel(item.action);
+
+      if (adminActivityActionFilter !== "All" && action !== adminActivityActionFilter) {
+        return false;
+      }
+
+      if (!search) return true;
+
+      return [
+        getAdminActivityUsername(item),
+        action,
+        item.details,
+        formatActivityTimestamp(item.created_at)
+      ].some(value => String(value || "").toLowerCase().includes(search));
+    })
+    .sort((a, b) => {
+      const aUsername = getAdminActivityUsername(a).toLowerCase();
+      const bUsername = getAdminActivityUsername(b).toLowerCase();
+      const aTime = new Date(a.created_at || 0).getTime() || 0;
+      const bTime = new Date(b.created_at || 0).getTime() || 0;
+
+      switch (adminActivitySort) {
+        case "time-asc":
+          return aTime - bTime || aUsername.localeCompare(bUsername);
+        case "username-asc":
+          return aUsername.localeCompare(bUsername) || bTime - aTime;
+        case "username-desc":
+          return bUsername.localeCompare(aUsername) || bTime - aTime;
+        case "time-desc":
+        default:
+          return bTime - aTime || aUsername.localeCompare(bUsername);
+      }
+    });
+}
+
+function syncAdminActivityToolbarState() {
+  const searchInput = document.getElementById("admin-activity-search");
+  const searchBtn = document.querySelector(".admin-activity-search .search-icon-btn");
+  const actionLabel = document.getElementById("admin-activity-action-filter-label");
+  const actionPanel = document.getElementById("admin-activity-action-filter-panel");
+  const sortLabel = document.getElementById("admin-activity-sort-label");
+  const actions = ["All", ...new Set(adminActivity.map(item => getAdminActivityActionLabel(item.action)).filter(Boolean).sort())];
+
+  if (!actions.includes(adminActivityActionFilter)) {
+    adminActivityActionFilter = "All";
+  }
+
+  if (searchInput && searchInput.value !== adminActivitySearch) {
+    searchInput.value = adminActivitySearch;
+  }
+
+  if (searchBtn) {
+    searchBtn.disabled = adminActivitySearch.trim() === "";
+  }
+
+  if (actionLabel) {
+    actionLabel.textContent = `Action: ${adminActivityActionFilter}`;
+  }
+
+  if (actionPanel) {
+    actionPanel.innerHTML = actions.map(action => `
+      <button
+        class="admin-activity-action-filter-option filter-btn ${action === adminActivityActionFilter ? "active" : ""}"
+        data-admin-activity-action-filter="${escapeHtml(action)}"
+        type="button"
+      >
+        ${escapeHtml(action)}
+      </button>
+    `).join("");
+  }
+
+  if (sortLabel) {
+    sortLabel.textContent = getAdminActivitySortLabel(adminActivitySort);
+  }
+
+  document.querySelectorAll(".admin-activity-sort-option").forEach(option => {
+    option.classList.toggle("active", option.dataset.adminActivitySort === adminActivitySort);
+  });
+}
+
 function renderAdminActivity() {
   const body = document.getElementById("admin-activity-body");
   const count = document.getElementById("admin-activity-count");
 
   if (!body) return;
 
+  const visibleActivity = getVisibleAdminActivity();
+  syncAdminActivityToolbarState();
+
   if (count) {
-    count.textContent = `${adminActivity.length} ${adminActivity.length === 1 ? "event" : "events"}`;
+    count.textContent = `${visibleActivity.length} ${visibleActivity.length === 1 ? "event" : "events"}`;
   }
 
-  if (adminActivity.length === 0) {
+  if (visibleActivity.length === 0) {
     body.innerHTML = `
       <tr>
         <td colspan="4">No activity found.</td>
@@ -5194,18 +5350,14 @@ function renderAdminActivity() {
     return;
   }
 
-  body.innerHTML = adminActivity.map(item => {
-    const userLabel = item.name || item.username || item.email || "Deleted user";
-
-    return `
+  body.innerHTML = visibleActivity.map(item => `
       <tr>
-        <td>${escapeHtml(formatActivityTimestamp(item.created_at))}</td>
-        <td>${escapeHtml(userLabel)}</td>
-        <td><span class="admin-activity-action">${escapeHtml(item.action)}</span></td>
+        <td>${escapeHtml(getAdminActivityUsername(item))}</td>
+        <td><span class="admin-activity-action">${escapeHtml(getAdminActivityActionLabel(item.action))}</span></td>
         <td>${escapeHtml(item.details || "")}</td>
+        <td>${escapeHtml(formatActivityTimestamp(item.created_at))}</td>
       </tr>
-    `;
-  }).join("");
+    `).join("");
 }
 
 async function fetchAdminJson(path, options = {}) {
@@ -5465,6 +5617,11 @@ function handleAdminUserSearchInput(event) {
   renderAdminUsers();
 }
 
+function handleAdminActivitySearchInput(event) {
+  adminActivitySearch = event.target.value || "";
+  renderAdminActivity();
+}
+
 async function handleAdminPanelClick(event) {
   const managementTab = event.target.closest("[data-admin-management-tab], [data-admin-dashboard-action]");
 
@@ -5568,6 +5725,47 @@ async function handleAdminPanelClick(event) {
     if (sortMenu) sortMenu.open = false;
 
     renderAdminUsers();
+    return;
+  }
+
+  const activityActionFilterOption = event.target.closest(".admin-activity-action-filter-option");
+
+  if (activityActionFilterOption) {
+    adminActivityActionFilter = activityActionFilterOption.dataset.adminActivityActionFilter || "All";
+
+    const actionMenu = document.getElementById("admin-activity-action-filter-menu");
+    if (actionMenu) actionMenu.open = false;
+
+    renderAdminActivity();
+    return;
+  }
+
+  const activitySortOption = event.target.closest(".admin-activity-sort-option");
+
+  if (activitySortOption) {
+    adminActivitySort = activitySortOption.dataset.adminActivitySort || "time-desc";
+
+    const sortMenu = document.getElementById("admin-activity-sort-menu");
+    if (sortMenu) sortMenu.open = false;
+
+    renderAdminActivity();
+    return;
+  }
+
+  const activityClearBtn = event.target.closest("#admin-activity-clear-btn");
+
+  if (activityClearBtn) {
+    adminActivitySearch = "";
+    adminActivityActionFilter = "All";
+    adminActivitySort = "time-desc";
+
+    const actionMenu = document.getElementById("admin-activity-action-filter-menu");
+    const sortMenu = document.getElementById("admin-activity-sort-menu");
+
+    if (actionMenu) actionMenu.open = false;
+    if (sortMenu) sortMenu.open = false;
+
+    renderAdminActivity();
     return;
   }
 
