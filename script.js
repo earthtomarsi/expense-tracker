@@ -42,11 +42,12 @@ let adminActivity = [];
 let isAdminPanelOpen = false;
 let authMode = "login";
 let isAdminEditMode = false;
+let adminManagementTab = "users";
 let selectedAdminUserIndex = null;
 let draftAdminUsers = [];
 let adminUserSearch = "";
 let adminRoleFilter = "All";
-let adminUserSort = "username-asc";
+let adminUserSort = "name-asc";
 let adminUserInvalidCells = {};
 
 // DOM elements
@@ -1583,7 +1584,36 @@ async function guardedResetDashboardView(event) {
 
   if (!(await confirmDiscardUnsavedChanges())) return;
 
+  if (isLoggedIn && isAdminUser()) {
+    await resetAdminDashboardView();
+    return;
+  }
+
   resetDashboardView();
+}
+
+async function resetAdminDashboardView() {
+  discardUnsavedEditableTableChanges();
+
+  isAdminPanelOpen = true;
+  isAdminEditMode = false;
+  adminManagementTab = "users";
+  selectedAdminUserIndex = null;
+  adminUsersPage = 1;
+  adminUserSearch = "";
+  adminRoleFilter = "All";
+  adminUserSort = "name-asc";
+  adminUserInvalidCells = {};
+
+  closeProfileMenu();
+  clearStatus();
+  renderAuthState();
+  await loadAdminProfileData();
+
+  document.getElementById("admin-profile-panel")?.scrollIntoView({
+    behavior: "smooth",
+    block: "start"
+  });
 }
 
 async function handleAdminRefreshClick(event) {
@@ -4075,6 +4105,7 @@ function resetDashboardView() {
   setTodayDate();
   isAdminPanelOpen = false;
   isAdminEditMode = false;
+  adminManagementTab = "users";
   selectedAdminUserIndex = null;
   draftAdminUsers = [];
   renderAdminPanelState();
@@ -4501,6 +4532,7 @@ function clearSessionData() {
   adminActivity = [];
   adminUsersPage = 1;
   isAdminPanelOpen = false;
+  adminManagementTab = "users";
 
   localStorage.removeItem(TOKEN_STORAGE_KEY);
   localStorage.removeItem(USER_STORAGE_KEY);
@@ -4534,6 +4566,7 @@ async function routeAuthenticatedUser() {
   if (isAdminUser()) {
     isAdminPanelOpen = true;
     isAdminEditMode = false;
+    adminManagementTab = "users";
     selectedAdminUserIndex = null;
     adminUsersPage = 1;
     renderAuthState();
@@ -4582,111 +4615,167 @@ function ensureAdminPanel() {
     panel.hidden = true;
 
     panel.innerHTML = `
-      <div class="admin-profile-header">
-        <div>
-          <h3>Admin account management</h3>
-          <p>Edit existing user accounts and review login, logout, and CRUD activity.</p>
+      <div class="admin-dashboard-summary-card">
+        <div class="admin-profile-header">
+          <div>
+            <p class="admin-kicker">Admin dashboard</p>
+            <h3 id="admin-profile-title">Hi Admin, here’s today’s account overview.</h3>
+            <p>Edit existing user accounts and review login, logout, and CRUD activity.</p>
+          </div>
+            <p id="admin-last-activity" class="admin-last-activity">No login recorded yet.</p>
         </div>
+
+        <div class="admin-overview-grid" aria-label="Admin overview">
+          <div class="admin-overview-card">
+            <span class="admin-overview-label">Total users</span>
+            <strong id="admin-total-users">0</strong>
+            <small>Across all roles</small>
+          </div>
+          <div class="admin-overview-card">
+            <span class="admin-overview-label">Admins</span>
+            <strong id="admin-total-admins">0</strong>
+            <small>Can manage accounts</small>
+          </div>
+          <div class="admin-overview-card">
+            <span class="admin-overview-label">Regular users</span>
+            <strong id="admin-total-regular-users">0</strong>
+            <small>Expense tracking accounts</small>
+          </div>
+          <div class="admin-overview-card">
+            <span class="admin-overview-label">Activity events</span>
+            <strong id="admin-total-activity">0</strong>
+            <small>Logged user actions</small>
+          </div>
+        </div>
+
       </div>
 
       <div class="admin-profile-grid">
-        <div class="admin-card admin-users-card">
+        <div class="admin-card admin-management-card">
           <div class="admin-card-header">
             <div>
-              <h4>Users</h4>
-              <p>Review accounts, edit profile details, and adjust access roles.</p>
+              <h4>Account management</h4>
+              <p>Review user accounts and activity across Spendflow.</p>
             </div>
-            <span id="admin-user-count">0 accounts</span>
           </div>
-          <div class="table-toolbar admin-users-toolbar" aria-label="User account controls">
-            <div class="table-search admin-user-search">
-              <label class="sr-only" for="admin-user-search">Search users</label>
-              <input id="admin-user-search" type="text" placeholder="Search users">
-              <button class="search-icon-btn" type="button" aria-label="Search users" disabled>
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round">
-                  <circle cx="11" cy="11" r="7"></circle>
-                  <path d="M20 20l-3.4-3.4"></path>
-                </svg>
+
+          <div class="admin-management-workspace">
+            <div class="admin-management-tabs" role="tablist" aria-label="Admin account management views">
+              <button
+                class="admin-management-tab active"
+                type="button"
+                role="tab"
+                aria-selected="true"
+                aria-controls="admin-users-panel"
+                data-admin-management-tab="users"
+              >
+                <span>Users</span>
+                <small id="admin-user-count">0 accounts</small>
+              </button>
+              <button
+                class="admin-management-tab"
+                type="button"
+                role="tab"
+                aria-selected="false"
+                aria-controls="admin-activity-panel"
+                data-admin-management-tab="activity"
+              >
+                <span>User activity</span>
+                <small id="admin-activity-count">0 events</small>
               </button>
             </div>
 
-            <details id="admin-role-filter-menu" class="toolbar-menu filter-menu">
-              <summary class="toolbar-button filter-menu-trigger">
-                <span id="admin-role-filter-label">Role: All</span>
-                <span class="toolbar-chevron" aria-hidden="true">›</span>
-              </summary>
-              <div class="toolbar-menu-panel filter-menu-panel">
-                <button class="admin-role-filter-option filter-btn active" data-admin-role-filter="All" type="button">All</button>
-                <button class="admin-role-filter-option filter-btn" data-admin-role-filter="admin" type="button">Admin</button>
-                <button class="admin-role-filter-option filter-btn" data-admin-role-filter="user" type="button">User</button>
-              </div>
-            </details>
+            <div id="admin-users-panel" class="admin-management-panel" role="tabpanel">
+              <div class="table-toolbar admin-users-toolbar" aria-label="User account controls">
+                <div class="table-search admin-user-search">
+                  <label class="sr-only" for="admin-user-search">Search users</label>
+                  <input id="admin-user-search" type="text" placeholder="Search users">
+                  <button class="search-icon-btn" type="button" aria-label="Search users" disabled>
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round">
+                      <circle cx="11" cy="11" r="7"></circle>
+                      <path d="M20 20l-3.4-3.4"></path>
+                    </svg>
+                  </button>
+                </div>
 
-            <details id="admin-user-sort-menu" class="toolbar-menu sort-menu admin-user-sort-menu">
-              <summary class="toolbar-button sort-menu-trigger">
-                <span id="admin-user-sort-label">Username: A to Z</span>
-                <span class="toolbar-chevron" aria-hidden="true">›</span>
-              </summary>
-              <div class="toolbar-menu-panel sort-menu-panel">
-                <button class="admin-user-sort-option sort-option active" data-admin-user-sort="username-asc" type="button">Username: A to Z</button>
-                <button class="admin-user-sort-option sort-option" data-admin-user-sort="username-desc" type="button">Username: Z to A</button>
-              </div>
-            </details>
+                <details id="admin-role-filter-menu" class="toolbar-menu filter-menu">
+                  <summary class="toolbar-button filter-menu-trigger">
+                    <span id="admin-role-filter-label">Role: All</span>
+                    <span class="toolbar-chevron" aria-hidden="true">›</span>
+                  </summary>
+                  <div class="toolbar-menu-panel filter-menu-panel">
+                    <button class="admin-role-filter-option filter-btn active" data-admin-role-filter="All" type="button">All</button>
+                    <button class="admin-role-filter-option filter-btn" data-admin-role-filter="admin" type="button">Admin</button>
+                    <button class="admin-role-filter-option filter-btn" data-admin-role-filter="user" type="button">User</button>
+                  </div>
+                </details>
 
-            <button id="admin-users-clear-btn" class="toolbar-clear" type="button">Clear</button>
-          </div>
-          <div class="admin-table-shell">
-            <table class="admin-table admin-users-table">
-              <thead>
-                <tr>
-                  <th><span class="th-text">Username</span></th>
-                  <th><span class="th-text">Email</span></th>
-                  <th><span class="th-text">Role</span></th>
-                  <th class="actions-header"><span class="th-text"></span></th>
-                </tr>
-              </thead>
-              <tbody id="admin-users-body">
-                <tr>
-                  <td colspan="4">No users loaded yet.</td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-          <div class="table-footer admin-users-footer">
-            <div class="table-pagination admin-users-pagination">
-              <span id="admin-users-page-indicator" class="page-indicator">0-0 of 0</span>
-              <button id="admin-users-prev-page-btn" type="button" class="page-btn" aria-label="Previous users page">&#8249;</button>
-              <button id="admin-users-next-page-btn" type="button" class="page-btn" aria-label="Next users page">&#8250;</button>
+                <details id="admin-user-sort-menu" class="toolbar-menu sort-menu admin-user-sort-menu">
+                  <summary class="toolbar-button sort-menu-trigger">
+                    <span id="admin-user-sort-label">Name: A to Z</span>
+                    <span class="toolbar-chevron" aria-hidden="true">›</span>
+                  </summary>
+                  <div class="toolbar-menu-panel sort-menu-panel">
+                    <button class="admin-user-sort-option sort-option active" data-admin-user-sort="name-asc" type="button">Name: A to Z</button>
+                    <button class="admin-user-sort-option sort-option" data-admin-user-sort="name-desc" type="button">Name: Z to A</button>
+                    <button class="admin-user-sort-option sort-option" data-admin-user-sort="username-asc" type="button">Username: A to Z</button>
+                    <button class="admin-user-sort-option sort-option" data-admin-user-sort="username-desc" type="button">Username: Z to A</button>
+                  </div>
+                </details>
+
+                <button id="admin-users-clear-btn" class="toolbar-clear" type="button">Clear</button>
+              </div>
+              <div class="admin-table-shell">
+                <table class="admin-table admin-users-table">
+                  <thead>
+                    <tr>
+                      <th><span class="th-text">Name</span></th>
+                      <th><span class="th-text">Username</span></th>
+                      <th><span class="th-text">Email</span></th>
+                      <th><span class="th-text">Role</span></th>
+                      <th class="actions-header"><span class="th-text"></span></th>
+                    </tr>
+                  </thead>
+                  <tbody id="admin-users-body">
+                    <tr>
+                      <td colspan="5">No users loaded yet.</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+              <div class="table-footer admin-users-footer">
+                <div class="table-pagination admin-users-pagination">
+                  <span id="admin-users-page-indicator" class="page-indicator">0-0 of 0</span>
+                  <button id="admin-users-prev-page-btn" type="button" class="page-btn" aria-label="Previous users page">&#8249;</button>
+                  <button id="admin-users-next-page-btn" type="button" class="page-btn" aria-label="Next users page">&#8250;</button>
+                </div>
+              </div>
+              <div class="admin-table-actions">
+                <button id="admin-edit-users-btn" type="button" class="table-action-btn">Edit</button>
+                <button id="admin-cancel-users-btn" type="button" class="table-action-btn secondary inactive">Cancel</button>
+              </div>
+            </div>
+
+            <div id="admin-activity-panel" class="admin-management-panel" role="tabpanel" hidden>
+              <div class="admin-table-shell">
+                <table class="admin-table admin-activity-table">
+                  <thead>
+                    <tr>
+                      <th>Time</th>
+                      <th>User</th>
+                      <th>Action</th>
+                      <th>Details</th>
+                    </tr>
+                  </thead>
+                  <tbody id="admin-activity-body">
+                    <tr>
+                      <td colspan="4">No activity loaded yet.</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
             </div>
           </div>
-          <div class="admin-table-actions">
-            <button id="admin-edit-users-btn" type="button" class="table-action-btn">Edit</button>
-            <button id="admin-cancel-users-btn" type="button" class="table-action-btn secondary inactive">Cancel</button>
-          </div>
-        </div>
-      </div>
-
-      <div class="admin-card admin-activity-card">
-        <div class="admin-card-header">
-          <h4>User activity</h4>
-          <span id="admin-activity-count">0 events</span>
-        </div>
-        <div class="admin-table-shell">
-          <table class="admin-table admin-activity-table">
-            <thead>
-              <tr>
-                <th>Time</th>
-                <th>User</th>
-                <th>Action</th>
-                <th>Details</th>
-              </tr>
-            </thead>
-            <tbody id="admin-activity-body">
-              <tr>
-                <td colspan="4">No activity loaded yet.</td>
-              </tr>
-            </tbody>
-          </table>
         </div>
       </div>
     `;
@@ -4719,7 +4808,50 @@ function renderAdminPanelState() {
 
   if (!panel) return;
 
+  const title = document.getElementById("admin-profile-title");
+  if (title) {
+    title.textContent = `Hi ${getCurrentDisplayName()}, here’s today’s account overview.`;
+  }
+
   panel.hidden = !isLoggedIn || !isAdminUser() || !isAdminPanelOpen;
+  syncAdminManagementTabs();
+}
+
+function syncAdminManagementTabs() {
+  document.querySelectorAll("[data-admin-management-tab]").forEach(tab => {
+    const isActive = tab.dataset.adminManagementTab === adminManagementTab;
+    tab.classList.toggle("active", isActive);
+    tab.setAttribute("aria-selected", String(isActive));
+  });
+
+  document.querySelectorAll(".admin-management-panel").forEach(panel => {
+    panel.hidden = panel.id !== `admin-${adminManagementTab}-panel`;
+  });
+}
+
+async function setAdminManagementTab(tabName, options = {}) {
+  const nextTab = tabName === "activity" ? "activity" : "users";
+  const { scrollIntoView = false } = options;
+
+  if (nextTab !== adminManagementTab) {
+    if (isAdminEditMode && !(await confirmDiscardUnsavedChanges())) return false;
+
+    if (isAdminEditMode) {
+      discardUnsavedEditableTableChanges();
+    }
+
+    adminManagementTab = nextTab;
+    syncAdminManagementTabs();
+  }
+
+  if (scrollIntoView) {
+    document.querySelector(".admin-management-card")?.scrollIntoView({
+      behavior: "smooth",
+      block: "start"
+    });
+  }
+
+  return true;
 }
 
 function renderPageSections() {
@@ -4750,12 +4882,25 @@ function getAdminUsername(user) {
   ).trim();
 }
 
+function getAdminName(user) {
+  return String(
+    user?.name ||
+    user?.username ||
+    getDisplayNameFromLoginValue(user?.email) ||
+    ""
+  ).trim();
+}
+
+function getAdminEditableName(user) {
+  return String(user?.name || "").trim();
+}
+
 function getAdminEditableUsername(user) {
-  return String(user?.username || user?.name || "").trim();
+  return String(user?.username || "").trim();
 }
 
 function getAdminUserErrorLabel(user) {
-  return getAdminEditableUsername(user) || String(user?.email || "").trim() || "this user";
+  return getAdminEditableName(user) || getAdminEditableUsername(user) || String(user?.email || "").trim() || "this user";
 }
 
 function getVisibleAdminUsers(sourceUsers) {
@@ -4770,16 +4915,29 @@ function getVisibleAdminUsers(sourceUsers) {
       if (!search) return true;
 
       return [
+        getAdminName(user),
         getAdminUsername(user),
         user.email,
         user.role
       ].some(value => String(value || "").toLowerCase().includes(search));
     })
     .sort((a, b) => {
-      const aName = getAdminUsername(a.user).toLowerCase();
-      const bName = getAdminUsername(b.user).toLowerCase();
-      const comparison = aName.localeCompare(bName);
-      return adminUserSort === "username-desc" ? -comparison : comparison;
+      const aName = getAdminName(a.user).toLowerCase();
+      const bName = getAdminName(b.user).toLowerCase();
+      const aUsername = getAdminUsername(a.user).toLowerCase();
+      const bUsername = getAdminUsername(b.user).toLowerCase();
+
+      switch (adminUserSort) {
+        case "name-desc":
+          return bName.localeCompare(aName) || bUsername.localeCompare(aUsername);
+        case "username-asc":
+          return aUsername.localeCompare(bUsername) || aName.localeCompare(bName);
+        case "username-desc":
+          return bUsername.localeCompare(aUsername) || bName.localeCompare(aName);
+        case "name-asc":
+        default:
+          return aName.localeCompare(bName) || aUsername.localeCompare(bUsername);
+      }
     });
 }
 
@@ -4802,9 +4960,14 @@ function syncAdminUserToolbarState() {
   }
 
   if (sortLabel) {
-    sortLabel.textContent = adminUserSort === "username-desc"
-      ? "Username: Z to A"
-      : "Username: A to Z";
+    const sortLabels = {
+      "name-asc": "Name: A to Z",
+      "name-desc": "Name: Z to A",
+      "username-asc": "Username: A to Z",
+      "username-desc": "Username: Z to A"
+    };
+
+    sortLabel.textContent = sortLabels[adminUserSort] || sortLabels["name-asc"];
   }
 
   document.querySelectorAll(".admin-role-filter-option").forEach(option => {
@@ -4816,10 +4979,32 @@ function syncAdminUserToolbarState() {
   });
 }
 
+function renderAdminOverview() {
+  const totalUsers = document.getElementById("admin-total-users");
+  const totalAdmins = document.getElementById("admin-total-admins");
+  const totalRegularUsers = document.getElementById("admin-total-regular-users");
+  const totalActivity = document.getElementById("admin-total-activity");
+  const lastActivity = document.getElementById("admin-last-activity");
+  const adminCount = adminUsers.filter(user => user.role === "admin").length;
+  const regularUserCount = adminUsers.filter(user => user.role === "user").length;
+  const latestLogin = adminActivity.find(activity => activity.action === "LOGIN");
+
+  if (totalUsers) totalUsers.textContent = String(adminUsers.length);
+  if (totalAdmins) totalAdmins.textContent = String(adminCount);
+  if (totalRegularUsers) totalRegularUsers.textContent = String(regularUserCount);
+  if (totalActivity) totalActivity.textContent = String(adminActivity.length);
+
+  if (lastActivity) {
+    lastActivity.textContent = latestLogin
+      ? `Last login: ${formatActivityTimestamp(latestLogin.created_at)}`
+      : "No login recorded yet.";
+  }
+}
+
 function renderAdminUsers() {
   const body = document.getElementById("admin-users-body");
   const count = document.getElementById("admin-user-count");
-  const usersTable = document.querySelector(".admin-users-card .admin-table");
+  const usersTable = document.querySelector(".admin-users-table");
 
   if (!body) return;
 
@@ -4853,7 +5038,7 @@ function renderAdminUsers() {
   if (visibleUsers.length === 0) {
     body.innerHTML = `
       <tr>
-        <td colspan="4">No users found.</td>
+        <td colspan="5">No users found.</td>
       </tr>
     `;
     updateAdminUsersPaginationDisplay(0);
@@ -4862,17 +5047,26 @@ function renderAdminUsers() {
 
   body.innerHTML = paginatedUsers.map(({ user, index }) => {
     const isCurrentUser = Number(user.id) === Number(currentUser?.id);
+    const name = getAdminName(user);
     const username = getAdminUsername(user);
     const rowIsEditable = isAdminEditMode && (selectedAdminUserIndex == null || selectedAdminUserIndex === index);
     const lockedClass = rowIsEditable ? "" : "locked";
     const editableValue = rowIsEditable ? "true" : "false";
     const deleteLabel = isCurrentUser ? "Current user" : "Delete";
+    const nameInvalid = Boolean(adminUserInvalidCells[`${index}:name`]);
     const usernameInvalid = Boolean(adminUserInvalidCells[`${index}:username`]);
-    const emailInvalid = Boolean(adminUserInvalidCells[`${index}:email`]);
-    const roleInvalid = Boolean(adminUserInvalidCells[`${index}:role`]);
+    const roleLabel = capitalizeFirstLetter(user.role === "admin" ? "admin" : "user");
 
     return `
       <tr class="${isAdminEditMode && selectedAdminUserIndex === index ? "selected-edit-row" : ""}">
+        <td
+          class="editable admin-name-cell ${lockedClass} ${nameInvalid ? "invalid-edit-cell" : ""}"
+          data-admin-field="name"
+          data-admin-index="${index}"
+          contenteditable="${editableValue}"
+        >
+          <span class="cell-text">${escapeHtml(name)}</span>
+        </td>
         <td
           class="editable admin-username-cell ${lockedClass} ${usernameInvalid ? "invalid-edit-cell" : ""}"
           data-admin-field="username"
@@ -4883,16 +5077,11 @@ function renderAdminUsers() {
             ${escapeHtml(username)}
           </span>
         </td>
-        <td
-          class="editable admin-email-cell ${lockedClass} ${emailInvalid ? "invalid-edit-cell" : ""}"
-          data-admin-field="email"
-          data-admin-index="${index}"
-          contenteditable="${editableValue}"
-        >
+        <td class="admin-email-cell admin-readonly-cell">
           <span class="cell-text">${escapeHtml(user.email)}</span>
         </td>
-        <td class="admin-role-cell ${lockedClass} ${roleInvalid ? "invalid-edit-cell" : ""}">
-          ${createAdminRoleCellMarkup(user.role, index, rowIsEditable)}
+        <td class="admin-role-cell admin-readonly-cell">
+          <span class="cell-text">${escapeHtml(roleLabel)}</span>
         </td>
         <td>
           <div class="admin-row-actions">
@@ -5060,6 +5249,7 @@ async function loadAdminProfileData() {
     adminUsersPage = 1;
     adminUserInvalidCells = {};
     adminActivity = Array.isArray(activity) ? activity : [];
+    renderAdminOverview();
     updateAdminEditButtons();
     renderAdminUsers();
     renderAdminActivity();
@@ -5090,7 +5280,7 @@ function startAdminRowEdit(index) {
 
   requestAnimationFrame(() => {
     const cell = document.querySelector(
-      `[data-admin-field="username"][data-admin-index="${index}"]`
+      `[data-admin-field="name"][data-admin-index="${index}"]`
     );
     focusEditableCellAtEnd(cell);
   });
@@ -5106,10 +5296,6 @@ function updateDraftAdminUser(index, field, value) {
 
   draftAdminUsers[index][field] = String(value || "").trim();
   delete adminUserInvalidCells[`${index}:${field}`];
-
-  if (field === "username") {
-    draftAdminUsers[index].name = draftAdminUsers[index].username;
-  }
 }
 
 function commitAdminEditableCell(cell) {
@@ -5135,26 +5321,18 @@ function validateDraftAdminUsers() {
   let firstError = "";
 
   draftAdminUsers.forEach((user, index) => {
+    const name = getAdminEditableName(user);
     const username = getAdminEditableUsername(user);
-    const email = String(user.email || "").trim();
     const userLabel = getAdminUserErrorLabel(user);
+
+    if (!name) {
+      adminUserInvalidCells[`${index}:name`] = true;
+      firstError ||= `Name is required for ${userLabel}.`;
+    }
 
     if (!username) {
       adminUserInvalidCells[`${index}:username`] = true;
-      firstError ||= "Username is required.";
-    }
-
-    if (!email) {
-      adminUserInvalidCells[`${index}:email`] = true;
-      firstError ||= `Email is required for ${userLabel}.`;
-    } else if (!isValidEmailFormat(email)) {
-      adminUserInvalidCells[`${index}:email`] = true;
-      firstError ||= `Please enter a valid email address for ${userLabel}.`;
-    }
-
-    if (!["admin", "user"].includes(user.role)) {
-      adminUserInvalidCells[`${index}:role`] = true;
-      firstError ||= `Please choose a valid role for ${userLabel}.`;
+      firstError ||= `Username is required for ${userLabel}.`;
     }
   });
 
@@ -5163,9 +5341,8 @@ function validateDraftAdminUsers() {
 
 function isAdminUserDifferent(savedUser, draftUser) {
   return (
-    getAdminEditableUsername(savedUser) !== getAdminEditableUsername(draftUser) ||
-    String(savedUser.email || "").trim() !== String(draftUser.email || "").trim() ||
-    savedUser.role !== draftUser.role
+    getAdminEditableName(savedUser) !== getAdminEditableName(draftUser) ||
+    getAdminEditableUsername(savedUser) !== getAdminEditableUsername(draftUser)
   );
 }
 
@@ -5188,30 +5365,25 @@ async function saveAdminUserEdits() {
     let savedUser;
 
     try {
+      const name = getAdminEditableName(user);
       const username = getAdminEditableUsername(user);
 
       savedUser = await fetchAdminJson(`/admin/users/${user.id}`, {
         method: "PUT",
         body: JSON.stringify({
-          name: username,
-          username,
-          email: String(user.email || "").trim(),
-          role: user.role
+          name,
+          username
         })
       });
     } catch (error) {
       const message = String(error.message || "");
 
-      if (/email/i.test(message)) {
-        adminUserInvalidCells[`${index}:email`] = true;
+      if (/name/i.test(message)) {
+        adminUserInvalidCells[`${index}:name`] = true;
       }
 
-      if (/username|user name|user|name/i.test(message) && !/email/i.test(message)) {
+      if (/username|user name|user/i.test(message)) {
         adminUserInvalidCells[`${index}:username`] = true;
-      }
-
-      if (/role/i.test(message)) {
-        adminUserInvalidCells[`${index}:role`] = true;
       }
 
       renderAdminUsers();
@@ -5219,11 +5391,7 @@ async function saveAdminUserEdits() {
     }
 
     if (Number(savedUser.id) === Number(currentUser?.id)) {
-      currentUser = {
-        ...currentUser,
-        ...savedUser,
-        displayName: capitalizeFirstLetter(getAdminUsername(savedUser) || currentUser.displayName)
-      };
+      currentUser = normalizeUser({ ...currentUser, ...savedUser });
       localStorage.setItem(USER_STORAGE_KEY, JSON.stringify(currentUser));
     }
   }
@@ -5233,6 +5401,7 @@ async function saveAdminUserEdits() {
 
   if (!isAdminUser()) {
     isAdminPanelOpen = false;
+    adminManagementTab = "users";
     renderAuthState();
   }
 
@@ -5297,6 +5466,20 @@ function handleAdminUserSearchInput(event) {
 }
 
 async function handleAdminPanelClick(event) {
+  const managementTab = event.target.closest("[data-admin-management-tab], [data-admin-dashboard-action]");
+
+  if (managementTab) {
+    const nextTab =
+      managementTab.dataset.adminManagementTab ||
+      managementTab.dataset.adminDashboardAction ||
+      "users";
+
+    await setAdminManagementTab(nextTab, {
+      scrollIntoView: Boolean(managementTab.dataset.adminDashboardAction)
+    });
+    return;
+  }
+
   const roleTrigger = event.target.closest(".admin-role-trigger");
 
   if (roleTrigger) {
@@ -5363,7 +5546,7 @@ async function handleAdminPanelClick(event) {
   const sortOption = event.target.closest(".admin-user-sort-option");
 
   if (sortOption) {
-    adminUserSort = sortOption.dataset.adminUserSort || "username-asc";
+    adminUserSort = sortOption.dataset.adminUserSort || "name-asc";
     adminUsersPage = 1;
     document.getElementById("admin-user-sort-menu").open = false;
     renderAdminUsers();
@@ -5375,7 +5558,7 @@ async function handleAdminPanelClick(event) {
   if (adminClearBtn) {
     adminUserSearch = "";
     adminRoleFilter = "All";
-    adminUserSort = "username-asc";
+    adminUserSort = "name-asc";
     adminUsersPage = 1;
 
     const roleMenu = document.getElementById("admin-role-filter-menu");
@@ -5445,6 +5628,7 @@ async function handleUserProfileClick(event) {
 
   isAdminEditMode = false;
   selectedAdminUserIndex = null;
+  adminManagementTab = "users";
   adminUsersPage = 1;
   await loadAdminProfileData();
   document.getElementById("admin-profile-panel")?.scrollIntoView({
