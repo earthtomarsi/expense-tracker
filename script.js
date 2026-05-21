@@ -52,6 +52,14 @@ let adminUserInvalidCells = {};
 let adminActivitySearch = "";
 let adminActivityActionFilter = "All";
 let adminActivitySort = "time-desc";
+let adminActivityPage = 1;
+let adminUserDetail = null;
+let adminUserDetailActivity = [];
+let adminUserDetailIsEditing = false;
+let adminUserDetailIsLoading = false;
+let adminUserDetailActivityPage = 1;
+const adminActivityRowsPerPage = 10;
+const adminUserDetailActivityRowsPerPage = 10;
 
 // DOM elements
 const expenseNameInput = document.getElementById("expenseName");
@@ -1044,6 +1052,16 @@ function ensureToastActionButton(toast) {
   return actionBtn;
 }
 
+function ensureToastLayer(toast) {
+  if (!toast) return;
+
+  // Modals are created dynamically at the end of <body>. Re-appending the
+  // existing toast keeps it visually above those overlays without cloning it.
+  if (toast.parentElement !== document.body || toast !== document.body.lastElementChild) {
+    document.body.appendChild(toast);
+  }
+}
+
 function highlightTableActionButton(button) {
   if (!button) return;
 
@@ -1087,6 +1105,11 @@ function scrollToTableEditActions() {
 }
 
 function getActiveEditableTableSaveButton() {
+  if (adminUserDetailIsEditing) {
+    const detailSaveBtn = document.getElementById("admin-user-detail-save-btn");
+    if (detailSaveBtn) return detailSaveBtn;
+  }
+
   if (isAdminEditMode) {
     const adminSaveBtn = document.getElementById("admin-edit-users-btn");
     if (adminSaveBtn) return adminSaveBtn;
@@ -1132,6 +1155,8 @@ function showAppToast(message, type = "success", action = null, title = null) {
   const iconEl = document.getElementById("app-toast-icon");
 
   if (!toast || !messageEl) return;
+
+  ensureToastLayer(toast);
 
   const actionBtn = ensureToastActionButton(toast);
   const hasAction = Boolean(action?.label && typeof action.onClick === "function");
@@ -1306,8 +1331,16 @@ function hasAdminUsersUnsavedChanges(options = {}) {
   });
 }
 
+function hasAdminUserDetailUnsavedChanges() {
+  return Boolean(adminUserDetailIsEditing && adminUserDetail);
+}
+
 function hasEditableTableUnsavedChanges(options = {}) {
-  return hasExpenseUnsavedChanges(options) || hasAdminUsersUnsavedChanges(options);
+  return (
+    hasExpenseUnsavedChanges(options) ||
+    hasAdminUsersUnsavedChanges(options) ||
+    hasAdminUserDetailUnsavedChanges()
+  );
 }
 
 function discardUnsavedEditableTableChanges() {
@@ -1333,6 +1366,11 @@ function discardUnsavedEditableTableChanges() {
     adminUserInvalidCells = {};
     updateAdminEditButtons();
     renderAdminUsers();
+  }
+
+  if (adminUserDetailIsEditing) {
+    adminUserDetailIsEditing = false;
+    renderAdminUserDetailDialog();
   }
 }
 
@@ -1402,6 +1440,11 @@ function closeUnsavedChangesDialog(shouldLeave) {
   }
 
   document.body.classList.remove("modal-open");
+
+  const detailDialog = document.getElementById("admin-user-detail-dialog");
+  if (!shouldLeave && detailDialog && !detailDialog.hidden) {
+    document.body.classList.add("modal-open");
+  }
 
   const resolver = unsavedChangesDialogResolve;
   unsavedChangesDialogResolve = null;
@@ -1514,6 +1557,11 @@ function closeDeleteUserDialog(shouldDelete) {
 
   document.body.classList.remove("modal-open");
 
+  const detailDialog = document.getElementById("admin-user-detail-dialog");
+  if (detailDialog && !detailDialog.hidden) {
+    document.body.classList.add("modal-open");
+  }
+
   const resolver = deleteUserDialogResolve;
   deleteUserDialogResolve = null;
 
@@ -1559,10 +1607,437 @@ function showDeleteUserDialog(user) {
   });
 }
 
+function ensureAdminUserDetailDialog() {
+  let dialog = document.getElementById("admin-user-detail-dialog");
+
+  if (dialog) return dialog;
+
+  dialog = document.createElement("div");
+  dialog.id = "admin-user-detail-dialog";
+  dialog.className = "unsaved-changes-modal admin-user-detail-modal";
+  dialog.hidden = true;
+  dialog.setAttribute("role", "dialog");
+  dialog.setAttribute("aria-modal", "true");
+  dialog.setAttribute("aria-labelledby", "admin-user-detail-title");
+
+  dialog.innerHTML = `
+    <div class="admin-user-detail-card" role="document">
+      <button id="admin-user-detail-close-btn" class="unsaved-changes-close-btn" type="button" aria-label="Close dialog">×</button>
+      <div id="admin-user-detail-content"></div>
+    </div>
+  `;
+
+  document.body.appendChild(dialog);
+
+  dialog.querySelector("#admin-user-detail-close-btn")?.addEventListener("click", requestCloseAdminUserDetailDialog);
+  dialog.addEventListener("click", handleAdminUserDetailDialogClick);
+  dialog.addEventListener("keydown", event => {
+    if (event.key === "Escape") {
+      event.preventDefault();
+      requestCloseAdminUserDetailDialog();
+    }
+  });
+
+  return dialog;
+}
+
+async function requestCloseAdminUserDetailDialog() {
+  if (adminUserDetailIsEditing && !(await confirmDiscardUnsavedChanges())) {
+    return;
+  }
+
+  closeAdminUserDetailDialog();
+}
+
+function closeAdminUserDetailDialog() {
+  const dialog = document.getElementById("admin-user-detail-dialog");
+
+  if (dialog) {
+    dialog.classList.remove("show");
+
+    setTimeout(() => {
+      dialog.hidden = true;
+    }, 180);
+  }
+
+  document.body.classList.remove("modal-open");
+  adminUserDetail = null;
+  adminUserDetailActivity = [];
+  adminUserDetailIsEditing = false;
+  adminUserDetailIsLoading = false;
+  adminUserDetailActivityPage = 1;
+}
+
+function renderAdminUserDetailDialog() {
+  const dialog = ensureAdminUserDetailDialog();
+  const content = dialog.querySelector("#admin-user-detail-content");
+
+  if (!content) return;
+
+  if (adminUserDetailIsLoading) {
+    content.innerHTML = `
+      <div class="admin-user-detail-loading">
+        <p>Loading user details...</p>
+      </div>
+    `;
+    return;
+  }
+
+  if (!adminUserDetail) {
+    content.innerHTML = `
+      <div class="admin-user-detail-loading">
+        <p>User details could not be loaded.</p>
+      </div>
+    `;
+    return;
+  }
+
+  const user = normalizeAdminUser(adminUserDetail);
+  const roleLabel = capitalizeFirstLetter(user.role === "admin" ? "admin" : "user");
+  const isAdminAccount = user.role === "admin";
+  const canRemoveUser = adminUserDetailIsEditing && !isAdminAccount;
+  const removeUserTitle = isAdminAccount
+    ? "Admin accounts cannot be removed here"
+    : adminUserDetailIsEditing
+      ? "Remove user"
+      : "Click Edit user before removing";
+  const totalActivityItems = adminUserDetailActivity.length;
+  const totalActivityPages = Math.max(1, Math.ceil(totalActivityItems / adminUserDetailActivityRowsPerPage));
+
+  if (adminUserDetailActivityPage > totalActivityPages) {
+    adminUserDetailActivityPage = totalActivityPages;
+  }
+
+  if (adminUserDetailActivityPage < 1) {
+    adminUserDetailActivityPage = 1;
+  }
+
+  const activityStartIndex = (adminUserDetailActivityPage - 1) * adminUserDetailActivityRowsPerPage;
+  const activityEndIndex = activityStartIndex + adminUserDetailActivityRowsPerPage;
+  const visibleActivity = adminUserDetailActivity.slice(activityStartIndex, activityEndIndex);
+  const activityStartDisplay = totalActivityItems ? activityStartIndex + 1 : 0;
+  const activityEndDisplay = Math.min(activityEndIndex, totalActivityItems);
+  const activityRows = visibleActivity.length
+    ? visibleActivity.map(item => `
+        <tr>
+          <td><span class="admin-activity-action">${escapeHtml(getAdminActivityActionLabel(item.action))}</span></td>
+          <td>${escapeHtml(item.details || "")}</td>
+          <td>${escapeHtml(formatActivityTimestamp(item.created_at))}</td>
+        </tr>
+      `).join("")
+    : `
+        <tr>
+          <td colspan="3">No activity found for this user.</td>
+        </tr>
+      `;
+
+  content.innerHTML = `
+    <div class="admin-user-detail-header">
+      <div>
+        <h3 id="admin-user-detail-title">${escapeHtml(getAdminName(user) || getAdminUsername(user) || "User")}</h3>
+        <p>Review this user's account details and recent activity.</p>
+      </div>
+      <button
+        id="admin-user-detail-remove-icon-btn"
+        class="admin-user-detail-remove-btn"
+        type="button"
+        data-admin-user-detail-action="remove"
+        aria-label="${escapeHtml(removeUserTitle)}"
+        title="${escapeHtml(removeUserTitle)}"
+        ${canRemoveUser ? "" : "disabled"}
+      >
+        <svg viewBox="0 0 448 512" aria-hidden="true">
+          <path d="M135.2 17.7C140.6 6.8 151.7 0 163.8 0h120.4c12.1 0 23.2 6.8 28.6 17.7L320 32h96c17.7 0 32 14.3 32 32s-14.3 32-32 32H32C14.3 96 0 81.7 0 64s14.3-32 32-32h96l7.2-14.3zM32 128h384l-21.2 339c-1.6 25.3-22.6 45-47.9 45H101.1c-25.3 0-46.3-19.7-47.9-45L32 128zm96 64c-8.8 0-16 7.2-16 16v224c0 8.8 7.2 16 16 16s16-7.2 16-16V208c0-8.8-7.2-16-16-16zm96 0c-8.8 0-16 7.2-16 16v224c0 8.8 7.2 16 16 16s16-7.2 16-16V208c0-8.8-7.2-16-16-16zm96 0c-8.8 0-16 7.2-16 16v224c0 8.8 7.2 16 16 16s16-7.2 16-16V208c0-8.8-7.2-16-16-16z"></path>
+        </svg>
+        <span>Remove user</span>
+      </button>
+    </div>
+
+    <form id="admin-user-detail-form" class="admin-user-detail-form" novalidate>
+      <div class="admin-user-detail-grid">
+        <label class="admin-user-detail-field">
+          <span>Name</span>
+          <input id="admin-user-detail-name" name="name" type="text" value="${escapeHtml(user.name)}" ${adminUserDetailIsEditing ? "" : "readonly"}>
+        </label>
+        <label class="admin-user-detail-field">
+          <span>Username</span>
+          <input id="admin-user-detail-username" name="username" type="text" value="${escapeHtml(user.username)}" ${adminUserDetailIsEditing ? "" : "readonly"}>
+        </label>
+        <label class="admin-user-detail-field">
+          <span>Email</span>
+          <input type="email" value="${escapeHtml(user.email)}" readonly>
+        </label>
+        <label class="admin-user-detail-field">
+          <span>Role</span>
+          <input type="text" value="${escapeHtml(roleLabel)}" readonly>
+        </label>
+      </div>
+      <p id="admin-user-detail-error" class="error-text admin-user-detail-error"></p>
+      <div class="admin-user-detail-actions">
+        <button id="admin-user-detail-edit-btn" class="table-action-btn" type="button" data-admin-user-detail-action="edit" ${adminUserDetailIsEditing ? "hidden" : ""}>Edit user</button>
+        <button id="admin-user-detail-save-btn" class="table-action-btn" type="button" data-admin-user-detail-action="save" ${adminUserDetailIsEditing ? "" : "hidden"}>Save changes</button>
+        <button id="admin-user-detail-cancel-btn" class="table-action-btn secondary" type="button" data-admin-user-detail-action="cancel" ${adminUserDetailIsEditing ? "" : "hidden"}>Cancel</button>
+      </div>
+    </form>
+
+    <div class="admin-user-detail-activity">
+      <div class="admin-user-detail-section-header">
+        <h4>User activity</h4>
+        <div class="table-pagination admin-user-detail-pagination">
+          <span class="page-indicator">${activityStartDisplay}-${activityEndDisplay} of ${totalActivityItems}</span>
+          <button
+            id="admin-user-detail-prev-activity-btn"
+            type="button"
+            class="page-btn"
+            data-admin-user-detail-action="activity-prev"
+            data-page-glyph="‹"
+            aria-label="Previous user activity page"
+            ${adminUserDetailActivityPage === 1 ? "disabled" : ""}
+          >&#8249;</button>
+          <button
+            id="admin-user-detail-next-activity-btn"
+            type="button"
+            class="page-btn"
+            data-admin-user-detail-action="activity-next"
+            data-page-glyph="›"
+            aria-label="Next user activity page"
+            ${activityEndDisplay >= totalActivityItems ? "disabled" : ""}
+          >&#8250;</button>
+        </div>
+      </div>
+      <div class="admin-table-shell">
+        <table class="admin-table admin-user-detail-activity-table">
+          <thead>
+            <tr>
+              <th>Action</th>
+              <th>Details</th>
+              <th>Time</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${activityRows}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  `;
+
+  content
+    .querySelector("#admin-user-detail-remove-icon-btn")
+    ?.addEventListener("click", handleAdminUserDetailRemoveClick);
+
+  content
+    .querySelector("#admin-user-detail-form")
+    ?.addEventListener("submit", handleAdminUserDetailSubmit);
+
+  content
+    .querySelector("#admin-user-detail-save-btn")
+    ?.addEventListener("click", handleAdminUserDetailSaveClick);
+}
+
+async function openAdminUserDetailDialog(user) {
+  const userId = getAdminUserId(user);
+
+  if (!userId) return;
+
+  const dialog = ensureAdminUserDetailDialog();
+  adminUserDetail = normalizeAdminUser(user);
+  adminUserDetailActivity = [];
+  adminUserDetailIsEditing = false;
+  adminUserDetailIsLoading = true;
+  adminUserDetailActivityPage = 1;
+
+  dialog.hidden = false;
+  document.body.classList.add("modal-open");
+  renderAdminUserDetailDialog();
+
+  requestAnimationFrame(() => {
+    dialog.classList.add("show");
+  });
+
+  const [detailResult, activityResult] = await Promise.allSettled([
+    fetchAdminJson(`/admin/users/${userId}`),
+    fetchAdminJson(`/admin/users/${userId}/activity`)
+  ]);
+
+  if (detailResult.status === "fulfilled") {
+    adminUserDetail = normalizeAdminUser(detailResult.value);
+  } else {
+    console.error("Failed to load user details:", detailResult.reason);
+    adminUserDetail = normalizeAdminUser(user);
+  }
+
+  if (activityResult.status === "fulfilled" && Array.isArray(activityResult.value)) {
+    adminUserDetailActivity = activityResult.value.length
+      ? activityResult.value
+      : getAdminActivityForUser(userId);
+  } else {
+    console.error("Failed to load user activity:", activityResult.reason);
+    adminUserDetailActivity = getAdminActivityForUser(userId);
+  }
+
+  adminUserDetailIsLoading = false;
+  renderAdminUserDetailDialog();
+}
+
+function showAdminUserDetailError(message) {
+  const error = document.getElementById("admin-user-detail-error");
+
+  if (error) {
+    error.textContent = message;
+  }
+}
+
+async function handleAdminUserDetailSubmit(event) {
+  event.preventDefault();
+  await saveAdminUserDetailChanges();
+}
+
+async function handleAdminUserDetailSaveClick(event) {
+  event.preventDefault();
+  event.stopPropagation();
+  await saveAdminUserDetailChanges();
+}
+
+async function saveAdminUserDetailChanges() {
+  if (!adminUserDetail) return;
+
+  const userId = getAdminUserId(adminUserDetail);
+  const currentDetailUser = normalizeAdminUser(adminUserDetail);
+  const name = document.getElementById("admin-user-detail-name")?.value.trim() || "";
+  const username = document.getElementById("admin-user-detail-username")?.value.trim() || "";
+
+  if (!name || !username) {
+    const message = "Name and username are required.";
+    showAdminUserDetailError(message);
+    showAppToast(message, "error", null, "");
+    return;
+  }
+
+  try {
+    const savedUser = await fetchAdminJson(`/admin/users/${userId}`, {
+      method: "PUT",
+      body: JSON.stringify({
+        name,
+        username,
+        email: currentDetailUser.email,
+        role: currentDetailUser.role
+      })
+    });
+
+    adminUserDetail = normalizeAdminUser(savedUser);
+
+    if (Number(getAdminUserId(savedUser)) === Number(currentUser?.id)) {
+      currentUser = normalizeUser({
+        ...currentUser,
+        ...savedUser
+      });
+      localStorage.setItem(USER_STORAGE_KEY, JSON.stringify(currentUser));
+      updateGreetingText();
+    }
+
+    adminUserDetailIsEditing = false;
+    await loadAdminProfileData();
+    renderAdminUserDetailDialog();
+    showAppToast("User details saved successfully.", "success");
+  } catch (error) {
+    console.error("Failed to save user details:", error);
+    showAdminUserDetailError(error.message || "Could not save user details.");
+    showAppToast(error.message || "Could not save user details.", "error", null, "");
+  }
+}
+
+async function handleAdminUserDetailDialogClick(event) {
+  const action = event.target.closest("[data-admin-user-detail-action]")?.dataset.adminUserDetailAction;
+
+  if (!action || !adminUserDetail) return;
+
+  if (action === "edit") {
+    adminUserDetailIsEditing = true;
+    renderAdminUserDetailDialog();
+    document.getElementById("admin-user-detail-name")?.focus({ preventScroll: true });
+    return;
+  }
+
+  if (action === "cancel") {
+    adminUserDetailIsEditing = false;
+    renderAdminUserDetailDialog();
+    return;
+  }
+
+  if (action === "save") {
+    await saveAdminUserDetailChanges();
+    return;
+  }
+
+  if (action === "activity-prev") {
+    if (adminUserDetailActivityPage > 1) {
+      adminUserDetailActivityPage--;
+      renderAdminUserDetailDialog();
+    }
+    return;
+  }
+
+  if (action === "activity-next") {
+    const totalPages = Math.max(
+      1,
+      Math.ceil(adminUserDetailActivity.length / adminUserDetailActivityRowsPerPage)
+    );
+
+    if (adminUserDetailActivityPage < totalPages) {
+      adminUserDetailActivityPage++;
+      renderAdminUserDetailDialog();
+    }
+    return;
+  }
+
+  if (action === "remove") {
+    await handleAdminUserDetailRemoveClick(event);
+  }
+}
+
+async function handleAdminUserDetailRemoveClick(event) {
+  event?.preventDefault?.();
+  event?.stopPropagation?.();
+
+  if (!adminUserDetail) return;
+
+  const user = adminUserDetail;
+  const userId = getAdminUserId(user);
+  const normalizedUser = normalizeAdminUser(user);
+
+  if (normalizedUser.role === "admin") {
+    showAdminUserDetailError("Admin accounts cannot be removed here.");
+    return;
+  }
+
+  if (!adminUserDetailIsEditing) {
+    showAdminUserDetailError("Click Edit user before removing this account.");
+    return;
+  }
+
+  const confirmed = await showDeleteUserDialog(user);
+  if (!confirmed) return;
+
+  try {
+    await fetchAdminJson(`/admin/users/${userId}`, { method: "DELETE" });
+    closeAdminUserDetailDialog();
+    isAdminEditMode = false;
+    selectedAdminUserIndex = null;
+    updateAdminEditButtons();
+    await loadAdminProfileData();
+    showAppToast("User deleted successfully.", "success");
+  } catch (error) {
+    console.error("Failed to delete user:", error);
+    showAdminUserDetailError(error.message || "Could not delete user.");
+    showAppToast(error.message || "Could not delete user.", "error", null, "");
+  }
+}
+
 function hasOpenEditableTableSession(options = {}) {
   const { commitActive = true } = options;
 
-  if (!isEditMode && !isAdminEditMode) return false;
+  if (!isEditMode && !isAdminEditMode && !adminUserDetailIsEditing) return false;
 
   if (commitActive) {
     if (isEditMode) {
@@ -1659,6 +2134,25 @@ function updateAdminUsersPaginationDisplay(totalItems, startIndex = 0, endIndex 
 
   indicator.textContent = `${startIndex}-${endIndex} of ${totalItems}`;
   prevBtn.disabled = adminUsersPage === 1;
+  nextBtn.disabled = endIndex >= totalItems;
+}
+
+function updateAdminActivityPaginationDisplay(totalItems, startIndex = 0, endIndex = 0) {
+  const indicator = document.getElementById("admin-activity-page-indicator");
+  const prevBtn = document.getElementById("admin-activity-prev-page-btn");
+  const nextBtn = document.getElementById("admin-activity-next-page-btn");
+
+  if (!indicator || !prevBtn || !nextBtn) return;
+
+  if (totalItems === 0) {
+    indicator.textContent = "0-0 of 0";
+    prevBtn.disabled = true;
+    nextBtn.disabled = true;
+    return;
+  }
+
+  indicator.textContent = `${startIndex}-${endIndex} of ${totalItems}`;
+  prevBtn.disabled = adminActivityPage === 1;
   nextBtn.disabled = endIndex >= totalItems;
 }
 
@@ -4539,6 +5033,7 @@ function clearSessionData() {
   adminActivitySearch = "";
   adminActivityActionFilter = "All";
   adminActivitySort = "time-desc";
+  adminActivityPage = 1;
 
   localStorage.removeItem(TOKEN_STORAGE_KEY);
   localStorage.removeItem(USER_STORAGE_KEY);
@@ -4739,12 +5234,11 @@ function ensureAdminPanel() {
                       <th><span class="th-text">Username</span></th>
                       <th><span class="th-text">Email</span></th>
                       <th><span class="th-text">Role</span></th>
-                      <th class="actions-header"><span class="th-text"></span></th>
                     </tr>
                   </thead>
                   <tbody id="admin-users-body">
                     <tr>
-                      <td colspan="5">No users loaded yet.</td>
+                      <td colspan="4">No users loaded yet.</td>
                     </tr>
                   </tbody>
                 </table>
@@ -4752,13 +5246,9 @@ function ensureAdminPanel() {
               <div class="table-footer admin-users-footer">
                 <div class="table-pagination admin-users-pagination">
                   <span id="admin-users-page-indicator" class="page-indicator">0-0 of 0</span>
-                  <button id="admin-users-prev-page-btn" type="button" class="page-btn" aria-label="Previous users page">&#8249;</button>
-                  <button id="admin-users-next-page-btn" type="button" class="page-btn" aria-label="Next users page">&#8250;</button>
+                  <button id="admin-users-prev-page-btn" type="button" class="page-btn" data-page-glyph="‹" aria-label="Previous users page">&#8249;</button>
+                  <button id="admin-users-next-page-btn" type="button" class="page-btn" data-page-glyph="›" aria-label="Next users page">&#8250;</button>
                 </div>
-              </div>
-              <div class="admin-table-actions">
-                <button id="admin-edit-users-btn" type="button" class="table-action-btn">Edit</button>
-                <button id="admin-cancel-users-btn" type="button" class="table-action-btn secondary inactive">Cancel</button>
               </div>
             </div>
 
@@ -4766,7 +5256,7 @@ function ensureAdminPanel() {
               <div class="table-toolbar admin-activity-toolbar" aria-label="User activity controls">
                 <div class="table-search admin-activity-search">
                   <label class="sr-only" for="admin-activity-search">Search activity</label>
-                  <input id="admin-activity-search" type="text" placeholder="Search activity">
+                  <input id="admin-activity-search" type="text" placeholder="Search">
                   <button class="search-icon-btn" type="button" aria-label="Search activity" disabled>
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round">
                       <circle cx="11" cy="11" r="7"></circle>
@@ -4815,6 +5305,13 @@ function ensureAdminPanel() {
                   </tbody>
                 </table>
               </div>
+              <div class="table-footer admin-activity-footer">
+                <div class="table-pagination admin-activity-pagination">
+                  <span id="admin-activity-page-indicator" class="page-indicator">0-0 of 0</span>
+                  <button id="admin-activity-prev-page-btn" type="button" class="page-btn" data-admin-activity-page-direction="-1" data-page-glyph="‹" aria-label="Previous activity page">&#8249;</button>
+                  <button id="admin-activity-next-page-btn" type="button" class="page-btn" data-admin-activity-page-direction="1" data-page-glyph="›" aria-label="Next activity page">&#8250;</button>
+                </div>
+              </div>
             </div>
           </div>
         </div>
@@ -4833,10 +5330,21 @@ function ensureAdminPanel() {
   if (!panel.dataset.bound) {
     panel.dataset.bound = "true";
 
-    panel.querySelector("#admin-edit-users-btn")?.addEventListener("click", handleAdminEditUsersClick);
-    panel.querySelector("#admin-cancel-users-btn")?.addEventListener("click", cancelAdminUserEdits);
     panel.querySelector("#admin-user-search")?.addEventListener("input", handleAdminUserSearchInput);
     panel.querySelector("#admin-activity-search")?.addEventListener("input", handleAdminActivitySearchInput);
+    panel.querySelector("#admin-users-prev-page-btn")?.addEventListener("click", event => {
+      event.preventDefault();
+      event.stopPropagation();
+      goToAdminUsersPage(-1);
+    });
+    panel.querySelector("#admin-users-next-page-btn")?.addEventListener("click", event => {
+      event.preventDefault();
+      event.stopPropagation();
+      goToAdminUsersPage(1);
+    });
+    panel.querySelector("#admin-activity-prev-page-btn")?.addEventListener("click", handleAdminActivityPaginationButtonClick);
+    panel.querySelector("#admin-activity-next-page-btn")?.addEventListener("click", handleAdminActivityPaginationButtonClick);
+    panel.addEventListener("click", handleAdminPaginationClick, true);
     panel.addEventListener("focusout", handleAdminUsersFocusOut);
     panel.addEventListener("change", handleAdminPanelChange);
     panel.addEventListener("click", handleAdminPanelClick);
@@ -4924,6 +5432,24 @@ function getAdminUsername(user) {
   ).trim();
 }
 
+function getAdminUserId(user) {
+  return user?.id ?? user?.userID ?? user?.user_id ?? null;
+}
+
+function normalizeAdminUser(user = {}) {
+  const id = getAdminUserId(user);
+
+  return {
+    ...user,
+    id,
+    userID: id,
+    name: String(user.name || "").trim(),
+    username: String(user.username || user.name || "").trim(),
+    email: String(user.email || "").trim(),
+    role: String(user.role || "user").trim().toLowerCase()
+  };
+}
+
 function getAdminName(user) {
   return String(
     user?.name ||
@@ -4951,6 +5477,10 @@ function getVisibleAdminUsers(sourceUsers) {
   return sourceUsers
     .map((user, index) => ({ user, index }))
     .filter(({ user }) => {
+      if (String(getAdminUserId(user)) === String(currentUser?.id)) {
+        return false;
+      }
+
       const roleMatches = adminRoleFilter === "All" || user.role === adminRoleFilter;
 
       if (!roleMatches) return false;
@@ -5080,7 +5610,7 @@ function renderAdminUsers() {
   if (visibleUsers.length === 0) {
     body.innerHTML = `
       <tr>
-        <td colspan="5">No users found.</td>
+        <td colspan="4">No users found.</td>
       </tr>
     `;
     updateAdminUsersPaginationDisplay(0);
@@ -5088,33 +5618,16 @@ function renderAdminUsers() {
   }
 
   body.innerHTML = paginatedUsers.map(({ user, index }) => {
-    const isCurrentUser = Number(user.id) === Number(currentUser?.id);
     const name = getAdminName(user);
     const username = getAdminUsername(user);
-    const rowIsEditable = isAdminEditMode && (selectedAdminUserIndex == null || selectedAdminUserIndex === index);
-    const lockedClass = rowIsEditable ? "" : "locked";
-    const editableValue = rowIsEditable ? "true" : "false";
-    const deleteLabel = isCurrentUser ? "Current user" : "Delete";
-    const nameInvalid = Boolean(adminUserInvalidCells[`${index}:name`]);
-    const usernameInvalid = Boolean(adminUserInvalidCells[`${index}:username`]);
     const roleLabel = capitalizeFirstLetter(user.role === "admin" ? "admin" : "user");
 
     return `
-      <tr class="${isAdminEditMode && selectedAdminUserIndex === index ? "selected-edit-row" : ""}">
-        <td
-          class="editable admin-name-cell ${lockedClass} ${nameInvalid ? "invalid-edit-cell" : ""}"
-          data-admin-field="name"
-          data-admin-index="${index}"
-          contenteditable="${editableValue}"
-        >
-          <span class="cell-text">${escapeHtml(name)}</span>
+      <tr class="admin-user-row" data-admin-user-row="${index}">
+        <td class="admin-name-cell admin-readonly-cell" data-admin-index="${index}">
+          <span class="cell-text admin-user-name-link">${escapeHtml(name)}</span>
         </td>
-        <td
-          class="editable admin-username-cell ${lockedClass} ${usernameInvalid ? "invalid-edit-cell" : ""}"
-          data-admin-field="username"
-          data-admin-index="${index}"
-          contenteditable="${editableValue}"
-        >
+        <td class="admin-username-cell admin-readonly-cell">
           <span class="cell-text">
             ${escapeHtml(username)}
           </span>
@@ -5124,36 +5637,6 @@ function renderAdminUsers() {
         </td>
         <td class="admin-role-cell admin-readonly-cell">
           <span class="cell-text">${escapeHtml(roleLabel)}</span>
-        </td>
-        <td>
-          <div class="admin-row-actions">
-            <button
-              class="row-icon-btn edit-row-btn ${isAdminEditMode ? "hidden-edit" : ""}"
-              data-admin-action="edit-user"
-              data-admin-index="${index}"
-              type="button"
-              aria-label="Edit user"
-              title="Edit user"
-            >
-              <svg viewBox="0 0 24 24" aria-hidden="true">
-                <path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25Z"></path>
-                <path d="M20.71 7.04a1 1 0 0 0 0-1.41l-2.34-2.34a1 1 0 0 0-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83Z"></path>
-              </svg>
-            </button>
-            <button
-              class="row-icon-btn delete-btn ${!isAdminEditMode ? "hidden-delete" : ""}"
-              data-admin-action="delete-user"
-              data-admin-index="${index}"
-              type="button"
-              aria-label="${deleteLabel}"
-              title="${deleteLabel}"
-              ${isCurrentUser ? "disabled" : ""}
-            >
-              <svg viewBox="0 0 448 512" aria-hidden="true">
-                <path d="M135.2 17.7C140.6 6.8 151.7 0 163.8 0h120.4c12.1 0 23.2 6.8 28.6 17.7L320 32h96c17.7 0 32 14.3 32 32s-14.3 32-32 32H32C14.3 96 0 81.7 0 64s14.3-32 32-32h96l7.2-14.3zM32 128h384l-21.2 339c-1.6 25.3-22.6 45-47.9 45H101.1c-25.3 0-46.3-19.7-47.9-45L32 128zm96 64c-8.8 0-16 7.2-16 16v224c0 8.8 7.2 16 16 16s16-7.2 16-16V208c0-8.8-7.2-16-16-16zm96 0c-8.8 0-16 7.2-16 16v224c0 8.8 7.2 16 16 16s16-7.2 16-16V208c0-8.8-7.2-16-16-16zm96 0c-8.8 0-16 7.2-16 16v224c0 8.8 7.2 16 16 16s16-7.2 16-16V208c0-8.8-7.2-16-16-16z"></path>
-              </svg>
-            </button>
-          </div>
         </td>
       </tr>
     `;
@@ -5226,6 +5709,18 @@ function getAdminActivityUsername(activity = {}) {
     getDisplayNameFromLoginValue(activity.email) ||
     "Deleted user"
   ).trim();
+}
+
+function getAdminActivityUserId(activity = {}) {
+  return activity.userID ?? activity.user_id ?? activity.userId ?? null;
+}
+
+function getAdminActivityForUser(userId) {
+  if (userId == null) return [];
+
+  return adminActivity.filter(activity =>
+    String(getAdminActivityUserId(activity)) === String(userId)
+  );
 }
 
 function getAdminActivityActionLabel(action) {
@@ -5335,6 +5830,20 @@ function renderAdminActivity() {
   if (!body) return;
 
   const visibleActivity = getVisibleAdminActivity();
+  const totalPages = Math.max(1, Math.ceil(visibleActivity.length / adminActivityRowsPerPage));
+
+  if (adminActivityPage > totalPages) {
+    adminActivityPage = totalPages;
+  }
+
+  if (adminActivityPage < 1) {
+    adminActivityPage = 1;
+  }
+
+  const startIndex = (adminActivityPage - 1) * adminActivityRowsPerPage;
+  const endIndex = startIndex + adminActivityRowsPerPage;
+  const paginatedActivity = visibleActivity.slice(startIndex, endIndex);
+
   syncAdminActivityToolbarState();
 
   if (count) {
@@ -5347,10 +5856,11 @@ function renderAdminActivity() {
         <td colspan="4">No activity found.</td>
       </tr>
     `;
+    updateAdminActivityPaginationDisplay(0);
     return;
   }
 
-  body.innerHTML = visibleActivity.map(item => `
+  body.innerHTML = paginatedActivity.map(item => `
       <tr>
         <td>${escapeHtml(getAdminActivityUsername(item))}</td>
         <td><span class="admin-activity-action">${escapeHtml(getAdminActivityActionLabel(item.action))}</span></td>
@@ -5358,6 +5868,12 @@ function renderAdminActivity() {
         <td>${escapeHtml(formatActivityTimestamp(item.created_at))}</td>
       </tr>
     `).join("");
+
+  updateAdminActivityPaginationDisplay(
+    visibleActivity.length,
+    startIndex + 1,
+    Math.min(endIndex, visibleActivity.length)
+  );
 }
 
 async function fetchAdminJson(path, options = {}) {
@@ -5396,9 +5912,10 @@ async function loadAdminProfileData() {
       fetchAdminJson("/admin/activity")
     ]);
 
-    adminUsers = Array.isArray(users) ? users : [];
+    adminUsers = Array.isArray(users) ? users.map(normalizeAdminUser) : [];
     draftAdminUsers = adminUsers.map(user => ({ ...user }));
     adminUsersPage = 1;
+    adminActivityPage = 1;
     adminUserInvalidCells = {};
     adminActivity = Array.isArray(activity) ? activity : [];
     renderAdminOverview();
@@ -5524,7 +6041,9 @@ async function saveAdminUserEdits() {
         method: "PUT",
         body: JSON.stringify({
           name,
-          username
+          username,
+          email: String(user.email || "").trim(),
+          role: user.role
         })
       });
     } catch (error) {
@@ -5619,7 +6138,91 @@ function handleAdminUserSearchInput(event) {
 
 function handleAdminActivitySearchInput(event) {
   adminActivitySearch = event.target.value || "";
+  adminActivityPage = 1;
   renderAdminActivity();
+}
+
+function handleAdminActivityPaginationButtonClick(event) {
+  const direction = Number(event.currentTarget.dataset.adminActivityPageDirection);
+
+  event.preventDefault();
+  event.stopPropagation();
+
+  if (!Number.isFinite(direction)) return;
+
+  goToAdminActivityPage(direction);
+}
+
+function goToAdminUsersPage(direction) {
+  if (direction < 0 && adminUsersPage > 1) {
+    adminUsersPage--;
+    renderAdminUsers();
+    return;
+  }
+
+  if (direction > 0) {
+    adminUsersPage++;
+    renderAdminUsers();
+  }
+}
+
+function goToExpensePage(direction) {
+  if (direction < 0 && currentPage > 1) {
+    currentPage--;
+    renderExpenses();
+    return;
+  }
+
+  if (direction > 0) {
+    currentPage++;
+    renderExpenses();
+  }
+}
+
+function goToAdminActivityPage(direction) {
+  if (direction < 0 && adminActivityPage > 1) {
+    adminActivityPage--;
+    renderAdminActivity();
+    return;
+  }
+
+  if (direction > 0) {
+    adminActivityPage++;
+    renderAdminActivity();
+  }
+}
+
+function handleAdminPaginationClick(event) {
+  const usersPrevBtn = event.target.closest("#admin-users-prev-page-btn");
+  if (usersPrevBtn) {
+    event.preventDefault();
+    event.stopPropagation();
+    goToAdminUsersPage(-1);
+    return;
+  }
+
+  const usersNextBtn = event.target.closest("#admin-users-next-page-btn");
+  if (usersNextBtn) {
+    event.preventDefault();
+    event.stopPropagation();
+    goToAdminUsersPage(1);
+    return;
+  }
+
+  const activityPrevBtn = event.target.closest("#admin-activity-prev-page-btn");
+  if (activityPrevBtn) {
+    event.preventDefault();
+    event.stopPropagation();
+    goToAdminActivityPage(-1);
+    return;
+  }
+
+  const activityNextBtn = event.target.closest("#admin-activity-next-page-btn");
+  if (activityNextBtn) {
+    event.preventDefault();
+    event.stopPropagation();
+    goToAdminActivityPage(1);
+  }
 }
 
 async function handleAdminPanelClick(event) {
@@ -5675,18 +6278,14 @@ async function handleAdminPanelClick(event) {
   const adminPrevPageBtn = event.target.closest("#admin-users-prev-page-btn");
 
   if (adminPrevPageBtn) {
-    if (adminUsersPage > 1) {
-      adminUsersPage--;
-      renderAdminUsers();
-    }
+    goToAdminUsersPage(-1);
     return;
   }
 
   const adminNextPageBtn = event.target.closest("#admin-users-next-page-btn");
 
   if (adminNextPageBtn) {
-    adminUsersPage++;
-    renderAdminUsers();
+    goToAdminUsersPage(1);
     return;
   }
 
@@ -5732,6 +6331,7 @@ async function handleAdminPanelClick(event) {
 
   if (activityActionFilterOption) {
     adminActivityActionFilter = activityActionFilterOption.dataset.adminActivityActionFilter || "All";
+    adminActivityPage = 1;
 
     const actionMenu = document.getElementById("admin-activity-action-filter-menu");
     if (actionMenu) actionMenu.open = false;
@@ -5744,6 +6344,7 @@ async function handleAdminPanelClick(event) {
 
   if (activitySortOption) {
     adminActivitySort = activitySortOption.dataset.adminActivitySort || "time-desc";
+    adminActivityPage = 1;
 
     const sortMenu = document.getElementById("admin-activity-sort-menu");
     if (sortMenu) sortMenu.open = false;
@@ -5758,6 +6359,7 @@ async function handleAdminPanelClick(event) {
     adminActivitySearch = "";
     adminActivityActionFilter = "All";
     adminActivitySort = "time-desc";
+    adminActivityPage = 1;
 
     const actionMenu = document.getElementById("admin-activity-action-filter-menu");
     const sortMenu = document.getElementById("admin-activity-sort-menu");
@@ -5769,39 +6371,34 @@ async function handleAdminPanelClick(event) {
     return;
   }
 
-  const actionButton = event.target.closest("[data-admin-action]");
+  const activityPrevPageBtn = event.target.closest("#admin-activity-prev-page-btn");
 
-  if (!actionButton) return;
-
-  const userIndex = Number(actionButton.dataset.adminIndex);
-  const user = (isAdminEditMode ? draftAdminUsers : adminUsers)[userIndex];
-
-  if (!user) return;
-
-  if (actionButton.dataset.adminAction === "edit-user") {
-    startAdminRowEdit(userIndex);
+  if (activityPrevPageBtn) {
+    goToAdminActivityPage(-1);
     return;
   }
 
-  if (actionButton.dataset.adminAction === "delete-user") {
-    if (Number(user.id) === Number(currentUser?.id)) return;
+  const activityNextPageBtn = event.target.closest("#admin-activity-next-page-btn");
 
-    const confirmed = await showDeleteUserDialog(user);
-
-    if (!confirmed) return;
-
-    try {
-      await fetchAdminJson(`/admin/users/${user.id}`, { method: "DELETE" });
-      isAdminEditMode = false;
-      selectedAdminUserIndex = null;
-      updateAdminEditButtons();
-      await loadAdminProfileData();
-      showAppToast("User deleted successfully.", "success");
-    } catch (error) {
-      console.error("Failed to delete user:", error);
-      showAppToast(error.message || "Could not delete user.", "error", null, "");
-    }
+  if (activityNextPageBtn) {
+    goToAdminActivityPage(1);
+    return;
   }
+
+  const nameCell = event.target.closest("td.admin-name-cell[data-admin-index]");
+
+  if (nameCell) {
+    const userIndex = Number(nameCell.dataset.adminIndex);
+    const user = adminUsers[userIndex];
+
+    if (user) {
+      await openAdminUserDetailDialog(user);
+    }
+
+    return;
+  }
+
+  return;
 }
 
 async function handleUserProfileClick(event) {
@@ -6894,19 +7491,11 @@ function bindEvents() {
   }
 
   if (prevPageBtn) {
-    prevPageBtn.addEventListener("click", () => {
-      if (currentPage > 1) {
-        currentPage--;
-        renderExpenses();
-      }
-    });
+    prevPageBtn.addEventListener("click", () => goToExpensePage(-1));
   }
 
   if (nextPageBtn) {
-    nextPageBtn.addEventListener("click", () => {
-      currentPage++;
-      renderExpenses();
-    });
+    nextPageBtn.addEventListener("click", () => goToExpensePage(1));
   }
 
   if (brandHome) {
