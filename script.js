@@ -60,6 +60,19 @@ let adminUserDetailIsLoading = false;
 let adminUserDetailActivityPage = 1;
 const adminActivityRowsPerPage = 10;
 const adminUserDetailActivityRowsPerPage = 10;
+const knownAdminActivityActions = [
+  "LOGIN",
+  "LOGOUT",
+  "REGISTER",
+  "CREATE_EXPENSE",
+  "UPDATE_EXPENSE",
+  "DELETE_EXPENSE",
+  "ADMIN_CREATE_USER",
+  "ADMIN_UPDATE_USER",
+  "ADMIN_DELETE_USER",
+  "ACCOUNT_UPDATE",
+  "PASSWORD_UPDATE"
+];
 
 // DOM elements
 const expenseNameInput = document.getElementById("expenseName");
@@ -1720,14 +1733,14 @@ function renderAdminUserDetailDialog() {
   const activityRows = visibleActivity.length
     ? visibleActivity.map(item => `
         <tr>
-          <td><span class="admin-activity-action">${escapeHtml(getAdminActivityActionLabel(item.action))}</span></td>
+          <td><span class="admin-activity-action ${escapeHtml(getAdminActivityActionClass(item.action))}">${escapeHtml(getAdminActivityActionLabel(item.action))}</span></td>
           <td>${escapeHtml(item.details || "")}</td>
           <td>${escapeHtml(formatActivityTimestamp(item.created_at))}</td>
         </tr>
       `).join("")
     : `
         <tr>
-          <td colspan="3">No activity found for this user.</td>
+          <td colspan="3" class="empty-state-cell">No activity found for this user.</td>
         </tr>
       `;
 
@@ -5234,11 +5247,12 @@ function ensureAdminPanel() {
                       <th><span class="th-text">Username</span></th>
                       <th><span class="th-text">Email</span></th>
                       <th><span class="th-text">Role</span></th>
+                      <th class="actions-header"><span class="th-text"></span></th>
                     </tr>
                   </thead>
                   <tbody id="admin-users-body">
                     <tr>
-                      <td colspan="4">No users loaded yet.</td>
+                      <td colspan="5" class="empty-state-cell">No users loaded yet.</td>
                     </tr>
                   </tbody>
                 </table>
@@ -5249,6 +5263,10 @@ function ensureAdminPanel() {
                   <button id="admin-users-prev-page-btn" type="button" class="page-btn" data-page-glyph="‹" aria-label="Previous users page">&#8249;</button>
                   <button id="admin-users-next-page-btn" type="button" class="page-btn" data-page-glyph="›" aria-label="Next users page">&#8250;</button>
                 </div>
+              </div>
+              <div class="admin-table-actions">
+                <button id="admin-edit-users-btn" type="button" class="table-action-btn">Edit</button>
+                <button id="admin-cancel-users-btn" type="button" class="table-action-btn secondary inactive">Cancel</button>
               </div>
             </div>
 
@@ -5300,7 +5318,7 @@ function ensureAdminPanel() {
                   </thead>
                   <tbody id="admin-activity-body">
                     <tr>
-                      <td colspan="4">No activity loaded yet.</td>
+                      <td colspan="4" class="empty-state-cell">No activity loaded yet.</td>
                     </tr>
                   </tbody>
                 </table>
@@ -5332,6 +5350,8 @@ function ensureAdminPanel() {
 
     panel.querySelector("#admin-user-search")?.addEventListener("input", handleAdminUserSearchInput);
     panel.querySelector("#admin-activity-search")?.addEventListener("input", handleAdminActivitySearchInput);
+    panel.querySelector("#admin-edit-users-btn")?.addEventListener("click", handleAdminEditUsersClick);
+    panel.querySelector("#admin-cancel-users-btn")?.addEventListener("click", cancelAdminUserEdits);
     panel.querySelector("#admin-users-prev-page-btn")?.addEventListener("click", event => {
       event.preventDefault();
       event.stopPropagation();
@@ -5346,6 +5366,7 @@ function ensureAdminPanel() {
     panel.querySelector("#admin-activity-next-page-btn")?.addEventListener("click", handleAdminActivityPaginationButtonClick);
     panel.addEventListener("click", handleAdminPaginationClick, true);
     panel.addEventListener("focusout", handleAdminUsersFocusOut);
+    panel.addEventListener("input", handleAdminUsersInput);
     panel.addEventListener("change", handleAdminPanelChange);
     panel.addEventListener("click", handleAdminPanelClick);
   }
@@ -5610,7 +5631,7 @@ function renderAdminUsers() {
   if (visibleUsers.length === 0) {
     body.innerHTML = `
       <tr>
-        <td colspan="4">No users found.</td>
+        <td colspan="5" class="empty-state-cell">No users found.</td>
       </tr>
     `;
     updateAdminUsersPaginationDisplay(0);
@@ -5621,22 +5642,67 @@ function renderAdminUsers() {
     const name = getAdminName(user);
     const username = getAdminUsername(user);
     const roleLabel = capitalizeFirstLetter(user.role === "admin" ? "admin" : "user");
+    const rowIsEditable = isAdminEditMode && (selectedAdminUserIndex == null || selectedAdminUserIndex === index);
+    const lockedClass = rowIsEditable ? "" : "locked";
+    const editableValue = rowIsEditable ? "true" : "false";
+    const nameInvalid = Boolean(adminUserInvalidCells[`${index}:name`]);
+    const usernameInvalid = Boolean(adminUserInvalidCells[`${index}:username`]);
+    const isAdminAccount = user.role === "admin";
+    const deleteLabel = isAdminAccount ? "Admin accounts cannot be removed here" : "Remove user";
 
     return `
-      <tr class="admin-user-row" data-admin-user-row="${index}">
-        <td class="admin-name-cell admin-readonly-cell" data-admin-index="${index}">
+      <tr class="admin-user-row ${isAdminEditMode && selectedAdminUserIndex === index ? "selected-edit-row" : ""}" data-admin-user-row="${index}">
+        <td
+          class="editable admin-name-cell ${lockedClass} ${nameInvalid ? "invalid-edit-cell" : ""}"
+          data-admin-field="name"
+          data-admin-index="${index}"
+          contenteditable="${editableValue}"
+        >
           <span class="cell-text admin-user-name-link">${escapeHtml(name)}</span>
         </td>
-        <td class="admin-username-cell admin-readonly-cell">
-          <span class="cell-text">
-            ${escapeHtml(username)}
-          </span>
+        <td
+          class="editable admin-username-cell ${lockedClass} ${usernameInvalid ? "invalid-edit-cell" : ""}"
+          data-admin-field="username"
+          data-admin-index="${index}"
+          contenteditable="${editableValue}"
+        >
+          <span class="cell-text">${escapeHtml(username)}</span>
         </td>
         <td class="admin-email-cell admin-readonly-cell">
           <span class="cell-text">${escapeHtml(user.email)}</span>
         </td>
         <td class="admin-role-cell admin-readonly-cell">
           <span class="cell-text">${escapeHtml(roleLabel)}</span>
+        </td>
+        <td class="actions-cell">
+          <div class="admin-row-actions">
+            <button
+              class="row-icon-btn edit-row-btn ${isAdminEditMode ? "hidden-edit" : ""}"
+              data-admin-action="edit-user"
+              data-admin-index="${index}"
+              type="button"
+              aria-label="Edit user"
+              title="Edit user"
+            >
+              <svg viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25Z"></path>
+                <path d="M20.71 7.04a1 1 0 0 0 0-1.41l-2.34-2.34a1 1 0 0 0-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83Z"></path>
+              </svg>
+            </button>
+            <button
+              class="row-icon-btn delete-btn ${!isAdminEditMode ? "hidden-delete" : ""}"
+              data-admin-action="delete-user"
+              data-admin-index="${index}"
+              type="button"
+              aria-label="${escapeHtml(deleteLabel)}"
+              title="${escapeHtml(deleteLabel)}"
+              ${isAdminAccount ? "disabled" : ""}
+            >
+              <svg viewBox="0 0 448 512" aria-hidden="true">
+                <path d="M135.2 17.7C140.6 6.8 151.7 0 163.8 0h120.4c12.1 0 23.2 6.8 28.6 17.7L320 32h96c17.7 0 32 14.3 32 32s-14.3 32-32 32H32C14.3 96 0 81.7 0 64s14.3-32 32-32h96l7.2-14.3zM32 128h384l-21.2 339c-1.6 25.3-22.6 45-47.9 45H101.1c-25.3 0-46.3-19.7-47.9-45L32 128zm96 64c-8.8 0-16 7.2-16 16v224c0 8.8 7.2 16 16 16s16-7.2 16-16V208c0-8.8-7.2-16-16-16zm96 0c-8.8 0-16 7.2-16 16v224c0 8.8 7.2 16 16 16s16-7.2 16-16V208c0-8.8-7.2-16-16-16zm96 0c-8.8 0-16 7.2-16 16v224c0 8.8 7.2 16 16 16s16-7.2 16-16V208c0-8.8-7.2-16-16-16z"></path>
+              </svg>
+            </button>
+          </div>
         </td>
       </tr>
     `;
@@ -5727,6 +5793,20 @@ function getAdminActivityActionLabel(action) {
   return String(action || "Unknown").trim();
 }
 
+function getAdminActivityActionClass(action) {
+  const label = getAdminActivityActionLabel(action).toLowerCase();
+
+  if (label.includes("login")) return "login";
+  if (label.includes("logout")) return "logout";
+  if (label.includes("delete") || label.includes("remove")) return "delete";
+  if (label.includes("register")) return "register";
+  if (label.includes("add")) return "add";
+  if (label.includes("create")) return "create";
+  if (label.includes("update") || label.includes("edit") || label.includes("change")) return "update";
+
+  return "default";
+}
+
 function getAdminActivitySortLabel(value) {
   const labels = {
     "time-desc": "Time: Most Recent",
@@ -5784,7 +5864,13 @@ function syncAdminActivityToolbarState() {
   const actionLabel = document.getElementById("admin-activity-action-filter-label");
   const actionPanel = document.getElementById("admin-activity-action-filter-panel");
   const sortLabel = document.getElementById("admin-activity-sort-label");
-  const actions = ["All", ...new Set(adminActivity.map(item => getAdminActivityActionLabel(item.action)).filter(Boolean).sort())];
+  const actions = [
+    "All",
+    ...new Set([
+      ...knownAdminActivityActions,
+      ...adminActivity.map(item => getAdminActivityActionLabel(item.action))
+    ].filter(Boolean).sort())
+  ];
 
   if (!actions.includes(adminActivityActionFilter)) {
     adminActivityActionFilter = "All";
@@ -5853,7 +5939,7 @@ function renderAdminActivity() {
   if (visibleActivity.length === 0) {
     body.innerHTML = `
       <tr>
-        <td colspan="4">No activity found.</td>
+        <td colspan="4" class="empty-state-cell">No activity found.</td>
       </tr>
     `;
     updateAdminActivityPaginationDisplay(0);
@@ -5863,7 +5949,7 @@ function renderAdminActivity() {
   body.innerHTML = paginatedActivity.map(item => `
       <tr>
         <td>${escapeHtml(getAdminActivityUsername(item))}</td>
-        <td><span class="admin-activity-action">${escapeHtml(getAdminActivityActionLabel(item.action))}</span></td>
+        <td><span class="admin-activity-action ${escapeHtml(getAdminActivityActionClass(item.action))}">${escapeHtml(getAdminActivityActionLabel(item.action))}</span></td>
         <td>${escapeHtml(item.details || "")}</td>
         <td>${escapeHtml(formatActivityTimestamp(item.created_at))}</td>
       </tr>
@@ -5967,6 +6053,21 @@ function updateDraftAdminUser(index, field, value) {
   delete adminUserInvalidCells[`${index}:${field}`];
 }
 
+function deleteDraftAdminUser(index) {
+  if (!isAdminEditMode || !draftAdminUsers[index]) return;
+
+  draftAdminUsers.splice(index, 1);
+
+  if (selectedAdminUserIndex === index) {
+    selectedAdminUserIndex = null;
+  } else if (selectedAdminUserIndex != null && selectedAdminUserIndex > index) {
+    selectedAdminUserIndex -= 1;
+  }
+
+  adminUserInvalidCells = {};
+  renderAdminUsers();
+}
+
 function commitAdminEditableCell(cell) {
   if (!cell || !isAdminEditMode) return;
 
@@ -5983,6 +6084,19 @@ function handleAdminUsersFocusOut(event) {
   const cell = event.target.closest("[data-admin-field]");
   if (cell?.dataset.adminField === "role") return;
   commitAdminEditableCell(cell);
+}
+
+function handleAdminUsersInput(event) {
+  const cell = event.target.closest("[data-admin-field]");
+  if (!cell || !isAdminEditMode || cell.classList.contains("locked")) return;
+
+  const index = Number(cell.dataset.adminIndex);
+  const field = cell.dataset.adminField;
+
+  if (!Number.isInteger(index) || !["name", "username"].includes(field)) return;
+
+  updateDraftAdminUser(index, field, getAdminEditableCellText(cell));
+  cell.classList.remove("invalid-edit-cell");
 }
 
 function validateDraftAdminUsers() {
@@ -6025,10 +6139,21 @@ async function saveAdminUserEdits() {
   }
 
   const savedById = new Map(adminUsers.map(user => [Number(user.id), user]));
+  const draftIds = new Set(draftAdminUsers.map(user => Number(user.id)));
+  const deletedUsers = adminUsers.filter(user => !draftIds.has(Number(user.id)));
   const changedUsers = draftAdminUsers.map((user, index) => ({ user, index })).filter(({ user }) => {
     const savedUser = savedById.get(Number(user.id));
     return savedUser && isAdminUserDifferent(savedUser, user);
   });
+
+  for (const user of deletedUsers) {
+    try {
+      await fetchAdminJson(`/admin/users/${user.id}`, { method: "DELETE" });
+    } catch (error) {
+      renderAdminUsers();
+      throw error;
+    }
+  }
 
   for (const { user, index } of changedUsers) {
     let savedUser;
@@ -6041,9 +6166,7 @@ async function saveAdminUserEdits() {
         method: "PUT",
         body: JSON.stringify({
           name,
-          username,
-          email: String(user.email || "").trim(),
-          role: user.role
+          username
         })
       });
     } catch (error) {
@@ -6385,9 +6508,36 @@ async function handleAdminPanelClick(event) {
     return;
   }
 
+  const actionButton = event.target.closest("[data-admin-action]");
+
+  if (actionButton) {
+    const userIndex = Number(actionButton.dataset.adminIndex);
+    const sourceUsers = isAdminEditMode ? draftAdminUsers : adminUsers;
+    const user = sourceUsers[userIndex];
+
+    if (!user) return;
+
+    if (actionButton.dataset.adminAction === "edit-user") {
+      startAdminRowEdit(userIndex);
+      return;
+    }
+
+    if (actionButton.dataset.adminAction === "delete-user") {
+      if (!isAdminEditMode || user.role === "admin") return;
+
+      const confirmed = await showDeleteUserDialog(user);
+      if (!confirmed) return;
+
+      deleteDraftAdminUser(userIndex);
+      return;
+    }
+  }
+
   const nameCell = event.target.closest("td.admin-name-cell[data-admin-index]");
 
   if (nameCell) {
+    if (isAdminEditMode) return;
+
     const userIndex = Number(nameCell.dataset.adminIndex);
     const user = adminUsers[userIndex];
 
