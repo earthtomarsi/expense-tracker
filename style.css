@@ -726,6 +726,263 @@ backdrop-filter: blur(20px);
 display: none !important;
 }
 
+.manage-account-panel {
+width: min(860px, calc(100% - var(--dashboard-page-gutter)));
+max-width: 860px;
+margin: 64px auto 34px;
+padding: 0;
+border-radius: 24px;
+border: 1px solid var(--border-glass);
+background:
+    radial-gradient(circle at 92% 10%, rgba(120, 255, 214, 0.12), transparent 30%),
+    linear-gradient(145deg, rgba(255, 255, 255, 0.88), rgba(255, 255, 255, 0.68));
+box-shadow: var(--shadow-card);
+backdrop-filter: blur(20px);
+-webkit-backdrop-filter: blur(20px);
+}
+
+.manage-account-panel[hidden] {
+display: none !important;
+}
+
+.manage-account-card {
+padding: 34px 40px 38px;
+}
+
+.manage-account-heading {
+display: flex;
+align-items: flex-start;
+justify-content: space-between;
+gap: 16px;
+margin-bottom: 30px;
+}
+
+.manage-account-heading h3 {
+margin: 0;
+color: var(--text-main);
+font-size: 22px;
+font-weight: 700;
+letter-spacing: -0.45px;
+}
+
+.manage-account-heading p:not(.manage-account-updated-kicker) {
+margin: 7px 0 0;
+color: var(--text-muted);
+font-size: 13px;
+font-weight: 400;
+line-height: 1.45;
+}
+
+.manage-account-updated-kicker {
+display: inline-flex;
+align-items: center;
+min-height: 24px;
+margin: 1px 0 0;
+padding: 0 12px;
+border-radius: 999px;
+background: rgba(232, 255, 242, 0.76);
+color: #0f7f3f;
+font-size: 11px;
+font-weight: 650;
+box-shadow: inset 0 0 0 1px rgba(112, 224, 156, 0.22);
+}
+
+.manage-account-updated-kicker[hidden] {
+display: none;
+}
+
+.manage-account-section + .manage-account-section {
+margin-top: 0;
+padding-top: 0;
+border-top: 0;
+}
+
+.manage-account-section-header {
+display: flex;
+align-items: flex-start;
+justify-content: space-between;
+gap: 14px;
+margin-bottom: 16px;
+}
+
+.manage-account-section-header h4 {
+margin: 0;
+color: var(--text-main);
+font-size: 17px;
+font-weight: 650;
+letter-spacing: -0.25px;
+}
+
+.manage-account-section-header p {
+margin: 6px 0 0;
+color: var(--text-muted);
+font-size: 12px;
+line-height: 1.45;
+}
+
+.manage-account-fields {
+display: grid;
+grid-template-columns: 1fr;
+gap: 11px;
+}
+
+.manage-account-password-group {
+margin: 18px 0 12px;
+}
+
+.manage-account-password-group h4 {
+margin: 0;
+color: var(--text-main);
+font-size: 17px;
+font-weight: 650;
+letter-spacing: -0.25px;
+}
+
+.manage-account-field span {
+display: block;
+margin: 0;
+color: #6b7280;
+font-size: 12px;
+font-weight: 540;
+}
+
+.manage-account-field {
+display: block;
+}
+
+.manage-account-field > span:first-child {
+margin-bottom: 8px;
+padding-top: 0;
+}
+
+.manage-account-input-wrap {
+display: block;
+position: relative;
+}
+
+.manage-account-field input {
+width: 100%;
+height: 38px;
+padding: 0 12px;
+border-radius: 12px;
+border: 1px solid rgba(190, 205, 196, 0.54);
+background: rgba(255, 255, 255, 0.78);
+color: var(--text-main);
+font-family: inherit;
+font-size: 12px;
+font-weight: 500;
+outline: none;
+transition: border-color 0.15s ease, box-shadow 0.15s ease, background 0.15s ease;
+}
+
+.manage-account-input-wrap input[type="password"],
+.manage-account-input-wrap input[type="text"]#manage-account-current-password,
+.manage-account-input-wrap input[type="text"]#manage-account-new-password {
+padding-right: 42px;
+}
+
+.manage-account-password-visibility {
+position: absolute;
+top: 19px;
+right: 10px;
+width: 24px;
+height: 24px;
+display: inline-flex;
+align-items: center;
+justify-content: center;
+border: 0;
+border-radius: 999px;
+background: transparent;
+color: #8a96a8;
+cursor: pointer;
+transform: translateY(-50%);
+transition: background 0.18s ease, color 0.18s ease, transform 0.18s ease;
+}
+
+.manage-account-password-visibility svg {
+width: 15px;
+height: 15px;
+fill: currentColor;
+stroke: none;
+}
+
+.manage-account-password-visibility:hover,
+.manage-account-password-visibility:focus-visible,
+.manage-account-password-visibility.active {
+background: rgba(72, 221, 182, 0.12);
+color: #0f8f4c;
+transform: translateY(-52%);
+}
+
+.manage-account-password-visibility:disabled,
+.manage-account-password-visibility.inactive {
+color: rgba(138, 150, 168, 0.5);
+cursor: default;
+pointer-events: none;
+}
+
+.manage-account-field input:disabled,
+.manage-account-field input.readonly-field {
+border-color: rgba(210, 218, 214, 0.46);
+background: rgba(247, 249, 249, 0.58);
+color: var(--text-muted);
+box-shadow: none;
+cursor: default;
+opacity: 1;
+}
+
+.manage-account-field input:focus {
+border-color: rgba(72, 221, 182, 0.8);
+box-shadow: 0 0 0 3px rgba(72, 221, 182, 0.13);
+background: rgba(255, 255, 255, 0.94);
+}
+
+.manage-account-field input::placeholder {
+color: rgba(107, 114, 128, 0.48);
+}
+
+.manage-account-field input.error {
+border-color: rgba(239, 68, 68, 0.72);
+box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.10);
+}
+
+.manage-account-field .error-text {
+display: block;
+min-height: 14px;
+margin-top: 5px;
+line-height: 1.25;
+font-weight: 400;
+}
+
+.manage-account-password-reveal {
+display: flex;
+justify-content: center;
+margin-top: 18px;
+}
+
+.manage-account-panel.password-edit-mode .manage-account-password-reveal,
+.manage-account-panel:not(.password-edit-mode) .manage-account-new-password-field {
+display: none;
+}
+
+.manage-account-actions {
+display: flex;
+justify-content: center;
+margin-top: 38px;
+}
+
+.manage-account-action-group {
+display: flex;
+justify-content: center;
+gap: 10px;
+}
+
+.manage-account-actions .table-action-btn {
+height: 38px;
+min-width: 132px;
+font-size: 12px;
+}
+
 .admin-profile-header,
 .admin-card-header {
 display: flex;
@@ -4346,6 +4603,7 @@ display: none !important;
 .auth-page,
 .table-section,
 .admin-profile-panel,
+.manage-account-panel,
 .status-message,
 .trend-section {
     width: calc(100% - 32px);
@@ -4355,6 +4613,7 @@ display: none !important;
 .auth-page,
 .table-section,
 .admin-dashboard-summary-card,
+.manage-account-panel,
 .chart-container {
     padding: 34px 24px 38px;
 }
@@ -4374,6 +4633,19 @@ display: none !important;
 
 .admin-overview-grid {
     grid-template-columns: 1fr;
+}
+
+.manage-account-fields {
+    grid-template-columns: 1fr;
+}
+
+.manage-account-field {
+    grid-template-columns: 1fr;
+    gap: 8px;
+}
+
+.manage-account-field > span:first-child {
+    padding-top: 0;
 }
 
 .admin-card-header,

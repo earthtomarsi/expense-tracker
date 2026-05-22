@@ -40,6 +40,10 @@ let isLoggedIn = Boolean(authToken);
 let adminUsers = [];
 let adminActivity = [];
 let isAdminPanelOpen = false;
+let isManageAccountOpen = false;
+let isManageAccountEditMode = false;
+let isManageAccountPasswordOpen = false;
+let manageAccountCurrentPasswordCheckId = 0;
 let authMode = "login";
 let isAdminEditMode = false;
 let adminManagementTab = "users";
@@ -1348,11 +1352,27 @@ function hasAdminUserDetailUnsavedChanges() {
   return Boolean(adminUserDetailIsEditing && adminUserDetail);
 }
 
+function hasManageAccountUnsavedChanges() {
+  if (!isManageAccountEditMode) return false;
+
+  const user = normalizeUser(currentUser);
+  const name = document.getElementById("manage-account-name")?.value.trim() || "";
+  const username = document.getElementById("manage-account-username")?.value.trim() || "";
+  const email = document.getElementById("manage-account-email")?.value.trim() || "";
+
+  return (
+    name !== String(user?.name || "").trim() ||
+    username !== String(user?.username || "").trim() ||
+    email !== String(user?.email || "").trim()
+  );
+}
+
 function hasEditableTableUnsavedChanges(options = {}) {
   return (
     hasExpenseUnsavedChanges(options) ||
     hasAdminUsersUnsavedChanges(options) ||
-    hasAdminUserDetailUnsavedChanges()
+    hasAdminUserDetailUnsavedChanges() ||
+    hasManageAccountUnsavedChanges()
   );
 }
 
@@ -1384,6 +1404,15 @@ function discardUnsavedEditableTableChanges() {
   if (adminUserDetailIsEditing) {
     adminUserDetailIsEditing = false;
     renderAdminUserDetailDialog();
+  }
+
+  if (isManageAccountEditMode) {
+    isManageAccountEditMode = false;
+    isManageAccountPasswordOpen = false;
+    clearManageAccountErrors();
+    populateManageAccountForm();
+    clearManageAccountPasswordFields();
+    updateManageAccountEditState();
   }
 }
 
@@ -2050,7 +2079,7 @@ async function handleAdminUserDetailRemoveClick(event) {
 function hasOpenEditableTableSession(options = {}) {
   const { commitActive = true } = options;
 
-  if (!isEditMode && !isAdminEditMode && !adminUserDetailIsEditing) return false;
+  if (!isEditMode && !isAdminEditMode && !adminUserDetailIsEditing && !isManageAccountEditMode) return false;
 
   if (commitActive) {
     if (isEditMode) {
@@ -2087,6 +2116,7 @@ async function resetAdminDashboardView() {
   discardUnsavedEditableTableChanges();
 
   isAdminPanelOpen = true;
+  isManageAccountOpen = false;
   isAdminEditMode = false;
   adminManagementTab = "users";
   selectedAdminUserIndex = null;
@@ -4301,7 +4331,10 @@ async function addExpense() {
     descInput.classList.remove("error");
   }
 
-  if (hasError) return;
+  if (hasError) {
+    showAppToast("Some fields are invalid. Please fix the highlighted fields.", "error", null, "");
+    return;
+  }
 
   try {
     const expenseToSave = {
@@ -4614,6 +4647,9 @@ function resetDashboardView() {
   clearAddExpenseModeError();
   setTodayDate();
   isAdminPanelOpen = false;
+  isManageAccountOpen = false;
+  isManageAccountEditMode = false;
+  isManageAccountPasswordOpen = false;
   isAdminEditMode = false;
   adminManagementTab = "users";
   selectedAdminUserIndex = null;
@@ -4848,7 +4884,17 @@ function clearLoginErrors() {
 }
 
 function isValidEmailFormat(value) {
-  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(String(value || "").trim());
+  return /^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$/.test(String(value || "").trim());
+}
+
+function getEmailValidationMessage(value) {
+  const email = String(value || "").trim();
+
+  if (/[^A-Za-z0-9._%+\-@]/.test(email)) {
+    return "Email can only include letters, numbers, and . _ % + -";
+  }
+
+  return "Please enter a valid email";
 }
 
 function validateLoginForm() {
@@ -4862,7 +4908,7 @@ function validateLoginForm() {
     setLoginFieldError(loginIdentifierInput, loginIdentifierError, "Email or username");
     hasError = true;
   } else if (loginValue.includes("@") && !isValidEmailFormat(loginValue)) {
-    setLoginFieldError(loginIdentifierInput, loginIdentifierError, "Please enter a valid email");
+    setLoginFieldError(loginIdentifierInput, loginIdentifierError, getEmailValidationMessage(loginValue));
     hasError = true;
   }
 
@@ -4919,7 +4965,7 @@ function validateRegisterForm() {
     setRegisterFieldError("email", "Email is required");
     hasError = true;
   } else if (!isValidEmailFormat(email)) {
-    setRegisterFieldError("email", "Please enter a valid email");
+    setRegisterFieldError("email", getEmailValidationMessage(email));
     hasError = true;
   }
 
@@ -5042,6 +5088,9 @@ function clearSessionData() {
   adminActivity = [];
   adminUsersPage = 1;
   isAdminPanelOpen = false;
+  isManageAccountOpen = false;
+  isManageAccountEditMode = false;
+  isManageAccountPasswordOpen = false;
   adminManagementTab = "users";
   adminActivitySearch = "";
   adminActivityActionFilter = "All";
@@ -5079,6 +5128,9 @@ async function routeAuthenticatedUser() {
 
   if (isAdminUser()) {
     isAdminPanelOpen = true;
+    isManageAccountOpen = false;
+    isManageAccountEditMode = false;
+    isManageAccountPasswordOpen = false;
     isAdminEditMode = false;
     adminManagementTab = "users";
     selectedAdminUserIndex = null;
@@ -5089,6 +5141,9 @@ async function routeAuthenticatedUser() {
   }
 
   isAdminPanelOpen = false;
+  isManageAccountOpen = false;
+  isManageAccountEditMode = false;
+  isManageAccountPasswordOpen = false;
   renderAuthState();
   await loadExpenses();
 }
@@ -5105,7 +5160,7 @@ function ensureAdminProfileControls() {
     userProfileBtn.id = "user-profile-btn";
     userProfileBtn.className = "user-profile-btn";
     userProfileBtn.type = "button";
-    userProfileBtn.textContent = "User profile";
+    userProfileBtn.textContent = "Manage Account";
 
     if (logoutBtn && logoutBtn.parentElement === dropdown) {
       dropdown.insertBefore(userProfileBtn, logoutBtn);
@@ -5116,7 +5171,651 @@ function ensureAdminProfileControls() {
     userProfileBtn.addEventListener("click", handleUserProfileClick);
   }
 
-  userProfileBtn.hidden = !isLoggedIn || !isAdminUser();
+  userProfileBtn.textContent = "Manage Account";
+  userProfileBtn.hidden = !isLoggedIn;
+}
+
+function ensureManageAccountPanel() {
+  let panel = document.getElementById("manage-account-panel");
+
+  if (!panel) {
+    panel = document.createElement("section");
+    panel.id = "manage-account-panel";
+    panel.className = "manage-account-panel";
+    panel.hidden = true;
+
+    panel.innerHTML = `
+      <div class="manage-account-card">
+        <div class="manage-account-heading">
+          <div>
+            <h3>Manage Account</h3>
+            <p>Manage your account details and password.</p>
+          </div>
+          <p id="manage-account-updated-kicker" class="manage-account-updated-kicker" hidden></p>
+        </div>
+
+        <form id="manage-account-profile-form" class="manage-account-section" novalidate>
+          <div class="manage-account-section-header">
+            <h4>Account details</h4>
+          </div>
+
+          <div class="manage-account-fields">
+            <label class="manage-account-field">
+              <span>Name</span>
+              <span class="manage-account-input-wrap">
+                <input id="manage-account-name" type="text" autocomplete="name">
+                <small id="manage-account-name-error" class="error-text"></small>
+              </span>
+            </label>
+
+            <label class="manage-account-field">
+              <span>Username</span>
+              <span class="manage-account-input-wrap">
+                <input id="manage-account-username" type="text" autocomplete="username">
+                <small id="manage-account-username-error" class="error-text"></small>
+              </span>
+            </label>
+
+            <label class="manage-account-field">
+              <span>Email</span>
+              <span class="manage-account-input-wrap">
+                <input id="manage-account-email" type="email" autocomplete="email">
+                <small id="manage-account-email-error" class="error-text"></small>
+              </span>
+            </label>
+          </div>
+
+          <div class="manage-account-password-group" aria-label="Password settings">
+            <h4>Password</h4>
+          </div>
+
+          <div class="manage-account-fields">
+            <label class="manage-account-field">
+              <span>Current password</span>
+              <span class="manage-account-input-wrap">
+                <input id="manage-account-current-password" type="password" autocomplete="off" placeholder="••••••••">
+                <button
+                  class="manage-account-password-visibility"
+                  type="button"
+                  data-password-toggle-target="manage-account-current-password"
+                  aria-label="Show current password"
+                >
+                  <svg viewBox="0 0 24 24" aria-hidden="true">
+                    <path d="M12 5.5c-5.9 0-9.4 5.6-9.9 6.5.5.9 4 6.5 9.9 6.5s9.4-5.6 9.9-6.5c-.5-.9-4-6.5-9.9-6.5Zm0 9.4a2.9 2.9 0 1 1 0-5.8 2.9 2.9 0 0 1 0 5.8Z"></path>
+                  </svg>
+                </button>
+                <small id="manage-account-current-password-error" class="error-text"></small>
+              </span>
+            </label>
+
+            <label class="manage-account-field manage-account-new-password-field">
+              <span>New password</span>
+              <span class="manage-account-input-wrap">
+                <input id="manage-account-new-password" type="password" autocomplete="new-password">
+                <button
+                  class="manage-account-password-visibility"
+                  type="button"
+                  data-password-toggle-target="manage-account-new-password"
+                  aria-label="Show new password"
+                >
+                  <svg viewBox="0 0 24 24" aria-hidden="true">
+                    <path d="M12 5.5c-5.9 0-9.4 5.6-9.9 6.5.5.9 4 6.5 9.9 6.5s9.4-5.6 9.9-6.5c-.5-.9-4-6.5-9.9-6.5Zm0 9.4a2.9 2.9 0 1 1 0-5.8 2.9 2.9 0 0 1 0 5.8Z"></path>
+                  </svg>
+                </button>
+                <small id="manage-account-new-password-error" class="error-text"></small>
+              </span>
+            </label>
+          </div>
+
+          <div class="manage-account-password-reveal">
+            <button id="manage-account-password-toggle" class="table-action-btn secondary" type="button">Update password</button>
+          </div>
+
+          <div class="manage-account-actions">
+            <div class="manage-account-action-group">
+              <button id="manage-account-profile-submit" class="table-action-btn" type="submit">Edit</button>
+              <button id="manage-account-profile-cancel" class="table-action-btn secondary inactive" type="button">Cancel</button>
+            </div>
+          </div>
+        </form>
+      </div>
+    `;
+
+    const main = document.querySelector("main");
+    const adminPanel = document.getElementById("admin-profile-panel");
+    const hero = document.querySelector(".add.expense-hero");
+
+    if (adminPanel) {
+      adminPanel.insertAdjacentElement("beforebegin", panel);
+    } else if (hero) {
+      hero.insertAdjacentElement("beforebegin", panel);
+    } else {
+      main?.appendChild(panel);
+    }
+  }
+
+  if (!panel.dataset.bound) {
+    panel.dataset.bound = "true";
+    panel.querySelector("#manage-account-profile-form")?.addEventListener("submit", handleManageAccountProfileSubmit);
+    panel.querySelector("#manage-account-profile-cancel")?.addEventListener("click", handleManageAccountProfileCancel);
+    panel.querySelector("#manage-account-password-toggle")?.addEventListener("click", handleManageAccountPasswordToggle);
+    panel.addEventListener("click", handleManageAccountPanelClick);
+
+    panel.querySelectorAll("input").forEach(input => {
+      input.addEventListener("input", () => {
+        input.classList.remove("error");
+        const error = document.getElementById(`${input.id}-error`);
+        if (error) error.textContent = "";
+
+        if (input.id === "manage-account-email") {
+          validateManageAccountEmailLive();
+        }
+      });
+
+      if (input.id === "manage-account-current-password") {
+        input.addEventListener("blur", () => {
+          checkManageAccountCurrentPasswordIfSafe({ includeNewPasswordError: false });
+        });
+      }
+    });
+  }
+
+  return panel;
+}
+
+function handleManageAccountPanelClick(event) {
+  const toggle = event.target.closest("[data-password-toggle-target]");
+  if (!toggle || toggle.disabled) return;
+
+  const input = document.getElementById(toggle.dataset.passwordToggleTarget);
+  if (!input) return;
+
+  const shouldShow = input.type === "password";
+  input.type = shouldShow ? "text" : "password";
+  toggle.setAttribute(
+    "aria-label",
+    `${shouldShow ? "Hide" : "Show"} ${input.id === "manage-account-current-password" ? "current" : "new"} password`
+  );
+  toggle.classList.toggle("active", shouldShow);
+  input.focus({ preventScroll: true });
+}
+
+function renderManageAccountPanel() {
+  const panel = ensureManageAccountPanel();
+  if (!panel) return;
+
+  panel.hidden = !isLoggedIn || !isManageAccountOpen;
+
+  if (!panel.hidden) {
+    populateManageAccountForm();
+    updateManageAccountEditState();
+  }
+}
+
+function populateManageAccountForm() {
+  const user = normalizeUser(currentUser);
+  if (!user) return;
+
+  const nameInput = document.getElementById("manage-account-name");
+  const usernameInput = document.getElementById("manage-account-username");
+  const emailInput = document.getElementById("manage-account-email");
+  const updatedKicker = document.getElementById("manage-account-updated-kicker");
+
+  if (nameInput && document.activeElement !== nameInput) nameInput.value = user.name || "";
+  if (usernameInput && document.activeElement !== usernameInput) usernameInput.value = user.username || "";
+  if (emailInput && document.activeElement !== emailInput) emailInput.value = user.email || "";
+
+  if (updatedKicker) {
+    const updatedAt = getUserUpdatedTimestamp(user);
+    updatedKicker.hidden = !updatedAt;
+    updatedKicker.textContent = updatedAt ? `Last updated ${formatActivityTimestamp(updatedAt)}` : "";
+  }
+}
+
+function clearManageAccountPasswordFields() {
+  const currentPasswordInput = document.getElementById("manage-account-current-password");
+  const newPasswordInput = document.getElementById("manage-account-new-password");
+
+  if (currentPasswordInput) currentPasswordInput.value = "";
+  if (newPasswordInput) newPasswordInput.value = "";
+}
+
+function handleManageAccountPasswordToggle() {
+  isManageAccountEditMode = true;
+  isManageAccountPasswordOpen = true;
+  clearManageAccountErrors();
+  updateManageAccountEditState();
+
+  requestAnimationFrame(() => {
+    document.getElementById("manage-account-current-password")?.focus({ preventScroll: true });
+  });
+}
+
+function validateManageAccountEmailLive() {
+  if (!isManageAccountEditMode) return true;
+
+  const emailInput = document.getElementById("manage-account-email");
+  const email = emailInput?.value.trim() || "";
+  const error = document.getElementById("manage-account-email-error");
+
+  emailInput?.classList.remove("error");
+  if (error) error.textContent = "";
+
+  if (!email) return true;
+  if (isValidEmailFormat(email)) return true;
+
+  setManageAccountFieldError(
+    "manage-account-email",
+    getEmailValidationMessage(email)
+  );
+
+  return false;
+}
+
+function getUserUpdatedTimestamp(user = {}) {
+  return (
+    user.updated_at ||
+    user.updatedAt ||
+    user.updated ||
+    user.modified_at ||
+    user.modifiedAt ||
+    user.last_updated ||
+    user.lastUpdated ||
+    ""
+  );
+}
+
+function updateManageAccountEditState() {
+  const panel = document.getElementById("manage-account-panel");
+  const submitBtn = document.getElementById("manage-account-profile-submit");
+  const cancelBtn = document.getElementById("manage-account-profile-cancel");
+  const passwordToggleBtn = document.getElementById("manage-account-password-toggle");
+  const passwordVisibilityButtons = panel?.querySelectorAll("[data-password-toggle-target]") || [];
+
+  panel?.classList.toggle("profile-edit-mode", isManageAccountEditMode);
+  panel?.classList.toggle("password-edit-mode", isManageAccountPasswordOpen);
+
+  [
+    "manage-account-name",
+    "manage-account-username",
+    "manage-account-email",
+    "manage-account-current-password",
+    "manage-account-new-password"
+  ].forEach(id => {
+    const input = document.getElementById(id);
+    if (!input) return;
+
+    const isPasswordField = id.includes("password");
+    const shouldEnable = isPasswordField
+      ? isManageAccountPasswordOpen
+      : isManageAccountEditMode;
+
+    input.disabled = !shouldEnable;
+    input.classList.toggle("readonly-field", !shouldEnable);
+  });
+
+  if (submitBtn) {
+    submitBtn.textContent = isManageAccountEditMode ? "Save" : "Edit";
+    submitBtn.disabled = false;
+  }
+
+  if (cancelBtn) {
+    cancelBtn.classList.toggle("inactive", !isManageAccountEditMode);
+    cancelBtn.disabled = !isManageAccountEditMode;
+  }
+
+  if (passwordToggleBtn) {
+    passwordToggleBtn.classList.toggle("inactive", !isManageAccountEditMode);
+    passwordToggleBtn.disabled = !isManageAccountEditMode;
+  }
+
+  passwordVisibilityButtons.forEach(button => {
+    const input = document.getElementById(button.dataset.passwordToggleTarget);
+    const isEnabled = Boolean(input && !input.disabled);
+
+    button.disabled = !isEnabled;
+    button.classList.toggle("inactive", !isEnabled);
+
+    if (input && input.type !== "password" && !isEnabled) {
+      input.type = "password";
+      button.classList.remove("active");
+      button.setAttribute(
+        "aria-label",
+        `Show ${input.id === "manage-account-current-password" ? "current" : "new"} password`
+      );
+    }
+  });
+}
+
+function handleManageAccountProfileCancel() {
+  if (!isManageAccountEditMode) return;
+
+  isManageAccountEditMode = false;
+  isManageAccountPasswordOpen = false;
+  clearManageAccountErrors();
+  populateManageAccountForm();
+  clearManageAccountPasswordFields();
+  updateManageAccountEditState();
+}
+
+function clearManageAccountErrors() {
+  document.querySelectorAll("#manage-account-panel input").forEach(input => {
+    input.classList.remove("error");
+  });
+
+  document.querySelectorAll("#manage-account-panel .error-text").forEach(error => {
+    error.textContent = "";
+  });
+}
+
+function setManageAccountFieldError(fieldId, message) {
+  const input = document.getElementById(fieldId);
+  const error = document.getElementById(`${fieldId}-error`);
+
+  input?.classList.add("error");
+  if (error) error.textContent = message;
+}
+
+function clearManageAccountFieldError(fieldId) {
+  const input = document.getElementById(fieldId);
+  const error = document.getElementById(`${fieldId}-error`);
+
+  input?.classList.remove("error");
+  if (error) error.textContent = "";
+}
+
+function getAccountErrorMessage(data, fallback = "Account request failed") {
+  return (
+    data?.message ||
+    data?.error ||
+    data?.errors?.[0]?.message ||
+    fallback
+  );
+}
+
+function createAccountRequestError(data, fallback = "Account request failed") {
+  const error = new Error(getAccountErrorMessage(data, fallback));
+  error.data = data;
+  return error;
+}
+
+function assignManageAccountProfileError(message) {
+  const normalizedMessage = String(message || "");
+
+  if (/email/i.test(normalizedMessage)) {
+    setManageAccountFieldError("manage-account-email", normalizedMessage);
+    return true;
+  }
+
+  if (/username|user name/i.test(normalizedMessage)) {
+    setManageAccountFieldError("manage-account-username", normalizedMessage);
+    return true;
+  }
+
+  if (/name/i.test(normalizedMessage)) {
+    setManageAccountFieldError("manage-account-name", normalizedMessage);
+    return true;
+  }
+
+  return false;
+}
+
+function assignManageAccountPasswordError(message) {
+  const normalizedMessage = String(message || "");
+
+  if (/current password.*incorrect|incorrect.*current password|incorrect/i.test(normalizedMessage)) {
+    setManageAccountFieldError("manage-account-current-password", "Password is incorrect");
+    return true;
+  }
+
+  if (/new password|at least|characters/i.test(normalizedMessage)) {
+    setManageAccountFieldError("manage-account-new-password", "Use at least 6 characters");
+    return true;
+  }
+
+  if (/current password|enter password|password is required/i.test(normalizedMessage)) {
+    setManageAccountFieldError("manage-account-current-password", "Please enter password");
+    return true;
+  }
+
+  return false;
+}
+
+function assignManageAccountPasswordFieldErrors(fieldErrors = {}) {
+  let handled = false;
+
+  if (fieldErrors.currentPassword) {
+    setManageAccountFieldError("manage-account-current-password", fieldErrors.currentPassword);
+    handled = true;
+  }
+
+  if (fieldErrors.newPassword) {
+    setManageAccountFieldError("manage-account-new-password", fieldErrors.newPassword);
+    handled = true;
+  }
+
+  return handled;
+}
+
+function canSafelyCheckManageAccountCurrentPassword(currentPassword, newPassword) {
+  return Boolean(
+    isManageAccountEditMode &&
+    isManageAccountPasswordOpen &&
+    currentPassword &&
+    (newPassword === "" || newPassword.length < 6)
+  );
+}
+
+async function checkManageAccountCurrentPasswordIfSafe(options = {}) {
+  const { includeNewPasswordError = true } = options;
+  const currentPassword = document.getElementById("manage-account-current-password")?.value || "";
+  const newPassword = document.getElementById("manage-account-new-password")?.value || "";
+
+  if (!canSafelyCheckManageAccountCurrentPassword(currentPassword, newPassword)) {
+    return false;
+  }
+
+  const checkId = ++manageAccountCurrentPasswordCheckId;
+
+  try {
+    await fetchUserJson("/users/me/password", {
+      method: "PUT",
+      body: JSON.stringify({ currentPassword, newPassword })
+    });
+
+    if (checkId === manageAccountCurrentPasswordCheckId) {
+      clearManageAccountFieldError("manage-account-current-password");
+    }
+
+    return false;
+  } catch (error) {
+    if (checkId !== manageAccountCurrentPasswordCheckId) {
+      return false;
+    }
+
+    const fieldErrors = error.data?.fieldErrors || {};
+    let handled = false;
+
+    if (fieldErrors.currentPassword) {
+      setManageAccountFieldError("manage-account-current-password", fieldErrors.currentPassword);
+      handled = true;
+    } else if (/incorrect/i.test(String(error.message || ""))) {
+      setManageAccountFieldError("manage-account-current-password", "Password is incorrect");
+      handled = true;
+    }
+
+    if (includeNewPasswordError && fieldErrors.newPassword) {
+      setManageAccountFieldError("manage-account-new-password", fieldErrors.newPassword);
+      handled = true;
+    }
+
+    if (!handled) {
+      clearManageAccountFieldError("manage-account-current-password");
+    }
+
+    return handled;
+  }
+}
+
+async function fetchUserJson(path, options = {}) {
+  const response = await fetch(`${API_BASE}${path}`, {
+    ...options,
+    headers: {
+      ...getAuthHeaders(options.body ? true : false),
+      ...(options.headers || {})
+    }
+  });
+
+  const data = await response.json().catch(() => ({}));
+
+  if (response.status === 401 || response.status === 403) {
+    const message = getAccountErrorMessage(data, "Your session expired. Please log in again.");
+
+    if (/current password/i.test(message)) {
+      throw createAccountRequestError(data, message);
+    }
+
+    clearSessionData();
+    renderAuthState();
+    renderExpenses();
+    throw createAccountRequestError(data, message);
+  }
+
+  if (!response.ok) {
+    throw createAccountRequestError(data);
+  }
+
+  return data;
+}
+
+async function loadCurrentUserProfile() {
+  const user = await fetchUserJson("/users/me");
+  currentUser = normalizeUser(user);
+  localStorage.setItem(USER_STORAGE_KEY, JSON.stringify(currentUser));
+  updateGreetingText();
+  renderAuthState();
+  return currentUser;
+}
+
+async function handleManageAccountProfileSubmit(event) {
+  event.preventDefault();
+
+  if (!isManageAccountEditMode) {
+    isManageAccountEditMode = true;
+    updateManageAccountEditState();
+    document.getElementById("manage-account-name")?.focus({ preventScroll: true });
+    return;
+  }
+
+  const name = document.getElementById("manage-account-name")?.value.trim() || "";
+  const username = document.getElementById("manage-account-username")?.value.trim() || "";
+  const email = document.getElementById("manage-account-email")?.value.trim() || "";
+  const currentPassword = document.getElementById("manage-account-current-password")?.value || "";
+  const newPassword = document.getElementById("manage-account-new-password")?.value || "";
+  const submitBtn = document.getElementById("manage-account-profile-submit");
+  const shouldUpdatePassword = isManageAccountPasswordOpen;
+  let currentPasswordError = "";
+  let newPasswordError = "";
+  let hasError = false;
+
+  clearManageAccountErrors();
+
+  if (!name) {
+    setManageAccountFieldError("manage-account-name", "Name is required");
+    hasError = true;
+  }
+
+  if (!username) {
+    setManageAccountFieldError("manage-account-username", "Username is required");
+    hasError = true;
+  }
+
+  if (!email) {
+    setManageAccountFieldError("manage-account-email", "Email is required");
+    hasError = true;
+  } else if (!isValidEmailFormat(email)) {
+    setManageAccountFieldError("manage-account-email", getEmailValidationMessage(email));
+    hasError = true;
+  }
+
+  if (shouldUpdatePassword) {
+    if (!currentPassword) {
+      currentPasswordError = "Please enter password";
+    }
+
+    if (!newPassword) {
+      newPasswordError = "Password is required";
+    } else if (newPassword.length < 6) {
+      newPasswordError = "Use at least 6 characters";
+    } else if (currentPassword && newPassword === currentPassword) {
+      newPasswordError = "New password must be different from current password";
+    }
+
+    if (currentPasswordError) {
+      setManageAccountFieldError("manage-account-current-password", currentPasswordError);
+      hasError = true;
+    }
+
+    if (newPasswordError) {
+      setManageAccountFieldError("manage-account-new-password", newPasswordError);
+      hasError = true;
+    }
+  }
+
+  if (hasError) {
+    await checkManageAccountCurrentPasswordIfSafe();
+    showAppToast("Some fields are invalid. Please fix the highlighted fields.", "error", null, "");
+    return;
+  }
+
+  if (submitBtn) {
+    submitBtn.disabled = true;
+    submitBtn.textContent = "Saving...";
+  }
+
+  try {
+    const updatedUser = await fetchUserJson("/users/me", {
+      method: "PUT",
+      body: JSON.stringify({ name, username, email })
+    });
+
+    if (shouldUpdatePassword) {
+      await fetchUserJson("/users/me/password", {
+        method: "PUT",
+        body: JSON.stringify({ currentPassword, newPassword })
+      });
+    }
+
+    currentUser = normalizeUser(updatedUser);
+    localStorage.setItem(USER_STORAGE_KEY, JSON.stringify(currentUser));
+    populateManageAccountForm();
+    clearManageAccountPasswordFields();
+    isManageAccountEditMode = false;
+    isManageAccountPasswordOpen = false;
+    updateManageAccountEditState();
+    updateGreetingText();
+    renderAuthState();
+    showAppToast("Changes saved successfully.");
+
+    if (isAdminUser()) {
+      await loadAdminProfileData();
+    }
+  } catch (error) {
+    console.error("Failed to update account profile:", error);
+    const handledPasswordError = assignManageAccountPasswordFieldErrors(error.data?.fieldErrors);
+    const handledProfileError = handledPasswordError ? false : assignManageAccountProfileError(error.message);
+
+    if (!handledPasswordError && !handledProfileError) {
+      assignManageAccountPasswordError(error.message);
+    }
+
+    showAppToast("Some fields are invalid. Please fix the highlighted fields.", "error", null, "");
+  } finally {
+    if (submitBtn) {
+      submitBtn.disabled = false;
+      submitBtn.textContent = isManageAccountEditMode ? "Save" : "Edit";
+    }
+  }
 }
 
 function ensureAdminPanel() {
@@ -5384,7 +6083,7 @@ function renderAdminPanelState() {
     title.textContent = `Hi ${getCurrentDisplayName()}, here’s today’s account overview.`;
   }
 
-  panel.hidden = !isLoggedIn || !isAdminUser() || !isAdminPanelOpen;
+  panel.hidden = !isLoggedIn || !isAdminUser() || !isAdminPanelOpen || isManageAccountOpen;
   syncAdminManagementTabs();
 }
 
@@ -5427,12 +6126,13 @@ async function setAdminManagementTab(tabName, options = {}) {
 
 function renderPageSections() {
   ensureAuthPage();
+  renderManageAccountPanel();
 
   if (authPage) {
     authPage.hidden = isLoggedIn;
   }
 
-  const showDashboard = isLoggedIn && !isAdminPanelOpen;
+  const showDashboard = isLoggedIn && !isAdminPanelOpen && !isManageAccountOpen;
 
   document.querySelector(".add.expense-hero")?.toggleAttribute("hidden", !showDashboard);
   tableSection?.toggleAttribute("hidden", !showDashboard);
@@ -6555,28 +7255,29 @@ async function handleUserProfileClick(event) {
   event.preventDefault();
   event.stopPropagation();
 
-  if (!isAdminUser()) return;
-
-  if (isAdminPanelOpen) {
-    closeProfileMenu();
-    return;
-  }
-
   if (!(await confirmDiscardUnsavedChanges())) return;
 
   discardUnsavedEditableTableChanges();
 
-  isAdminPanelOpen = true;
-  renderAdminPanelState();
+  isManageAccountOpen = true;
+  isManageAccountEditMode = false;
+  isManageAccountPasswordOpen = false;
+  isAdminPanelOpen = false;
+  renderAuthState();
   renderPageSections();
   closeProfileMenu();
 
   isAdminEditMode = false;
   selectedAdminUserIndex = null;
-  adminManagementTab = "users";
-  adminUsersPage = 1;
-  await loadAdminProfileData();
-  document.getElementById("admin-profile-panel")?.scrollIntoView({
+
+  try {
+    await loadCurrentUserProfile();
+  } catch (error) {
+    console.error("Failed to load account profile:", error);
+    showAppToast(error.message || "Could not load account profile.", "error", null, "");
+  }
+
+  document.getElementById("manage-account-panel")?.scrollIntoView({
     behavior: "smooth",
     block: "start"
   });
@@ -6650,6 +7351,7 @@ function renderAuthState() {
   ensureLoginPanel();
   ensureAdminProfileControls();
   renderAdminPanelState();
+  renderManageAccountPanel();
   renderPageSections();
 
   const profile = document.querySelector(".profile");
@@ -7591,7 +8293,22 @@ function bindEvents() {
     });
   });
 
-  document.addEventListener("keydown", (event) => {
+  document.addEventListener("keydown", async (event) => {
+    const isRefreshShortcut =
+      event.key === "F5" ||
+      ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === "r");
+
+    if (isRefreshShortcut && hasOpenEditableTableSession({ commitActive: false })) {
+      event.preventDefault();
+
+      if (await confirmDiscardUnsavedChanges()) {
+        discardUnsavedEditableTableChanges();
+        window.location.reload();
+      }
+
+      return;
+    }
+
     if (event.key === "Escape") {
       closeToolbarMenus();
       closeProfileMenu();

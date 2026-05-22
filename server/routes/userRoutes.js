@@ -16,7 +16,9 @@ function formatUser(user) {
     name: user.name,
     username: user.username,
     email: user.email,
-    role: user.role
+    role: user.role,
+    created_at: user.created_at,
+    updated_at: user.updated_at
   };
 }
 
@@ -52,7 +54,7 @@ function mergeProfileInput(currentUser, body) {
 router.get("/me", async (req, res) => {
   try {
     const [users] = await pool.query(
-      "SELECT id, name, username, email, role FROM users WHERE id = ? LIMIT 1",
+      "SELECT id, name, username, email, role, created_at, updated_at FROM users WHERE id = ? LIMIT 1",
       [req.user.id]
     );
 
@@ -70,7 +72,7 @@ router.get("/me", async (req, res) => {
 router.put("/me", async (req, res) => {
   try {
     const [currentUsers] = await pool.query(
-      "SELECT id, name, username, email, role FROM users WHERE id = ? LIMIT 1",
+      "SELECT id, name, username, email, role, created_at, updated_at FROM users WHERE id = ? LIMIT 1",
       [req.user.id]
     );
 
@@ -110,7 +112,7 @@ router.put("/me", async (req, res) => {
     await logActivity(req.user.id, "ACCOUNT_UPDATE", "User updated their account profile");
 
     const [updatedUsers] = await pool.query(
-      "SELECT id, name, username, email, role FROM users WHERE id = ? LIMIT 1",
+      "SELECT id, name, username, email, role, created_at, updated_at FROM users WHERE id = ? LIMIT 1",
       [req.user.id]
     );
 
@@ -124,13 +126,16 @@ router.put("/me", async (req, res) => {
 router.put("/me/password", async (req, res) => {
   try {
     const { currentPassword, newPassword } = req.body;
+    const fieldErrors = {};
 
-    if (!currentPassword || !newPassword) {
-      return res.status(400).json({ message: "Current password and new password are required" });
+    if (!currentPassword) {
+      fieldErrors.currentPassword = "Please enter password";
     }
 
-    if (newPassword.length < 6) {
-      return res.status(400).json({ message: "New password must be at least 6 characters" });
+    if (!newPassword) {
+      fieldErrors.newPassword = "Password is required";
+    } else if (newPassword.length < 6) {
+      fieldErrors.newPassword = "Use at least 6 characters";
     }
 
     const [users] = await pool.query(
@@ -142,10 +147,19 @@ router.put("/me/password", async (req, res) => {
       return res.status(404).json({ message: "User not found" });
     }
 
-    const passwordMatches = await bcrypt.compare(currentPassword, users[0].password_hash);
+    if (currentPassword) {
+      const passwordMatches = await bcrypt.compare(currentPassword, users[0].password_hash);
 
-    if (!passwordMatches) {
-      return res.status(401).json({ message: "Current password is incorrect" });
+      if (!passwordMatches) {
+        fieldErrors.currentPassword = "Password is incorrect";
+      }
+    }
+
+    if (Object.keys(fieldErrors).length > 0) {
+      return res.status(400).json({
+        message: "Please fix the highlighted password fields",
+        fieldErrors
+      });
     }
 
     const passwordHash = await bcrypt.hash(newPassword, 10);

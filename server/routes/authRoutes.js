@@ -15,7 +15,9 @@ function formatUser(user) {
     name: user.name,
     username: user.username,
     email: user.email,
-    role: user.role
+    role: user.role,
+    created_at: user.created_at,
+    updated_at: user.updated_at
   };
 }
 
@@ -67,7 +69,9 @@ router.post("/register", async (req, res) => {
         name: cleanName,
         username: cleanUsername,
         email: cleanEmail,
-        role: "user"
+        role: "user",
+        created_at: new Date(),
+        updated_at: new Date()
       })
     });
   } catch (error) {
@@ -93,7 +97,7 @@ router.post("/login", async (req, res) => {
 
     const [users] = await pool.query(
       `
-      SELECT id, name, username, email, password_hash, role
+      SELECT id, name, username, email, password_hash, role, created_at, updated_at
       FROM users
       WHERE email = ? OR username = ?
       LIMIT 1
@@ -155,7 +159,7 @@ router.post("/logout", authenticateToken, async (req, res) => {
 router.get("/me", authenticateToken, async (req, res) => {
   try {
     const [users] = await pool.query(
-      "SELECT id, name, username, email, role FROM users WHERE id = ? LIMIT 1",
+      "SELECT id, name, username, email, role, created_at, updated_at FROM users WHERE id = ? LIMIT 1",
       [req.user.id]
     );
 
