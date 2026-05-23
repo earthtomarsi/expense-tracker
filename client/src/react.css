@@ -706,3 +706,246 @@ main {
     grid-template-columns: 1fr;
   }
 }
+
+/* React Admin Activity parity pass */
+.admin-profile-panel {
+  margin-top: 26px;
+}
+
+.admin-activity-card {
+  border: 1px solid rgba(255, 255, 255, 0.78);
+  border-radius: 22px;
+  background: rgba(255, 255, 255, 0.68);
+  box-shadow:
+    0 18px 42px rgba(15, 23, 42, 0.07),
+    inset 0 1px 0 rgba(255, 255, 255, 0.72);
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+  padding: 22px;
+}
+
+.admin-activity-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 18px;
+  margin-bottom: 22px;
+}
+
+.admin-activity-header h3 {
+  margin: 0 0 6px;
+  color: #111827;
+  font-size: 1.12rem;
+}
+
+.admin-activity-header p {
+  margin: 0;
+  color: #647067;
+  font-size: 0.92rem;
+}
+
+.admin-activity-header > span {
+  color: #7b857f;
+  font-size: 0.82rem;
+  font-weight: 800;
+  white-space: nowrap;
+}
+
+.admin-activity-toolbar {
+  display: grid;
+  grid-template-columns: minmax(220px, 1fr) 210px 230px auto;
+  gap: 10px;
+  align-items: center;
+  margin-bottom: 18px;
+}
+
+.admin-activity-search {
+  min-width: 0;
+}
+
+.admin-activity-search input,
+.admin-activity-toolbar select {
+  width: 100%;
+  min-height: 46px;
+  border: 1px solid rgba(17, 24, 39, 0.1);
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.84);
+  color: #111827;
+  font: inherit;
+  font-size: 0.92rem;
+  padding: 0 15px;
+  outline: none;
+}
+
+.admin-activity-search input:focus,
+.admin-activity-toolbar select:focus {
+  border-color: rgba(46, 204, 113, 0.72);
+  box-shadow: 0 0 0 4px rgba(46, 204, 113, 0.12);
+}
+
+.admin-activity-toolbar .toolbar-clear {
+  min-height: 46px;
+  padding: 0 18px;
+}
+
+.admin-activity-table {
+  min-width: 860px;
+}
+
+.admin-activity-table th,
+.admin-activity-table td {
+  vertical-align: middle;
+}
+
+.admin-activity-table th:first-child,
+.admin-activity-table td:first-child {
+  width: 20%;
+}
+
+.admin-activity-table th:nth-child(2),
+.admin-activity-table td:nth-child(2) {
+  width: 18%;
+  text-align: center;
+}
+
+.admin-activity-table th:nth-child(3),
+.admin-activity-table td:nth-child(3) {
+  width: 36%;
+}
+
+.admin-activity-table th:nth-child(4),
+.admin-activity-table td:nth-child(4) {
+  width: 26%;
+  white-space: nowrap;
+}
+
+.admin-activity-action {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 82px;
+  min-height: 26px;
+  padding: 5px 10px;
+  border-radius: 999px;
+  font-size: 0.72rem;
+  font-weight: 900;
+  line-height: 1;
+  letter-spacing: 0.02em;
+}
+
+.admin-activity-action.login {
+  background: rgba(14, 165, 233, 0.12);
+  color: #0369a1;
+}
+
+.admin-activity-action.logout {
+  background: rgba(100, 116, 139, 0.12);
+  color: #475569;
+}
+
+.admin-activity-action.register {
+  background: rgba(139, 92, 246, 0.13);
+  color: #6d28d9;
+}
+
+.admin-activity-action.update {
+  background: rgba(245, 158, 11, 0.16);
+  color: #92400e;
+}
+
+.admin-activity-action.create {
+  background: rgba(34, 197, 94, 0.14);
+  color: #15803d;
+}
+
+.admin-activity-action.delete {
+  background: rgba(239, 68, 68, 0.13);
+  color: #b91c1c;
+}
+
+.admin-activity-action.default {
+  background: rgba(17, 24, 39, 0.08);
+  color: #111827;
+}
+
+.admin-activity-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-top: 16px;
+}
+
+.admin-activity-footer .page-indicator {
+  color: #7b857f;
+  font-size: 0.82rem;
+  font-weight: 700;
+}
+
+@media (max-width: 920px) {
+  .admin-activity-toolbar {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .admin-activity-toolbar .toolbar-clear {
+    width: 100%;
+  }
+}
+
+@media (max-width: 620px) {
+  .admin-activity-toolbar {
+    grid-template-columns: 1fr;
+  }
+
+  .admin-activity-footer {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+}
+
+/* Admin Activity dropdown chevrons + compact pagination */
+.admin-activity-toolbar .admin-activity-select {
+  position: relative;
+  width: 100%;
+}
+
+.admin-activity-toolbar .admin-activity-select select {
+  width: 100%;
+  min-height: 46px;
+  padding-right: 40px;
+  appearance: none;
+  -webkit-appearance: none;
+}
+
+.admin-activity-toolbar .admin-activity-select .select-arrow {
+  position: absolute;
+  top: 50%;
+  right: 15px;
+  pointer-events: none;
+  transform: translateY(-50%) rotate(90deg);
+  color: #647067;
+  font-size: 1.1rem;
+  font-weight: 800;
+}
+
+.admin-activity-footer {
+  justify-content: flex-end;
+}
+
+.admin-activity-footer > .page-indicator {
+  margin-right: 10px;
+}
+
+.admin-activity-footer .table-pagination {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.admin-activity-footer .page-btn {
+  width: 34px;
+  height: 34px;
+  min-width: 34px;
+  display: grid;
+  place-items: center;
+}
