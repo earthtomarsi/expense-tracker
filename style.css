@@ -3048,12 +3048,12 @@ text-overflow: ellipsis;
 }
 
 #expense-table th:first-child {
-width: 24%;
+width: 26%;
 padding-left: 24px;
 }
 
 #expense-table td:first-child {
-width: 24%;
+width: 26%;
 padding-left: calc(24px - var(--table-surface-x));
 }
 
@@ -3074,16 +3074,16 @@ width: 16%;
 
 #expense-table th:nth-child(5),
 #expense-table td:nth-child(5) {
-width: 30%;
+width: 26%;
 }
 
 #expense-table th.actions-header,
 #expense-table td.actions-cell,
 #expense-table th:nth-child(6),
 #expense-table td:nth-child(6) {
-width: 78px;
-min-width: 78px;
-max-width: 78px;
+width: 114px;
+min-width: 114px;
+max-width: 114px;
 }
 
 #expense-table td {
@@ -3645,7 +3645,7 @@ color: rgba(153, 27, 27, 0.58);
 
 #expense-table td.actions-cell {
 padding-left: 6px;
-padding-right: 20px;
+padding-right: 16px;
 overflow: visible;
 white-space: nowrap;
 position: relative;
@@ -3657,8 +3657,9 @@ vertical-align: middle;
 display: flex;
 align-items: center;
 justify-content: flex-end;
-gap: 6px;
+gap: 2px;
 width: 100%;
+min-width: 86px;
 position: relative;
 z-index: 4;
 }
@@ -3680,23 +3681,21 @@ justify-content: center !important;
 }
 
 .row-icon-btn svg {
-width: 16.5px !important;
-height: 16.5px !important;
-fill: none;
-stroke: currentColor;
-stroke-width: 2.1;
-stroke-linecap: round;
-stroke-linejoin: round;
+width: 16px !important;
+height: 16px !important;
+fill: currentColor;
+stroke: none;
 display: block;
 }
 
 .edit-row-btn svg {
-fill: currentColor;
-stroke: none;
+transform: translate(0.5px, -0.5px);
 }
 
-.edit-row-btn svg {
-transform: translate(0.5px, -0.5px);
+.cancel-row-btn svg,
+.save-row-btn svg,
+.delete-btn svg {
+transform: translateY(0);
 }
 
 .delete-btn {
@@ -3706,8 +3705,11 @@ padding-bottom: 0 !important;
 .delete-btn svg {
 width: 15px !important;
 height: 15px !important;
-fill: currentColor;
-stroke: none;
+}
+
+.save-row-btn svg {
+width: 20px !important;
+height: 20px !important;
 }
 
 .row-icon-btn:hover {
@@ -3716,6 +3718,14 @@ background: rgba(255, 255, 255, 0.72) !important;
 
 .edit-row-btn:hover {
 color: var(--accent-green);
+}
+
+.save-row-btn:hover {
+color: #16a34a;
+}
+
+.cancel-row-btn:hover {
+color: #6b7280;
 }
 
 .delete-btn:hover {
@@ -3729,7 +3739,10 @@ button.hidden-delete,
 .hidden-edit,
 .row-icon-btn.hidden-edit,
 .edit-row-btn.hidden-edit,
-button.hidden-edit {
+button.hidden-edit,
+.hidden-edit-action,
+.row-icon-btn.hidden-edit-action,
+button.hidden-edit-action {
 display: none !important;
 }
 
@@ -4568,7 +4581,7 @@ display: none !important;
 
 #expense-table th.actions-header,
 #expense-table td.actions-cell {
-    padding-right: 20px;
+    padding-right: 14px;
 }
 }
 

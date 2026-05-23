@@ -1099,11 +1099,22 @@ function highlightTableActionButton(button) {
 }
 
 function highlightTableEditActions() {
-  highlightTableActionButton(editTableBtn);
+  highlightTableActionButton(getActiveExpenseRowSaveButton() || editTableBtn);
+}
+
+function getActiveExpenseRowSaveButton() {
+  if (!isEditMode) return null;
+
+  if (selectedEditRowIndex != null) {
+    return expenseBody?.querySelector(`button[data-action="save-row-edit"][data-index="${selectedEditRowIndex}"]`) || null;
+  }
+
+  return expenseBody?.querySelector('button[data-action="save-row-edit"]') || null;
 }
 
 function scrollToTableEditActions() {
-  const target = document.querySelector(".table-actions") || tableSection;
+  const rowSaveButton = getActiveExpenseRowSaveButton();
+  const target = rowSaveButton?.closest("tr") || document.querySelector(".table-actions") || tableSection;
 
   if (target) {
     target.scrollIntoView({
@@ -1115,7 +1126,9 @@ function scrollToTableEditActions() {
   setTimeout(() => {
     highlightTableEditActions();
 
-    if (editTableBtn) {
+    if (rowSaveButton) {
+      rowSaveButton.focus({ preventScroll: true });
+    } else if (editTableBtn) {
       editTableBtn.focus({ preventScroll: true });
     }
   }, 450);
@@ -1132,8 +1145,8 @@ function getActiveEditableTableSaveButton() {
     if (adminSaveBtn) return adminSaveBtn;
   }
 
-  if (isEditMode && editTableBtn) {
-    return editTableBtn;
+  if (isEditMode) {
+    return getActiveExpenseRowSaveButton() || editTableBtn;
   }
 
   return null;
@@ -1153,6 +1166,7 @@ function scrollToActiveEditableTableSaveButton() {
   const target =
     saveButton.closest(".admin-table-actions") ||
     saveButton.closest(".table-actions") ||
+    saveButton.closest("tr") ||
     saveButton;
 
   target.scrollIntoView({
@@ -3443,8 +3457,8 @@ function startRowEdit(index) {
     captureEditModeOrder();
     isEditMode = true;
     draftExpenses = cloneExpenses(expenses);
-    editTableBtn.textContent = "Save";
-    cancelTableBtn.classList.remove("inactive");
+    if (editTableBtn) editTableBtn.textContent = "Save";
+    if (cancelTableBtn) cancelTableBtn.classList.remove("inactive");
   }
 
   selectedEditRowIndex = Number.isInteger(Number(index)) ? Number(index) : null;
@@ -3460,9 +3474,67 @@ function startRowEdit(index) {
   });
 }
 
+async function saveExpenseTableEdits() {
+  try {
+    commitActiveTableCell();
+
+    if (!validateDraftTableEdits()) {
+      renderExpenses();
+
+      showAppToast(
+        "Some edited amount or date values are invalid. Fix the highlighted cells, then try saving again.",
+        "error",
+        null,
+        "Changes were not saved"
+      );
+
+      return false;
+    }
+
+    await saveDraftChanges();
+
+    isEditMode = false;
+    activeEditCell = null;
+    selectedEditRowIndex = null;
+    clearEditModeOrder();
+
+    if (editTableBtn) editTableBtn.textContent = "Edit";
+    if (cancelTableBtn) cancelTableBtn.classList.add("inactive");
+
+    await loadExpenses();
+
+    clearStatus();
+    clearAddExpenseModeError();
+    showAppToast("Changes saved successfully.");
+    return true;
+  } catch (error) {
+    console.error("Save failed:", error);
+    const message = "Failed to save table changes. Please try again.";
+    showStatus(message, "error");
+    showAppToast(message, "error");
+    return false;
+  }
+}
+
+function cancelExpenseTableEdits() {
+  draftExpenses = cloneExpenses(expenses);
+  isEditMode = false;
+  selectedEditRowIndex = null;
+  activeEditCell = null;
+  clearEditModeOrder();
+
+  if (editTableBtn) editTableBtn.textContent = "Edit";
+  if (cancelTableBtn) cancelTableBtn.classList.add("inactive");
+
+  clearStatus();
+  clearAddExpenseModeError();
+  renderExpenses();
+}
+
 function createExpenseRow(expense, index) {
   const row = document.createElement("tr");
   const rowIsEditable = isEditMode && (selectedEditRowIndex == null || selectedEditRowIndex === index);
+  const rowIsSelectedForEdit = isEditMode && selectedEditRowIndex === index;
   const lockedClass = rowIsEditable ? "" : "locked";
   const editableValue = rowIsEditable ? "true" : "false";
   const isNewlyAdded = String(expense.id) === String(newlyAddedExpenseId);
@@ -3551,7 +3623,33 @@ function createExpenseRow(expense, index) {
         </button>
 
         <button
-          class="row-icon-btn delete-btn ${!isEditMode ? "hidden-delete" : ""}"
+          class="row-icon-btn cancel-row-btn ${rowIsSelectedForEdit ? "" : "hidden-edit-action"}"
+          type="button"
+          data-action="cancel-row-edit"
+          data-index="${index}"
+          aria-label="Cancel expense changes"
+          title="Cancel changes"
+        >
+          <svg viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M6.7 4.5a1.9 1.9 0 0 0-2.7 2.7L8.8 12 4 16.8a1.9 1.9 0 1 0 2.7 2.7l5.3-5.3 5.3 5.3a1.9 1.9 0 1 0 2.7-2.7L15.2 12 20 7.2a1.9 1.9 0 1 0-2.7-2.7L12 9.8 6.7 4.5Z"></path>
+          </svg>
+        </button>
+
+        <button
+          class="row-icon-btn save-row-btn ${rowIsSelectedForEdit ? "" : "hidden-edit-action"}"
+          type="button"
+          data-action="save-row-edit"
+          data-index="${index}"
+          aria-label="Save expense changes"
+          title="Save changes"
+        >
+          <svg viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M9 18 3.7 12.7 6 10.4l3 3 9-9 2.3 2.3L9 18Z"></path>
+          </svg>
+        </button>
+
+        <button
+          class="row-icon-btn delete-btn ${rowIsSelectedForEdit ? "" : "hidden-delete"}"
           type="button"
           data-action="delete"
           data-index="${index}"
@@ -4439,15 +4537,34 @@ async function addExpense() {
 
 async function deleteExpense(index) {
   if (isEditMode) {
-    draftExpenses.splice(index, 1);
+    const expenseToDelete = draftExpenses[index];
 
-    if (selectedEditRowIndex === index) {
+    try {
+      if (expenseToDelete?.id != null) {
+        await deleteExpenseFromDatabase(expenseToDelete.id);
+        expenses = expenses.filter(expense => String(expense.id) !== String(expenseToDelete.id));
+      }
+
+      draftExpenses.splice(index, 1);
+      isEditMode = false;
       selectedEditRowIndex = null;
-    } else if (selectedEditRowIndex != null && selectedEditRowIndex > index) {
-      selectedEditRowIndex -= 1;
+      activeEditCell = null;
+      clearEditModeOrder();
+
+      if (editTableBtn) editTableBtn.textContent = "Edit";
+      if (cancelTableBtn) cancelTableBtn.classList.add("inactive");
+
+      clearStatus();
+      clearAddExpenseModeError();
+      renderExpenses();
+      showAppToast("Expense deleted successfully.");
+    } catch (error) {
+      console.error("Delete failed:", error);
+      const message = "Failed to delete expense from the database.";
+      showStatus(message, "error");
+      showAppToast(message, "error");
     }
 
-    renderExpenses();
     return;
   }
 
@@ -4598,8 +4715,8 @@ function resetDashboardView() {
     searchIconBtn.disabled = true;
   }
 
-  editTableBtn.textContent = "Edit";
-  cancelTableBtn.classList.add("inactive");
+  if (editTableBtn) editTableBtn.textContent = "Edit";
+  if (cancelTableBtn) cancelTableBtn.classList.add("inactive");
 
   syncFilterMenuState();
 
@@ -7902,6 +8019,20 @@ function handleTableClick(event) {
     return;
   }
 
+  const cancelRowButton = event.target.closest("button[data-action='cancel-row-edit']");
+  if (cancelRowButton) {
+    if (!isEditMode || cancelRowButton.disabled) return;
+    cancelExpenseTableEdits();
+    return;
+  }
+
+  const saveRowButton = event.target.closest("button[data-action='save-row-edit']");
+  if (saveRowButton) {
+    if (!isEditMode || saveRowButton.disabled) return;
+    saveExpenseTableEdits();
+    return;
+  }
+
   const deleteButton = event.target.closest("button[data-action='delete']");
   if (deleteButton) {
     const index = Number(deleteButton.dataset.index);
@@ -8098,7 +8229,7 @@ function bindEvents() {
     });
   }
 
-  editTableBtn.addEventListener("click", async () => {
+  editTableBtn?.addEventListener("click", async () => {
     if (!isEditMode) {
       captureEditModeOrder();
       isEditMode = true;
@@ -8106,61 +8237,15 @@ function bindEvents() {
       activeEditCell = null;
       selectedEditRowIndex = null;
       editTableBtn.textContent = "Save";
-      cancelTableBtn.classList.remove("inactive");
+      cancelTableBtn?.classList.remove("inactive");
       renderExpenses();
       return;
     }
 
-    try {
-      commitActiveTableCell();
-
-      if (!validateDraftTableEdits()) {
-        renderExpenses();
-
-        showAppToast(
-          "Some edited amount or date values are invalid. Fix the highlighted cells, then try saving again.",
-          "error",
-          null,
-          "Changes were not saved"
-        );
-
-        return;
-      }
-
-      await saveDraftChanges();
-
-      isEditMode = false;
-      activeEditCell = null;
-      selectedEditRowIndex = null;
-      clearEditModeOrder();
-      editTableBtn.textContent = "Edit";
-      cancelTableBtn.classList.add("inactive");
-
-      await loadExpenses();
-
-      clearStatus();
-      clearAddExpenseModeError();
-      showAppToast("Changes saved successfully.");
-    } catch (error) {
-      console.error("Save failed:", error);
-      const message = "Failed to save table changes. Please try again.";
-      showStatus(message, "error");
-      showAppToast(message, "error");
-    }
+    saveExpenseTableEdits();
   });
 
-  cancelTableBtn.addEventListener("click", () => {
-    draftExpenses = cloneExpenses(expenses);
-    isEditMode = false;
-    selectedEditRowIndex = null;
-    activeEditCell = null;
-    clearEditModeOrder();
-    editTableBtn.textContent = "Edit";
-    cancelTableBtn.classList.add("inactive");
-    clearStatus();
-    clearAddExpenseModeError();
-    renderExpenses();
-  });
+  cancelTableBtn?.addEventListener("click", cancelExpenseTableEdits);
 
   expenseSearchInput.addEventListener("input", (e) => {
     pendingSearch = e.target.value.trim().toLowerCase();
@@ -8477,8 +8562,8 @@ function handleHeaderFade() {
 ensureLoginPanel();
 bindEvents();
 handleHeaderFade();
-cancelTableBtn.classList.add("inactive");
-editTableBtn.textContent = "Edit";
+if (cancelTableBtn) cancelTableBtn.classList.add("inactive");
+if (editTableBtn) editTableBtn.textContent = "Edit";
 
 if (searchIconBtn) {
   searchIconBtn.disabled = true;
