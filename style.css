@@ -1,8 +1,8 @@
 /*
-  Spendflow visual system.
+Spendflow visual system.
 
-  This stylesheet is shared by the Express-served root app and the React/Vite
-  bridge in client/. Keep ids/classes in sync with index.html and script.js.
+This stylesheet is shared by the Express-served root app and the React/Vite
+bridge in client/. Keep ids/classes in sync with index.html and script.js.
 */
 
 * {
@@ -1408,8 +1408,6 @@ margin-left: 0;
     width: 100%;
 }
 
-
-
 .admin-card-header span {
 color: #8a948f;
 font-size: 10px;
@@ -1420,17 +1418,13 @@ font-weight: 600;
 .admin-icon-btn {
 height: 34px;
 padding: 0 12px;
-border-radius: 10px;
-font-size: 11px;
-font-weight: 600;
-}
-
-.admin-secondary-btn,
-.admin-icon-btn {
 border: 1px solid rgba(190, 205, 196, 0.48);
+border-radius: 10px;
 background: rgba(255, 255, 255, 0.72);
 box-shadow: none;
 color: var(--text-main);
+font-size: 11px;
+font-weight: 600;
 white-space: nowrap;
 }
 
