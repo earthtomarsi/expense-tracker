@@ -543,3 +543,7 @@ main {
     width: 100% !important;
   }
 }
+
+.manage-account-error {
+  margin: 12px 0 16px;
+}
