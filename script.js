@@ -5961,7 +5961,7 @@ function ensureAdminPanel() {
         <div class="admin-card admin-management-card">
           <div class="admin-card-header">
             <div>
-              <h4>Account management</h4>
+              <h4>User administration</h4>
               <p>Review user accounts and activity across Spendflow.</p>
             </div>
           </div>
