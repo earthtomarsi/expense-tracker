@@ -1,3 +1,10 @@
+/**
+ * Spendflow frontend controller.
+ *
+ * The root HTML/CSS/JS files power the Express-served app and are also loaded
+ * by the React/Vite bridge in client/. Keep DOM ids and data attributes stable
+ * unless both entry points are updated together.
+ */
 let expenses = [];
 let draftExpenses = [];
 
@@ -79,7 +86,7 @@ const knownAdminActivityActions = [
   "PASSWORD_UPDATE"
 ];
 
-// DOM elements
+// Cached DOM references used across render and event handlers.
 const expenseNameInput = document.getElementById("expenseName");
 const amountInput = document.getElementById("amount");
 const categoryInput = document.getElementById("category");
@@ -1003,7 +1010,6 @@ function showAddExpenseModeError(message) {
     addExpenseModeError.hidden = false;
   }
 
-  // No heading here: this is a guided warning, not a system failure.
   showAppToast(message, "error", {
     label: "Go to table edits",
     onClick: scrollToTableEditActions
@@ -1193,8 +1199,6 @@ function showAppToast(message, type = "success", action = null, title = null) {
   const actionBtn = ensureToastActionButton(toast);
   const hasAction = Boolean(action?.label && typeof action.onClick === "function");
 
-  // Use an explicit title only when the caller provides one.
-  // This keeps field/table validation errors short and context-specific.
   const toastTitle = title ?? "";
 
   messageEl.innerHTML = "";
@@ -3685,7 +3689,7 @@ function renderLoadFailureState() {
   updatePaginationDisplay(0);
 }
 
-// ---------- Database ----------
+// ---------- Expense API ----------
 async function createExpenseInDatabase(expense) {
   const response = await fetch(`${API_BASE}/expenses`, {
     method: "POST",
@@ -3880,8 +3884,6 @@ function renderPieChart() {
     subtitle.textContent = `${formatCurrency(total)} total across ${entries.length} ${entries.length === 1 ? "category" : "categories"}`;
   }
 
-  // Keep percentages visible beside the chart, so the breakdown is readable
-  // without needing to hover every doughnut slice.
   if (overview) {
     overview.innerHTML = entries.map(([category, value]) => {
       const percentage = total ? (value / total) * 100 : 0;
@@ -3952,9 +3954,6 @@ function renderPieChart() {
         hoverOffset: 4,
         spacing: 3,
         borderRadius: 12,
-
-        // Balanced size: large enough to read but not so large that the
-        // percentage overview drops below the chart.
         cutout: "73%",
         radius: "92%"
       }]
@@ -3981,7 +3980,6 @@ function renderPieChart() {
           display: false
         },
         tooltip: {
-          // Custom HTML tooltip avoids the center total and keeps a pointer tip.
           enabled: false,
           external: externalPieTooltip,
 
@@ -4067,13 +4065,9 @@ function renderChart() {
           data,
           borderColor: lineGradient,
           backgroundColor: "rgba(72, 221, 182, 0.08)",
-
-          // A lower tension keeps the curve modern without exaggerating the line.
           tension: data.length > 2 ? 0.18 : 0,
           cubicInterpolationMode: "monotone",
           fill: false,
-
-          // Prevents first/last hover circles from being clipped.
           clip: false,
 
           pointRadius: data.length ? 3.5 : 0,
@@ -4129,8 +4123,6 @@ function renderChart() {
         legend: {
           display: true,
           align: "center",
-
-          // Prevents Chart.js from hiding lines and striking legend labels.
           onClick: () => {},
 
           labels: {
@@ -4149,8 +4141,6 @@ function renderChart() {
         },
         tooltip: {
           enabled: true,
-
-          // Anchors the tooltip to the hovered point.
           position: "monthlyPoint",
           xAlign: "center",
           yAlign: "bottom",
@@ -4177,7 +4167,6 @@ function renderChart() {
       },
       scales: {
         x: {
-          // Keeps the line stretched across the x-axis instead of centered/narrow.
           offset: false,
           bounds: "ticks",
           ticks: {
@@ -5229,6 +5218,7 @@ function getAuthHeaders(includeJson = false) {
   }
 
   if (authToken) {
+    // Protected endpoints read the JWT from the Authorization header.
     headers.Authorization = `Bearer ${authToken}`;
   }
 
@@ -5247,6 +5237,7 @@ async function routeAuthenticatedUser() {
   }
 
   if (isAdminUser()) {
+    // Admins land in account management; regular users land in the expense dashboard.
     isAdminPanelOpen = true;
     isManageAccountOpen = false;
     isManageAccountEditMode = false;
@@ -8439,7 +8430,7 @@ function bindEvents() {
   
     openDropdowns.forEach((dropdown) => {
       if (dropdown !== clickedInsideDropdown) {
-        dropdown.open = false; // Close dropdown if the click was outside
+        dropdown.open = false;
       }
     });
   });
