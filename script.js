@@ -5406,11 +5406,6 @@ function ensureManageAccountPanel() {
         }
       });
 
-      if (input.id === "manage-account-current-password") {
-        input.addEventListener("blur", () => {
-          checkManageAccountCurrentPasswordIfSafe({ includeNewPasswordError: false });
-        });
-      }
     });
   }
 
@@ -5700,55 +5695,11 @@ function canSafelyCheckManageAccountCurrentPassword(currentPassword, newPassword
   );
 }
 
-async function checkManageAccountCurrentPasswordIfSafe(options = {}) {
-  const { includeNewPasswordError = true } = options;
-  const currentPassword = document.getElementById("manage-account-current-password")?.value || "";
-  const newPassword = document.getElementById("manage-account-new-password")?.value || "";
-
-  if (!canSafelyCheckManageAccountCurrentPassword(currentPassword, newPassword)) {
-    return false;
-  }
-
-  const checkId = ++manageAccountCurrentPasswordCheckId;
-
-  try {
-    await fetchUserJson("/users/me/password", {
-      method: "PUT",
-      body: JSON.stringify({ currentPassword, newPassword })
-    });
-
-    if (checkId === manageAccountCurrentPasswordCheckId) {
-      clearManageAccountFieldError("manage-account-current-password");
-    }
-
-    return false;
-  } catch (error) {
-    if (checkId !== manageAccountCurrentPasswordCheckId) {
-      return false;
-    }
-
-    const fieldErrors = error.data?.fieldErrors || {};
-    let handled = false;
-
-    if (fieldErrors.currentPassword) {
-      setManageAccountFieldError("manage-account-current-password", fieldErrors.currentPassword);
-      handled = true;
-    } else if (/incorrect/i.test(String(error.message || ""))) {
-      setManageAccountFieldError("manage-account-current-password", "Password is incorrect");
-      handled = true;
-    }
-
-    if (includeNewPasswordError && fieldErrors.newPassword) {
-      setManageAccountFieldError("manage-account-new-password", fieldErrors.newPassword);
-      handled = true;
-    }
-
-    if (!handled) {
-      clearManageAccountFieldError("manage-account-current-password");
-    }
-
-    return handled;
-  }
+async function checkManageAccountCurrentPasswordIfSafe() {
+  // Password validation should not call the real password-update endpoint.
+  // The actual update only happens inside handleManageAccountProfileSubmit()
+  // after the user clicks Save.
+  return false;
 }
 
 async function fetchUserJson(path, options = {}) {
@@ -5857,7 +5808,6 @@ async function handleManageAccountProfileSubmit(event) {
   }
 
   if (hasError) {
-    await checkManageAccountCurrentPasswordIfSafe();
     showAppToast("Some fields are invalid. Please fix the highlighted fields.", "error", null, "");
     return;
   }
