@@ -3091,6 +3091,20 @@ function setEditableCellText(cell, value, caretOffset = null) {
   }
 }
 
+function getDescriptionCellValue(cell) {
+  return getEditableCellText(cell).replace(/\n/g, " ");
+}
+
+function syncDescriptionCellPlaceholderState(cell, value = null) {
+  if (!cell || cell.dataset?.field !== "description") return;
+
+  const descriptionValue = value == null
+    ? getDescriptionCellValue(cell)
+    : String(value);
+
+  cell.classList.toggle("empty-description", descriptionValue.trim() === "");
+}
+
 function getCaretCharacterOffsetWithin(element) {
   const selection = window.getSelection();
 
@@ -3569,7 +3583,7 @@ function createExpenseRow(expense, index) {
     </td>
 
     <td
-      class="editable description-cell ${lockedClass} ${expense.description ? "" : "empty-description"}"
+      class="editable description-cell ${lockedClass} ${String(expense.description || "").trim() ? "" : "empty-description"}"
       data-field="description"
       data-index="${index}"
       contenteditable="${editableValue}"
@@ -4629,19 +4643,20 @@ function updateExpense(index, field, value, el = null) {
   }
 
   if (field === "description") {
-    const limitedValue = value.slice(0, DESCRIPTION_LIMIT);
+    const limitedValue = String(value ?? "").replace(/\n/g, " ").slice(0, DESCRIPTION_LIMIT);
     targetExpenses[index].description = limitedValue;
 
     if (el) {
       el.title = limitedValue;
+      syncDescriptionCellPlaceholderState(el, limitedValue);
 
       const descriptionSurface = getEditableCellTextSurface(el);
       if (descriptionSurface) {
         descriptionSurface.title = limitedValue;
       }
 
-      if (el.innerText !== limitedValue) {
-        el.innerText = limitedValue;
+      if (getEditableCellText(el) !== limitedValue) {
+        setEditableCellText(el, limitedValue);
         focusEditableCellAtEnd(el);
       }
     }
@@ -7572,9 +7587,12 @@ function activateEditableCell(cell) {
   void cell.offsetWidth;
   cell.classList.add("editing", "active-edit-cell");
 
+  syncDescriptionCellPlaceholderState(cell);
+
   requestAnimationFrame(() => {
     if (activeEditCell === cell && cell.isConnected && !cell.classList.contains("locked")) {
       cell.classList.add("editing", "active-edit-cell");
+      syncDescriptionCellPlaceholderState(cell);
     }
   });
 }
@@ -7864,17 +7882,18 @@ function handleTableInput(event) {
 
   if (field !== "description") return;
 
-  let value = cell.innerText.replace(/\n/g, " ");
+  let value = getDescriptionCellValue(cell);
 
   if (value.length > DESCRIPTION_LIMIT) {
     value = value.slice(0, DESCRIPTION_LIMIT);
-    cell.innerText = value;
+    setEditableCellText(cell, value);
     focusEditableCellAtEnd(cell);
   }
 
   const descriptionSurface = getEditableCellTextSurface(cell);
 
   cell.title = value;
+  syncDescriptionCellPlaceholderState(cell, value);
 
   if (descriptionSurface) {
     descriptionSurface.title = value;

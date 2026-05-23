@@ -3352,7 +3352,7 @@ white-space: nowrap !important;
 text-overflow: ellipsis !important;
 }
 
-#expense-table td.description-cell.empty-description .cell-text::before {
+#expense-table td.description-cell.empty-description:not(.active-edit-cell):not(.editing):not(:focus-within) .cell-text::before {
 content: "No description";
 color: #a4adb8;
 font-style: italic;
