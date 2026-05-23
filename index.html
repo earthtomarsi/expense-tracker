@@ -55,27 +55,28 @@
         </p>
       </div>
 
-      <div class="hero-cards" aria-label="Expense tracking highlights">
-        <a class="hero-card" href="#add-expense" aria-label="Jump to add expense form">
+      <div class="hero-cards user-dashboard-tabs" role="tablist" aria-label="Expense dashboard views">
+        <button class="hero-card user-dashboard-tab active" type="button" role="tab" data-user-dashboard-tab="add" aria-controls="add-expense" aria-selected="true">
           <span class="hero-card-icon" aria-hidden="true">＋</span>
           <h3>Add expense</h3>
           <p>Log new expenses without breaking your flow.</p>
-        </a>
+        </button>
 
-        <a class="hero-card" href="#expense-history" aria-label="Jump to expense history section">
+        <button class="hero-card user-dashboard-tab" type="button" role="tab" data-user-dashboard-tab="history" aria-controls="expense-history" aria-selected="false">
           <span class="hero-card-icon" aria-hidden="true">◌</span>
           <h3>Expense history</h3>
           <p>Review your logged expenses and filter them by category.</p>
-        </a>
+        </button>
 
-        <a class="hero-card" href="#monthly-trends" aria-label="Jump to monthly trends chart">
+        <button class="hero-card user-dashboard-tab" type="button" role="tab" data-user-dashboard-tab="trends" aria-controls="monthly-trends" aria-selected="false">
           <span class="hero-card-icon" aria-hidden="true">↗</span>
-          <h3>Monthly trends</h3>
+          <h3>Monthly trend</h3>
           <p>Track how your spending changes month by month.</p>
-        </a>
+        </button>
       </div>
 
-      <div id="add-expense" class="quick-expense-panel">
+      <div class="user-dashboard-workspace">
+      <div id="add-expense" class="quick-expense-panel user-dashboard-panel" role="tabpanel">
         <div class="quick-expense-header">
           <div>
             <h3>Add expense</h3>
@@ -163,9 +164,8 @@
           </div>
         </div>
       </div>
-    </section>
 
-    <div id="expense-history" class="table-section" hidden>
+    <div id="expense-history" class="table-section user-dashboard-panel" role="tabpanel" hidden>
       <div class="table-header">
         <div class="table-title-group">
           <div>
@@ -320,7 +320,7 @@
       </div>
     </div>
 
-    <section id="monthly-trends" class="trend-section" hidden>
+    <section id="monthly-trends" class="trend-section user-dashboard-panel" role="tabpanel" hidden>
       <div class="trend-inner">
         <div class="chart-container">
           <div class="trend-header">
@@ -335,6 +335,8 @@
             <canvas id="categoryChart"></canvas>
           </div>
         </div>
+      </div>
+    </section>
       </div>
     </section>
   </main>

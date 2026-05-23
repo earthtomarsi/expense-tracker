@@ -1875,8 +1875,7 @@ line-height: 1.6;
 display: grid;
 grid-template-columns: repeat(3, minmax(0, 1fr));
 gap: 12px;
-max-width: 780px;
-margin-bottom: 28px;
+margin-bottom: 24px;
 }
 
 .hero-card {
@@ -1891,12 +1890,18 @@ backdrop-filter: blur(18px);
 color: inherit;
 text-decoration: none;
 cursor: pointer;
+text-align: left;
 transform: translateY(0);
 transition:
     transform 0.18s ease,
     background 0.18s ease,
     border-color 0.18s ease,
     box-shadow 0.18s ease;
+}
+
+.hero-card.user-dashboard-tab {
+appearance: none;
+font: inherit;
 }
 
 .hero-card:hover {
@@ -1906,6 +1911,16 @@ background: rgba(255, 255, 255, 0.78);
 box-shadow:
     0 20px 44px rgba(15, 23, 42, 0.075),
     0 0 0 1px rgba(255, 255, 255, 0.68) inset;
+}
+
+.hero-card.active {
+border-color: rgba(72, 221, 182, 0.46);
+background:
+    radial-gradient(circle at 14% 12%, rgba(168, 255, 120, 0.16), transparent 32%),
+    rgba(255, 255, 255, 0.84);
+box-shadow:
+    0 18px 40px rgba(15, 23, 42, 0.075),
+    inset 0 -3px 0 rgba(72, 221, 182, 0.50);
 }
 
 .hero-card-icon {
@@ -1945,8 +1960,8 @@ scroll-margin-top: 110px;
 }
 
 .quick-expense-panel {
-margin-top: 6px;
-padding: 22px;
+margin: 0;
+padding: 34px 36px 36px;
 border-radius: 22px;
 border: 1px solid rgba(255, 255, 255, 0.74);
 background: rgba(255, 255, 255, 0.64);
@@ -1956,6 +1971,91 @@ box-shadow:
 backdrop-filter: blur(18px);
 -webkit-backdrop-filter: blur(18px);
 overflow: visible;
+}
+
+.user-dashboard-workspace {
+margin-top: 20px;
+padding: 34px 36px 38px;
+border-radius: 24px;
+border: 1px solid rgba(255, 255, 255, 0.78);
+background:
+    linear-gradient(145deg, rgba(255, 255, 255, 0.74), rgba(255, 255, 255, 0.56));
+box-shadow:
+    0 18px 42px rgba(15, 23, 42, 0.058),
+    inset 0 1px 0 rgba(255, 255, 255, 0.78);
+backdrop-filter: blur(18px);
+-webkit-backdrop-filter: blur(18px);
+overflow: visible;
+}
+
+.user-dashboard-workspace[data-active-tab="add"],
+.user-dashboard-workspace[data-active-tab="trends"] {
+padding: 0;
+border: 0;
+background: transparent;
+box-shadow: none;
+backdrop-filter: none;
+-webkit-backdrop-filter: none;
+}
+
+.user-dashboard-panel[hidden] {
+display: none !important;
+}
+
+.user-dashboard-workspace > .quick-expense-panel,
+.user-dashboard-workspace > .table-section,
+.user-dashboard-workspace > .trend-section {
+width: 100%;
+max-width: none;
+margin: 0;
+}
+
+.user-dashboard-workspace > .table-section,
+.user-dashboard-workspace > .trend-section {
+padding: 0;
+border: 0;
+background: transparent;
+box-shadow: none;
+backdrop-filter: none;
+-webkit-backdrop-filter: none;
+}
+
+#expense-history .table-toolbar {
+flex-wrap: nowrap;
+align-items: center;
+column-gap: 10px;
+row-gap: 0;
+}
+
+#expense-history .table-search {
+width: min(270px, 30%);
+min-width: 220px;
+max-width: 300px;
+flex: 0 1 270px;
+}
+
+#expense-history .filter-menu,
+#expense-history .filter-menu-trigger {
+width: 164px;
+min-width: 164px;
+max-width: 164px;
+flex-basis: 164px;
+}
+
+#expense-history .sort-menu,
+#expense-history .sort-menu-trigger {
+width: 198px;
+min-width: 198px;
+max-width: 198px;
+flex-basis: 198px;
+}
+
+#expense-history .month-menu,
+#expense-history .month-menu-trigger {
+width: 198px;
+min-width: 198px;
+max-width: 198px;
+flex-basis: 198px;
 }
 
 .quick-expense-header {
@@ -3013,7 +3113,7 @@ background: rgba(255, 255, 255, 0.52);
 
 #expense-table {
 width: 100%;
-min-width: 860px;
+min-width: 0;
 margin-top: 0;
 border-collapse: separate;
 border-spacing: 0;
@@ -3048,12 +3148,12 @@ text-overflow: ellipsis;
 }
 
 #expense-table th:first-child {
-width: 26%;
+width: 24%;
 padding-left: 24px;
 }
 
 #expense-table td:first-child {
-width: 26%;
+width: 24%;
 padding-left: calc(24px - var(--table-surface-x));
 }
 
@@ -3064,17 +3164,17 @@ width: 12%;
 
 #expense-table th:nth-child(3),
 #expense-table td:nth-child(3) {
-width: 16%;
+width: 14%;
 }
 
 #expense-table th:nth-child(4),
 #expense-table td:nth-child(4) {
-width: 16%;
+width: 14%;
 }
 
 #expense-table th:nth-child(5),
 #expense-table td:nth-child(5) {
-width: 26%;
+width: 24%;
 }
 
 #expense-table th.actions-header,
@@ -3139,6 +3239,12 @@ background: transparent;
 #expense-table td.category-cell,
 #expense-table td.description-cell {
 padding-left: calc(var(--table-cell-x) - var(--table-surface-x));
+}
+
+#expense-table td.amount-cell,
+#expense-table td.description-cell {
+overflow: hidden !important;
+min-width: 0 !important;
 }
 
 #expense-table td.editable.locked {
@@ -3225,17 +3331,18 @@ text-overflow: ellipsis !important;
 }
 
 #expense-table td.description-cell .cell-text {
-display: block;
-width: 100%;
-max-width: 100%;
-min-width: 0;
+display: block !important;
+box-sizing: border-box;
+width: 100% !important;
+max-width: 100% !important;
+min-width: 0 !important;
 height: var(--table-surface-height);
 min-height: var(--table-surface-height);
 padding-right: 8px;
 line-height: var(--table-surface-height);
-overflow: hidden;
-white-space: nowrap;
-text-overflow: ellipsis;
+overflow: hidden !important;
+white-space: nowrap !important;
+text-overflow: ellipsis !important;
 }
 
 #expense-table td.description-cell.empty-description .cell-text::before {
@@ -3941,10 +4048,11 @@ font-weight: 500;
 
 .total-card h2 {
 margin: 8px 0 0;
+padding-top: 4px;
 color: var(--text-main);
-font-size: 30px;
-font-weight: 700;
-letter-spacing: -0.8px;
+font-size: 26px !important;
+font-weight: 700 !important;
+letter-spacing: -0.55px;
 }
 
 .category-breakdown {
@@ -4556,7 +4664,7 @@ display: none !important;
 
 @media (max-width: 1024px) {
 #expense-table {
-    min-width: 820px;
+    min-width: 0;
 }
 
 #expense-table th,
@@ -4644,6 +4752,12 @@ display: none !important;
     gap: 8px;
 }
 
+#expense-history .table-toolbar {
+    flex-wrap: wrap;
+    align-items: stretch;
+    row-gap: 8px;
+}
+
 .admin-overview-grid {
     grid-template-columns: 1fr;
 }
@@ -4691,6 +4805,19 @@ display: none !important;
 .table-search {
     flex: 1 1 100%;
     margin-right: 0;
+}
+
+#expense-history .table-search,
+#expense-history .filter-menu,
+#expense-history .filter-menu-trigger,
+#expense-history .sort-menu,
+#expense-history .sort-menu-trigger,
+#expense-history .month-menu,
+#expense-history .month-menu-trigger {
+    width: 100%;
+    min-width: 0;
+    max-width: none;
+    flex: 1 1 100%;
 }
 
 .toolbar-menu {

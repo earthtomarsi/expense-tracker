@@ -44,6 +44,7 @@ let isManageAccountOpen = false;
 let isManageAccountEditMode = false;
 let isManageAccountPasswordOpen = false;
 let manageAccountCurrentPasswordCheckId = 0;
+let currentUserDashboardTab = "add";
 let authMode = "login";
 let isAdminEditMode = false;
 let adminManagementTab = "users";
@@ -4468,6 +4469,7 @@ async function addExpense() {
 
     clearStatus();
     clearAddExpenseModeError();
+    setUserDashboardTab("history");
     renderExpenses();
 
     if (tableSection) {
@@ -4702,6 +4704,7 @@ function resetDashboardView() {
   currentSearch = "";
   pendingSearch = "";
   currentPage = 1;
+  currentUserDashboardTab = "add";
   draftExpenses = cloneExpenses(expenses);
   isEditMode = false;
   selectedEditRowIndex = null;
@@ -6216,6 +6219,55 @@ function syncAdminManagementTabs() {
   });
 }
 
+function setUserDashboardTab(tabName, options = {}) {
+  const { scrollIntoView = false } = options;
+  const validTabs = new Set(["add", "history", "trends"]);
+
+  currentUserDashboardTab = validTabs.has(tabName) ? tabName : "add";
+  renderUserDashboardTabs();
+
+  if (scrollIntoView) {
+    document.querySelector(".add.expense-hero")?.scrollIntoView({
+      behavior: "smooth",
+      block: "start"
+    });
+  }
+
+  if (currentUserDashboardTab === "trends" && expenses.length > 0) {
+    requestAnimationFrame(renderChart);
+  }
+
+  if (currentUserDashboardTab === "history" && expenses.length > 0) {
+    requestAnimationFrame(renderPieChart);
+  }
+}
+
+function renderUserDashboardTabs(showDashboard = isLoggedIn && !isAdminPanelOpen && !isManageAccountOpen) {
+  const tabToPanelId = {
+    add: "add-expense",
+    history: "expense-history",
+    trends: "monthly-trends"
+  };
+  const dashboardWorkspace = document.querySelector(".user-dashboard-workspace");
+
+  if (dashboardWorkspace) {
+    dashboardWorkspace.dataset.activeTab = currentUserDashboardTab;
+  }
+
+  document.querySelectorAll("[data-user-dashboard-tab]").forEach(tab => {
+    const isActive = tab.dataset.userDashboardTab === currentUserDashboardTab;
+    tab.classList.toggle("active", isActive);
+    tab.setAttribute("aria-selected", String(isActive));
+  });
+
+  Object.entries(tabToPanelId).forEach(([tabName, panelId]) => {
+    const panel = document.getElementById(panelId);
+    if (!panel) return;
+
+    panel.hidden = !showDashboard || tabName !== currentUserDashboardTab;
+  });
+}
+
 async function setAdminManagementTab(tabName, options = {}) {
   const nextTab = tabName === "activity" ? "activity" : "users";
   const { scrollIntoView = false } = options;
@@ -6252,13 +6304,7 @@ function renderPageSections() {
   const showDashboard = isLoggedIn && !isAdminPanelOpen && !isManageAccountOpen;
 
   document.querySelector(".add.expense-hero")?.toggleAttribute("hidden", !showDashboard);
-  tableSection?.toggleAttribute("hidden", !showDashboard);
-  trendSection?.toggleAttribute("hidden", !showDashboard);
-
-  document.querySelector(".summary-section")?.toggleAttribute("hidden", !showDashboard);
-  document.querySelector(".summary-grid")?.toggleAttribute("hidden", !showDashboard);
-  document.querySelector(".summary-right")?.toggleAttribute("hidden", !showDashboard);
-  document.querySelector(".chart-container")?.toggleAttribute("hidden", !showDashboard);
+  renderUserDashboardTabs(showDashboard);
 }
 
 function getAdminUsername(user) {
@@ -8367,7 +8413,27 @@ function bindEvents() {
     }
   }, true);
 
-  document.addEventListener("click", (event) => {
+  document.addEventListener("click", async (event) => {
+    const userDashboardTab = event.target.closest("[data-user-dashboard-tab]");
+    if (userDashboardTab) {
+      event.preventDefault();
+
+      if (
+        userDashboardTab.dataset.userDashboardTab !== currentUserDashboardTab &&
+        hasOpenEditableTableSession({ commitActive: false }) &&
+        !(await confirmDiscardUnsavedChanges())
+      ) {
+        return;
+      }
+
+      if (userDashboardTab.dataset.userDashboardTab !== currentUserDashboardTab) {
+        discardUnsavedEditableTableChanges();
+      }
+
+      setUserDashboardTab(userDashboardTab.dataset.userDashboardTab, { scrollIntoView: true });
+      return;
+    }
+
     const clickedInsideDropdown = event.target.closest(".toolbar-menu");
     const openDropdowns = document.querySelectorAll(".toolbar-menu[open]");
   
