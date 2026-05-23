@@ -19,29 +19,38 @@ function AuthPage({ onAuthSuccess, showToast }) {
 
   const handleSubmit = async (event) => {
     event.preventDefault();
+    const formData = new FormData(event.currentTarget);
+    const submitted = {
+      name: String(formData.get("name") || "").trim(),
+      login: String(formData.get("login") || "").trim(),
+      username: String(formData.get("username") || "").trim(),
+      email: String(formData.get("email") || "").trim(),
+      password: String(formData.get("password") || "")
+    };
+
     setIsSubmitting(true);
     setError("");
 
     try {
       if (mode === "login") {
         const result = await login({
-          login: form.username || form.email,
-          password: form.password
+          login: submitted.login,
+          password: submitted.password
         });
         onAuthSuccess(result);
         return;
       }
 
       await register({
-        name: form.name,
-        username: form.username,
-        email: form.email,
-        password: form.password
+        name: submitted.name,
+        username: submitted.username,
+        email: submitted.email,
+        password: submitted.password
       });
 
       const result = await login({
-        login: form.username || form.email,
-        password: form.password
+        login: submitted.username || submitted.email,
+        password: submitted.password
       });
       onAuthSuccess(result);
       showToast("Account created successfully.");
@@ -86,6 +95,7 @@ function AuthPage({ onAuthSuccess, showToast }) {
             <label>
               Name
               <input
+                name="name"
                 value={form.name}
                 onChange={(event) => updateField("name", event.target.value)}
                 placeholder="First name"
@@ -96,6 +106,7 @@ function AuthPage({ onAuthSuccess, showToast }) {
           <label>
             {mode === "login" ? "Email or username" : "Username"}
             <input
+              name={mode === "login" ? "login" : "username"}
               value={form.username}
               onChange={(event) => updateField("username", event.target.value)}
               placeholder={mode === "login" ? "Email or username" : "Username"}
@@ -108,6 +119,7 @@ function AuthPage({ onAuthSuccess, showToast }) {
               Email
               <input
                 type="email"
+                name="email"
                 value={form.email}
                 onChange={(event) => updateField("email", event.target.value)}
                 placeholder="Email"
@@ -119,6 +131,7 @@ function AuthPage({ onAuthSuccess, showToast }) {
             Password
             <input
               type="password"
+              name="password"
               value={form.password}
               onChange={(event) => updateField("password", event.target.value)}
               placeholder="Password"

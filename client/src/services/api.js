@@ -1,6 +1,10 @@
+const isLocalFrontend =
+  ["localhost", "127.0.0.1"].includes(window.location.hostname) &&
+  window.location.port !== "3000";
+
 const API_BASE =
   window.SPENDFLOW_API_BASE ||
-  (["5173", "5500"].includes(window.location.port) || window.location.protocol === "file:"
+  (isLocalFrontend || window.location.protocol === "file:"
     ? "http://localhost:3000"
     : window.location.origin);
 
