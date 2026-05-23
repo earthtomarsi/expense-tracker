@@ -1,7 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import AddExpensePanel from "./AddExpensePanel.jsx";
 import ExpenseHistoryPanel from "./ExpenseHistoryPanel.jsx";
-import ManageAccountPanel from "./ManageAccountPanel.jsx";
 import MonthlyTrendPanel from "./MonthlyTrendPanel.jsx";
 import {
   createExpense,
@@ -29,7 +28,7 @@ function sortExpenses(expenses, sort) {
   });
 }
 
-function UserDashboard({ currentUser, greeting, onUserUpdate, showToast }) {
+function UserDashboard({ greeting, showToast }) {
   const [activeTab, setActiveTab] = useState("add");
   const [expenses, setExpenses] = useState([]);
   const [filters, setFilters] = useState(initialFilters);
@@ -74,7 +73,9 @@ function UserDashboard({ currentUser, greeting, onUserUpdate, showToast }) {
     try {
       if (editingExpense) {
         const updated = await updateExpense(editingExpense.id, payload);
-        setExpenses((current) => current.map((expense) => (expense.id === updated.id ? updated : expense)));
+        setExpenses((current) =>
+          current.map((expense) => (expense.id === updated.id ? updated : expense))
+        );
         setEditingExpense(null);
         showToast("Expense updated successfully.");
         return;
@@ -116,10 +117,9 @@ function UserDashboard({ currentUser, greeting, onUserUpdate, showToast }) {
 
       <div className="hero-cards user-dashboard-tabs" role="tablist" aria-label="Expense dashboard views">
         {[
-          ["add", "＋", "Add expense", "Log new expenses without breaking your flow."],
-          ["history", "◌", "Expense history", "Review and filter your logged expenses."],
-          ["trends", "↗", "Monthly trend", "Track how your spending changes."],
-          ["account", "○", "Account", "Manage profile and password."]
+          ["add", "＋", "Add Expense", "Log new expenses without breaking your flow."],
+          ["history", "◌", "Expense History", "Review and filter your logged expenses."],
+          ["trends", "↗", "Monthly Trend", "Track how your spending changes."]
         ].map(([tab, icon, title, text]) => (
           <button
             key={tab}
@@ -179,14 +179,6 @@ function UserDashboard({ currentUser, greeting, onUserUpdate, showToast }) {
           )}
 
           {activeTab === "trends" && <MonthlyTrendPanel expenses={expenses} />}
-
-          {activeTab === "account" && (
-            <ManageAccountPanel
-              currentUser={currentUser}
-              onUserUpdate={onUserUpdate}
-              showToast={showToast}
-            />
-          )}
         </div>
       )}
     </section>

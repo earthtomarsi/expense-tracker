@@ -1,37 +1,195 @@
+/* React compatibility layer for Spendflow conversion */
+
 #root {
   min-height: 100vh;
 }
 
-.auth-form .error-text {
+main {
+  width: min(1180px, calc(100% - 32px));
+  margin: 0 auto;
+  padding: 24px 0 56px;
+}
+
+/* Keep React dashboard sections aligned with the original page spacing */
+.expense-hero,
+.admin-profile-panel,
+.manage-account-panel {
+  width: 100%;
+  margin: 0 auto;
+}
+
+.user-dashboard-workspace,
+.admin-management-workspace {
+  width: 100%;
+  margin-top: 24px;
+}
+
+/* User dashboard tab cards */
+.user-dashboard-tabs {
+  align-items: stretch;
+}
+
+.user-dashboard-tab {
+  text-align: left;
+  cursor: pointer;
+}
+
+.user-dashboard-tab.active {
+  border-color: rgba(77, 222, 131, 0.75);
+  box-shadow: 0 18px 42px rgba(77, 222, 131, 0.18);
+  transform: translateY(-2px);
+}
+
+/* Add Expense form */
+.quick-expense-panel .container {
+  max-width: none;
   margin: 0;
 }
 
+.quick-expense-panel .input-section {
+  width: 100%;
+}
+
+.quick-expense-panel .input-row {
+  align-items: flex-start;
+}
+
+.quick-expense-panel input,
+.quick-expense-panel select,
+.manage-account-field input,
 .table-toolbar input,
 .table-toolbar select,
 .admin-users-toolbar input,
 .admin-users-toolbar select,
 .admin-activity-toolbar input,
 .admin-activity-toolbar select,
-.expense-table-panel input {
+.expense-table-panel input,
+.expense-table-panel select {
   border: 1px solid rgba(17, 24, 39, 0.12);
-  border-radius: 8px;
+  border-radius: 14px;
   font: inherit;
-  padding: 9px 10px;
+  padding: 11px 12px;
+  background: rgba(255, 255, 255, 0.86);
 }
 
+/* Make native selects less ugly while still functional */
+.select-wrapper select {
+  width: 100%;
+  appearance: none;
+  padding-right: 34px;
+}
+
+/* Expense table controls */
+.table-toolbar,
 .admin-users-toolbar,
 .admin-activity-toolbar {
   display: flex;
   flex-wrap: wrap;
+  align-items: center;
   gap: 10px;
-  margin-bottom: 18px;
 }
 
-.expense-table-panel input {
+.table-toolbar .table-search {
+  flex: 1 1 220px;
+}
+
+.table-toolbar input[type="text"] {
   width: 100%;
-  min-width: 120px;
 }
 
+.table-toolbar input[type="month"],
+.table-toolbar .select-wrapper,
+.admin-users-toolbar input,
+.admin-users-toolbar select,
+.admin-activity-toolbar input,
+.admin-activity-toolbar select {
+  flex: 0 1 180px;
+}
+
+/* Tables */
+.expense-table-panel,
+.admin-table-shell {
+  width: 100%;
+  overflow-x: auto;
+}
+
+#expense-table,
+.admin-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+#expense-table th,
+#expense-table td,
+.admin-table th,
+.admin-table td {
+  vertical-align: middle;
+}
+
+.row-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+  white-space: nowrap;
+}
+
+/* Summary/category cards */
+.summary-section {
+  margin-top: 22px;
+}
+
+.summary-grid {
+  align-items: stretch;
+}
+
+.category-item > div {
+  grid-column: 1 / -1;
+}
+
+/* Monthly trend placeholder bars */
+.trend-section .category-item {
+  align-items: center;
+}
+
+/* Manage Account */
+.manage-account-card {
+  width: 100%;
+}
+
+.manage-account-fields {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.manage-account-field {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.manage-account-actions {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 18px;
+}
+
+/* Admin */
+.admin-management-tabs {
+  align-items: stretch;
+}
+
+.admin-management-tab {
+  cursor: pointer;
+}
+
+.admin-management-tab.active {
+  border-color: rgba(77, 222, 131, 0.75);
+  box-shadow: 0 18px 42px rgba(77, 222, 131, 0.18);
+}
+
+/* Modal */
 .confirmation-backdrop {
   position: fixed;
   inset: 0;
@@ -47,7 +205,7 @@
   max-height: min(760px, calc(100vh - 48px));
   overflow: auto;
   border: 1px solid rgba(17, 24, 39, 0.12);
-  border-radius: 8px;
+  border-radius: 24px;
   background: #ffffff;
   box-shadow: 0 24px 80px rgba(15, 23, 42, 0.22);
   padding: 22px;
@@ -59,14 +217,45 @@
   margin-top: 18px;
 }
 
+/* Toast */
 .app-toast.error {
   border-color: rgba(220, 38, 38, 0.24);
 }
 
-.summary-grid {
-  align-items: stretch;
+/* Responsive */
+@media (max-width: 820px) {
+  main {
+    width: min(100% - 20px, 1180px);
+    padding-top: 18px;
+  }
+
+  .manage-account-fields {
+    grid-template-columns: 1fr;
+  }
+
+  .table-toolbar input[type="month"],
+  .table-toolbar .select-wrapper,
+  .admin-users-toolbar input,
+  .admin-users-toolbar select,
+  .admin-activity-toolbar input,
+  .admin-activity-toolbar select {
+    flex: 1 1 100%;
+  }
 }
 
-.category-item > div {
-  grid-column: 1 / -1;
+.logo-button {
+  border: 0;
+  padding: 0;
+  background: transparent;
+  font: inherit;
+  cursor: pointer;
+  text-align: left;
+}
+
+.dropdown {
+  min-width: 190px;
+}
+
+.dropdown .logout-btn + .logout-btn {
+  margin-top: 6px;
 }

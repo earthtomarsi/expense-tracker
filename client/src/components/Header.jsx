@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 
-function Header({ user, onLogout }) {
+function Header({ user, onHome, onManageAccount, onLogout }) {
   const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false);
   const profileRef = useRef(null);
   const displayName = user?.name || user?.username || "Log in";
@@ -24,9 +24,14 @@ function Header({ user, onLogout }) {
     }
   };
 
+  const handleManageAccountClick = () => {
+    closeProfileMenu();
+    onManageAccount?.();
+  };
+
   const handleLogoutClick = async () => {
     closeProfileMenu();
-    await onLogout();
+    await onLogout?.();
   };
 
   useEffect(() => {
@@ -56,9 +61,14 @@ function Header({ user, onLogout }) {
   return (
     <header className="header-full">
       <div className="header-left">
-        <h1 id="brand-home" className="logo logo-clickable">
+        <button
+          id="brand-home"
+          className="logo logo-clickable logo-button"
+          type="button"
+          onClick={onHome}
+        >
           Spend<span className="f">ƒ</span>low
-        </h1>
+        </button>
         <p>Track your spending</p>
       </div>
 
@@ -83,6 +93,13 @@ function Header({ user, onLogout }) {
               </div>
 
               <div id="dropdown" className="dropdown">
+                <button
+                  className="logout-btn"
+                  type="button"
+                  onClick={handleManageAccountClick}
+                >
+                  Manage Account
+                </button>
                 <button
                   id="logout-btn"
                   className="logout-btn"

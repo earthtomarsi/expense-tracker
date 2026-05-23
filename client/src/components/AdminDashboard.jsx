@@ -1,7 +1,6 @@
 import { useEffect, useState } from "react";
 import AdminActivityPanel from "./AdminActivityPanel.jsx";
 import AdminUsersPanel from "./AdminUsersPanel.jsx";
-import ManageAccountPanel from "./ManageAccountPanel.jsx";
 import UserDetailsModal from "./UserDetailsModal.jsx";
 import {
   createAdminUser,
@@ -12,7 +11,7 @@ import {
   updateAdminUser
 } from "../services/api.js";
 
-function AdminDashboard({ currentUser, onUserUpdate, showToast }) {
+function AdminDashboard({ currentUser, showToast }) {
   const [activeTab, setActiveTab] = useState("users");
   const [users, setUsers] = useState([]);
   const [activity, setActivity] = useState([]);
@@ -20,11 +19,15 @@ function AdminDashboard({ currentUser, onUserUpdate, showToast }) {
   const [selectedUserActivity, setSelectedUserActivity] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
 
+  const adminUsersCount = users.filter((user) => user.role === "admin").length;
+  const regularUsersCount = users.filter((user) => user.role !== "admin").length;
+
   const loadAdminData = async () => {
     const [nextUsers, nextActivity] = await Promise.all([
       getAdminUsers(),
       getAdminActivity()
     ]);
+
     setUsers(nextUsers);
     setActivity(nextActivity);
   };
@@ -64,7 +67,9 @@ function AdminDashboard({ currentUser, onUserUpdate, showToast }) {
   const handleUpdateUser = async (id, payload) => {
     try {
       const updated = await updateAdminUser(id, payload);
-      setUsers((current) => current.map((user) => (user.id === updated.id ? updated : user)));
+      setUsers((current) =>
+        current.map((user) => (user.id === updated.id ? updated : user))
+      );
       showToast("User updated successfully.");
       await loadAdminData();
     } catch (error) {
@@ -107,12 +112,25 @@ function AdminDashboard({ currentUser, onUserUpdate, showToast }) {
 
       <div className="admin-overview-grid">
         <div className="admin-overview-card">
-          <span className="admin-overview-label">Users</span>
+          <span className="admin-overview-label">Total users</span>
           <strong>{users.length}</strong>
           <small>registered accounts</small>
         </div>
+
         <div className="admin-overview-card">
-          <span className="admin-overview-label">Activity</span>
+          <span className="admin-overview-label">Admin users</span>
+          <strong>{adminUsersCount}</strong>
+          <small>administrator accounts</small>
+        </div>
+
+        <div className="admin-overview-card">
+          <span className="admin-overview-label">Regular users</span>
+          <strong>{regularUsersCount}</strong>
+          <small>standard accounts</small>
+        </div>
+
+        <div className="admin-overview-card">
+          <span className="admin-overview-label">Activity events</span>
           <strong>{activity.length}</strong>
           <small>audit records</small>
         </div>
@@ -121,8 +139,7 @@ function AdminDashboard({ currentUser, onUserUpdate, showToast }) {
       <div className="admin-management-tabs">
         {[
           ["users", "Users", "Manage accounts"],
-          ["activity", "Activity", "Audit log"],
-          ["account", "Account", "Your profile"]
+          ["activity", "Activity", "Audit log"]
         ].map(([tab, label, subLabel]) => (
           <button
             key={tab}
@@ -149,14 +166,8 @@ function AdminDashboard({ currentUser, onUserUpdate, showToast }) {
               onOpenDetails={openUserDetails}
             />
           )}
+
           {activeTab === "activity" && <AdminActivityPanel activity={activity} />}
-          {activeTab === "account" && (
-            <ManageAccountPanel
-              currentUser={currentUser}
-              onUserUpdate={onUserUpdate}
-              showToast={showToast}
-            />
-          )}
         </div>
       )}
 

@@ -5,6 +5,7 @@ import Header from "./components/Header.jsx";
 import Toast from "./components/Toast.jsx";
 import UserDashboard from "./components/UserDashboard.jsx";
 import AdminDashboard from "./components/AdminDashboard.jsx";
+import ManageAccountPanel from "./components/ManageAccountPanel.jsx";
 import { getCurrentUser, logout as logoutRequest, setAuthToken } from "./services/api.js";
 
 const TOKEN_STORAGE_KEY = "spendflowToken";
@@ -24,6 +25,7 @@ function App() {
   const [user, setUser] = useState(getStoredUser);
   const [isLoadingSession, setIsLoadingSession] = useState(Boolean(token));
   const [toast, setToast] = useState(null);
+  const [activeView, setActiveView] = useState("dashboard");
 
   const isAdmin = user?.role === "admin";
 
@@ -35,6 +37,7 @@ function App() {
     setAuthToken(nextToken);
     setToken(nextToken);
     setUser(nextUser);
+    setActiveView("dashboard");
     localStorage.setItem(TOKEN_STORAGE_KEY, nextToken);
     localStorage.setItem(USER_STORAGE_KEY, JSON.stringify(nextUser));
   };
@@ -43,12 +46,16 @@ function App() {
     setAuthToken("");
     setToken("");
     setUser(null);
+    setActiveView("dashboard");
     localStorage.removeItem(TOKEN_STORAGE_KEY);
     localStorage.removeItem(USER_STORAGE_KEY);
   };
 
   useEffect(() => {
-    if (!token) return undefined;
+    if (!token) {
+      setIsLoadingSession(false);
+      return undefined;
+    }
 
     setAuthToken(token);
 
@@ -79,8 +86,9 @@ function App() {
   };
 
   const handleUserUpdate = (nextUser) => {
-    setUser(nextUser);
-    localStorage.setItem(USER_STORAGE_KEY, JSON.stringify(nextUser));
+    const mergedUser = { ...user, ...nextUser };
+    setUser(mergedUser);
+    localStorage.setItem(USER_STORAGE_KEY, JSON.stringify(mergedUser));
   };
 
   const handleLogout = async () => {
@@ -99,10 +107,23 @@ function App() {
     return user.name || user.username || "User";
   }, [user]);
 
+  const handleGoHome = () => {
+    setActiveView("dashboard");
+  };
+
+  const handleOpenManageAccount = () => {
+    setActiveView("manage-account");
+  };
+
   if (isLoadingSession) {
     return (
       <>
-        <Header user={user} onLogout={handleLogout} />
+        <Header
+          user={user}
+          onHome={handleGoHome}
+          onManageAccount={handleOpenManageAccount}
+          onLogout={handleLogout}
+        />
         <main>
           <div className="status-message">Loading your Spendflow session...</div>
         </main>
@@ -112,25 +133,33 @@ function App() {
 
   return (
     <>
-      <Header user={user} onLogout={handleLogout} />
+      <Header
+        user={user}
+        onHome={handleGoHome}
+        onManageAccount={handleOpenManageAccount}
+        onLogout={handleLogout}
+      />
+
       <main>
         {!user ? (
           <AuthPage onAuthSuccess={handleAuthSuccess} showToast={showToast} />
-        ) : isAdmin ? (
-          <AdminDashboard
+        ) : activeView === "manage-account" ? (
+          <ManageAccountPanel
             currentUser={user}
             onUserUpdate={handleUserUpdate}
             showToast={showToast}
           />
+        ) : isAdmin ? (
+          <AdminDashboard currentUser={user} showToast={showToast} />
         ) : (
           <UserDashboard
             currentUser={user}
             greeting={greeting}
-            onUserUpdate={handleUserUpdate}
             showToast={showToast}
           />
         )}
       </main>
+
       <Toast toast={toast} onClose={() => setToast(null)} />
     </>
   );
