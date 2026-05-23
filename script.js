@@ -1386,14 +1386,6 @@ function hasManageAccountUnsavedChanges() {
   );
 }
 
-function hasEditableTableUnsavedChanges(options = {}) {
-  return (
-    hasExpenseUnsavedChanges(options) ||
-    hasAdminUsersUnsavedChanges(options) ||
-    hasAdminUserDetailUnsavedChanges() ||
-    hasManageAccountUnsavedChanges()
-  );
-}
 
 function discardUnsavedEditableTableChanges() {
   if (isEditMode) {
@@ -3190,22 +3182,6 @@ function normalizeEditableAmountCell(cell) {
   setEditableCellText(cell, normalizedValue, nextCaretOffset);
 }
 
-function normalizeEditableDateCell(cell) {
-  if (!cell) return;
-
-  const currentValue = cell.innerText.replace(/\n/g, "");
-  const caretOffset = getCaretCharacterOffsetWithin(cell);
-  const digitCountBeforeCaret = currentValue.slice(0, caretOffset).replace(/\D/g, "").length;
-  const normalizedValue = getDateEditDisplay(currentValue);
-
-  if (currentValue === normalizedValue) return;
-
-  cell.innerText = normalizedValue;
-  setCaretCharacterOffsetWithin(
-    cell,
-    getDateCaretOffsetFromDigitCount(normalizedValue, digitCountBeforeCaret)
-  );
-}
 
 function validateEditedAmountValue(value) {
   const rawValue = String(value ?? "").trim();
@@ -3353,16 +3329,6 @@ function isExpenseDifferent(a, b) {
   );
 }
 
-function getCategoryOptions(selectedCategory) {
-  return Array.from(categoryInput.options)
-    .map(opt => {
-      const value = escapeHtml(opt.value);
-      const text = escapeHtml(opt.text);
-      const selected = opt.value === selectedCategory ? "selected" : "";
-      return `<option value="${value}" ${selected}>${text}</option>`;
-    })
-    .join("");
-}
 
 function createExpenseCategoryCellMarkup(selectedCategory, index, isEditable) {
   const options = Array.from(categoryInput.options);

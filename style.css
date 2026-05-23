@@ -1999,6 +1999,12 @@ backdrop-filter: none;
 -webkit-backdrop-filter: none;
 }
 
+/* Reduce inactive-feeling bottom space on Add Expense and Monthly Trend tabs only. */
+.add.expense-hero:has(.user-dashboard-workspace[data-active-tab="add"]),
+.add.expense-hero:has(.user-dashboard-workspace[data-active-tab="trends"]) {
+padding-bottom: 34px;
+}
+
 .user-dashboard-panel[hidden] {
 display: none !important;
 }
