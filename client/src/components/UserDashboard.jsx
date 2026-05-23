@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import AddExpensePanel from "./AddExpensePanel.jsx";
 import ExpenseHistoryPanel from "./ExpenseHistoryPanel.jsx";
 import MonthlyTrendPanel from "./MonthlyTrendPanel.jsx";
@@ -32,15 +32,44 @@ function UserDashboard({ greeting, showToast }) {
   const [activeTab, setActiveTab] = useState("add");
   const [expenses, setExpenses] = useState([]);
   const [filters, setFilters] = useState(initialFilters);
-  const [editingExpense, setEditingExpense] = useState(null);
+  const [highlightedExpenseId, setHighlightedExpenseId] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
 
+  const loadExpenses = useCallback(async () => {
+    const nextExpenses = await getExpenses();
+    setExpenses(nextExpenses);
+    return nextExpenses;
+  }, []);
+
   useEffect(() => {
-    getExpenses()
-      .then(setExpenses)
+    loadExpenses()
       .catch((error) => showToast(error.message, "error"))
       .finally(() => setIsLoading(false));
-  }, [showToast]);
+  }, [loadExpenses, showToast]);
+
+  useEffect(() => {
+    if (activeTab !== "history") return undefined;
+
+    const scrollTimer = window.setTimeout(() => {
+      document.getElementById("expense-history")?.scrollIntoView({
+        behavior: "smooth",
+        block: "start"
+      });
+    }, 80);
+
+    let highlightTimer;
+
+    if (highlightedExpenseId) {
+      highlightTimer = window.setTimeout(() => {
+        setHighlightedExpenseId(null);
+      }, 2600);
+    }
+
+    return () => {
+      window.clearTimeout(scrollTimer);
+      if (highlightTimer) window.clearTimeout(highlightTimer);
+    };
+  }, [activeTab, highlightedExpenseId]);
 
   const filteredExpenses = useMemo(() => {
     const normalizedSearch = filters.search.trim().toLowerCase();
@@ -49,7 +78,14 @@ function UserDashboard({ greeting, showToast }) {
       expenses.filter((expense) => {
         if (filters.category !== "All" && expense.category !== filters.category) return false;
         if (filters.month && !String(expense.date || "").startsWith(filters.month)) return false;
-        if (normalizedSearch && !expense.expenseName.toLowerCase().includes(normalizedSearch)) return false;
+
+        if (
+          normalizedSearch &&
+          !String(expense.expenseName || "").toLowerCase().includes(normalizedSearch)
+        ) {
+          return false;
+        }
+
         return true;
       }),
       filters.sort
@@ -69,40 +105,47 @@ function UserDashboard({ greeting, showToast }) {
     setFilters((current) => ({ ...current, [field]: value }));
   };
 
+  const clearFilters = () => {
+    setFilters(initialFilters);
+  };
+
   const handleSubmitExpense = async (payload) => {
     try {
-      if (editingExpense) {
-        const updated = await updateExpense(editingExpense.id, payload);
-        setExpenses((current) =>
-          current.map((expense) => (expense.id === updated.id ? updated : expense))
-        );
-        setEditingExpense(null);
-        showToast("Expense updated successfully.");
-        return;
-      }
+      const createdExpense = await createExpense(payload);
+      const nextExpenses = await loadExpenses();
+      const newExpenseId = createdExpense?.id || nextExpenses?.[0]?.id || null;
 
-      const created = await createExpense(payload);
-      setExpenses((current) => [created, ...current]);
+      setHighlightedExpenseId(newExpenseId);
+      setActiveTab("history");
       showToast("Expense added successfully.");
+      return true;
     } catch (error) {
       showToast(error.message, "error");
+      return false;
     }
   };
 
-  const handleEdit = (expense) => {
-    setEditingExpense(expense);
-    setActiveTab("add");
-  };
-
-  const handleDelete = async (id) => {
-    if (!window.confirm("Delete this expense?")) return;
-
+  const handleUpdateExpense = async (id, payload) => {
     try {
-      await deleteExpense(id);
-      setExpenses((current) => current.filter((expense) => expense.id !== id));
-      showToast("Expense deleted successfully.");
+      await updateExpense(id, payload);
+      await loadExpenses();
+      showToast("Expense updated successfully.");
+      return true;
     } catch (error) {
       showToast(error.message, "error");
+      return false;
+    }
+  };
+
+  const handleDeleteExpense = async (id) => {
+    try {
+      await deleteExpense(id);
+      await loadExpenses();
+      showToast("Expense deleted successfully.");
+      return true;
+    } catch (error) {
+      showToast(error.message, "error");
+      return false;
     }
   };
 
@@ -140,9 +183,9 @@ function UserDashboard({ greeting, showToast }) {
         <div className="user-dashboard-workspace">
           {activeTab === "add" && (
             <AddExpensePanel
-              key={editingExpense?.id || "new-expense"}
-              editingExpense={editingExpense}
-              onCancelEdit={() => setEditingExpense(null)}
+              key="new-expense"
+              editingExpense={null}
+              onCancelEdit={() => {}}
               onSubmit={handleSubmitExpense}
             />
           )}
@@ -153,9 +196,12 @@ function UserDashboard({ greeting, showToast }) {
                 expenses={filteredExpenses}
                 filters={filters}
                 onFilterChange={updateFilter}
-                onEdit={handleEdit}
-                onDelete={handleDelete}
+                onClearFilters={clearFilters}
+                highlightedExpenseId={highlightedExpenseId}
+                onUpdate={handleUpdateExpense}
+                onDelete={handleDeleteExpense}
               />
+
               <div className="summary-section">
                 <h3>Summary</h3>
                 <div className="summary-grid">
@@ -164,13 +210,21 @@ function UserDashboard({ greeting, showToast }) {
                       <p>Total Spending</p>
                       <h2>${totalSpending.toFixed(2)}</h2>
                     </div>
+
                     <div className="category-breakdown">
-                      {Object.entries(categoryTotals).map(([category, total]) => (
-                        <div className="category-item" key={category}>
-                          <span>{category}</span>
-                          <span>${total.toFixed(2)}</span>
+                      {Object.entries(categoryTotals).length === 0 ? (
+                        <div className="category-item">
+                          <span>No category data yet</span>
+                          <span>$0.00</span>
                         </div>
-                      ))}
+                      ) : (
+                        Object.entries(categoryTotals).map(([category, total]) => (
+                          <div className="category-item" key={category}>
+                            <span>{category}</span>
+                            <span>${total.toFixed(2)}</span>
+                          </div>
+                        ))
+                      )}
                     </div>
                   </div>
                 </div>

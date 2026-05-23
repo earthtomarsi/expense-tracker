@@ -1,41 +1,83 @@
 import { useState } from "react";
 
-const emptyForm = {
-  expenseName: "",
-  amount: "",
-  category: "Food",
-  date: "",
-  description: ""
-};
+function getTodayLocalDate() {
+  const now = new Date();
+  return new Date(now.getTime() - now.getTimezoneOffset() * 60000)
+    .toISOString()
+    .split("T")[0];
+}
+
+function createEmptyForm() {
+  return {
+    expenseName: "",
+    amount: "",
+    category: "Food",
+    date: getTodayLocalDate(),
+    description: ""
+  };
+}
 
 function AddExpensePanel({ editingExpense, onCancelEdit, onSubmit }) {
   const [form, setForm] = useState(() => {
     if (editingExpense) {
       return {
-      expenseName: editingExpense.expenseName || editingExpense.title || "",
-      amount: String(editingExpense.amount || ""),
-      category: editingExpense.category || "Food",
-      date: editingExpense.date || "",
-      description: editingExpense.description || ""
+        expenseName: editingExpense.expenseName || editingExpense.title || "",
+        amount: String(editingExpense.amount || ""),
+        category: editingExpense.category || "Food",
+        date: editingExpense.date || getTodayLocalDate(),
+        description: editingExpense.description || ""
       };
     }
 
-    return emptyForm;
+    return createEmptyForm();
   });
 
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [formError, setFormError] = useState("");
+
   const updateField = (field, value) => {
+    setFormError("");
     setForm((current) => ({ ...current, [field]: value }));
   };
 
   const handleSubmit = async (event) => {
     event.preventDefault();
-    await onSubmit({
-      ...form,
-      amount: Number(form.amount)
-    });
 
-    if (!editingExpense) {
-      setForm(emptyForm);
+    const payload = {
+      expenseName: String(form.expenseName || "").trim(),
+      category: String(form.category || "Food").trim(),
+      amount: Number(form.amount),
+      date: String(form.date || "").trim(),
+      description: String(form.description ?? "").trim()
+    };
+
+    if (!payload.expenseName) {
+      setFormError("Please enter an expense title.");
+      return;
+    }
+
+    if (!payload.amount || Number.isNaN(payload.amount) || payload.amount <= 0) {
+      setFormError("Please enter a valid amount greater than 0.");
+      return;
+    }
+
+    if (!payload.date) {
+      setFormError("Please select a date.");
+      return;
+    }
+
+    setIsSubmitting(true);
+
+    try {
+      const success = await onSubmit(payload);
+
+      if (success && !editingExpense) {
+        setForm(createEmptyForm());
+      }
+    } catch (error) {
+      setFormError(error.message || "Could not save expense.");
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -47,6 +89,12 @@ function AddExpensePanel({ editingExpense, onCancelEdit, onSubmit }) {
           <p>Fill in the details below to update your spending history.</p>
         </div>
       </div>
+
+      {formError && (
+        <div className="status-message error add-expense-error">
+          {formError}
+        </div>
+      )}
 
       <form className="container" onSubmit={handleSubmit}>
         <div className="input-section">
@@ -131,11 +179,21 @@ function AddExpensePanel({ editingExpense, onCancelEdit, onSubmit }) {
           </div>
 
           <div className="button-section">
-            <button id="add-btn" type="submit">
-              {editingExpense ? "Save Expense" : "Add Expense"}
+            <button id="add-btn" type="submit" disabled={isSubmitting}>
+              {isSubmitting
+                ? "Saving..."
+                : editingExpense
+                  ? "Save Expense"
+                  : "Add Expense"}
             </button>
+
             {editingExpense && (
-              <button className="table-action-btn secondary" type="button" onClick={onCancelEdit}>
+              <button
+                className="table-action-btn secondary"
+                type="button"
+                onClick={onCancelEdit}
+                disabled={isSubmitting}
+              >
                 Cancel
               </button>
             )}
