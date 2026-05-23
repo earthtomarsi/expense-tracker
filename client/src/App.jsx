@@ -1,5 +1,4 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
-import "../../style.css";
 import "./react.css";
 import AuthPage from "./components/AuthPage.jsx";
 import Header from "./components/Header.jsx";
