@@ -1,309 +1,270 @@
 # Spendflow Expense Tracker
 
-Spendflow is a single-page expense tracking web application that helps users record, manage, and review their spending history. It supports login and registration, database-backed expense CRUD operations, admin user management, user activity tracking, dynamic filtering and sorting, editable tables, category summaries, and monthly spending trends.
+Spendflow is a React/Vite single-page expense tracking web app for recording expenses, reviewing spending patterns, and managing user accounts. It is built around a user dashboard for personal expense tracking and an admin dashboard for user administration and activity monitoring.
 
-## Problem It Solves
+The app behaves like a single-page application. It uses client-side rendering and dynamic interface updates instead of moving users through separate HTML pages for authentication, dashboard tabs, tables, charts, modals, admin management, and account settings.
 
-Many people track expenses in spreadsheets or scattered notes, which makes it harder to review patterns, edit past entries, and understand where money is going. Spendflow provides a cleaner workflow for logging expenses, reviewing spending by category and month, and managing user accounts from one interface.
+## Key Features
 
-## Technical Stack
+### Authentication
 
-- **Frontend:** HTML, CSS, JavaScript, and React/Vite
-- **Styling:** Custom CSS
-- **Backend:** Node.js + Express
-- **Database:** MySQL
-- **Authentication:** JWT-based login with bcrypt password hashing
-- **Charts:** Chart.js
-- **Routing / Data Flow:** REST API endpoints between frontend and backend
-- **Database Export:** `expense_tracker.sql`
+- Register a new account with a name, username, email, and password.
+- Log in with either an email address or username, together with the account password.
+- Persist an authenticated session with a JWT.
+- Log out through the username dropdown.
+- Route users dynamically based on role:
+  - regular users enter the expense dashboard;
+  - admins enter the user administration dashboard.
 
-## Frontend Implementation Note
+### Regular User Flow
 
-The polished dashboard interface is implemented in the root `index.html`, `script.js`, and `style.css` files. The Express backend serves those files directly for the integrated app at `http://localhost:3000`.
+- Add expenses with title, amount, category, date, and optional description.
+- View personal expenses in the Expense History tab.
+- Search expenses by title.
+- Filter expenses by category and month.
+- Sort expenses by amount, date, or name.
+- Edit expenses through row-level and table-level edit flows.
+- Save or cancel edits with confirmation protection for unsaved changes.
+- Delete expenses through row-level actions.
+- Review total spending, category totals, a doughnut chart, and monthly spending trends.
+- Open Manage Account from the username dropdown to update account details and password.
 
-The `client/` folder contains a React/Vite compatibility bridge that imports the same root HTML, CSS, and JavaScript into a React entry point. This allows the current UI to run through React while preserving the existing polished dashboard behaviour. A future refactor could break the interface into fully native React components.
+### Admin Flow
 
-## UI Design and Visual Style
+- Log in through the same authentication screen as regular users.
+- Land on the admin user administration dashboard.
+- View user administration summary cards for total users, admin users, regular users, and activity events.
+- Search, filter, sort, and paginate user accounts.
+- Edit permitted user fields from the Admin Users table and user details dialog.
+- Delete non-admin user accounts where permitted.
+- Review login, logout, registration, account, password, and expense CRUD activity in the Admin Activity tab.
+- Open user details to review a selected user's account information and activity history.
+- Open Manage Account from the username dropdown to update the admin's own profile details and password.
 
-Spendflow uses a modern dashboard-style interface designed around clarity, consistency, and low-friction expense tracking. The visual system uses soft green accents, glass-like surfaces, rounded components, and subtle shadows to create a calm financial tracking experience.
+### Interface and Interaction Design
 
-### Design Principles
+- Soft dashboard layout with glass-like cards, rounded controls, shadows, and green/mint accents.
+- Custom dropdown menus for category, filters, sorting, role filters, action filters, and month selection.
+- Custom Add Expense date input and date picker.
+- Editable table cells with validation and Save / Cancel flows.
+- Toast notifications for success and error feedback.
+- Confirmation dialogs for unsaved changes and destructive actions.
+- Responsive toolbar wrapping and horizontally scrollable tables for smaller screens.
+- Chart.js doughnut and line charts for spending summaries.
 
-The interface is guided by four design principles:
+## Tech Stack
 
-- **Clarity:** Expense information, user activity, table actions, and chart insights should be easy to scan.
-- **Consistency:** Forms, dropdowns, filters, tooltips, buttons, dialogs, and cards use shared styling patterns.
-- **Soft visual hierarchy:** Headings, cards, active states, and chart colours guide attention without overwhelming the page.
-- **Feedback-driven interaction:** Toasts, focus states, row highlights, dialogs, and edit states help users understand when an action has been completed or when a control is active.
+| Layer | Tools |
+| --- | --- |
+| Frontend | React, Vite, HTML, CSS, JavaScript |
+| Backend | Node.js, Express |
+| Database | MySQL |
+| Authentication | JWT, bcrypt |
+| Charts | Chart.js |
+| Database export | `database/expense_tracker.sql` |
 
-### Colour System
+## UI Design
 
-Spendflow uses a green and mint colour system to suggest money flow, progress, and positive financial tracking. The palette combines bright accent colours with pale green backgrounds and dark neutral text for readability.
+Spendflow uses a calm financial dashboard style. The green palette supports the product concept because green is commonly associated with money, growth, balance, and positive financial movement. The visual direction keeps forms, tables, and spending summaries easy to scan.
 
-| Token / Use | Colour | Usage |
-| --- | --- | --- |
-| Primary Green | `#4DDE83` | Main brand accent, active states, highlights, and selected UI elements |
-| Mint Accent | `#48DDB6` | Gradients, focus borders, chart accents, and secondary interactive states |
-| Lime Accent | `#A8FF78` | Background glows, focus highlights, and soft decorative accents |
-| Primary Gradient | `#58E66F` to `#48DDB6` | Primary buttons, active filters, selected dropdown items, and major call-to-action states |
-| Hover Gradient | `#64ED78` to `#55E8C2` | Button hover states and stronger interaction feedback |
-| Main Text | `#111827` | Headings, important labels, totals, and active table text |
-| Muted Text | `#7B857F` | Secondary labels and supporting UI text |
-| Soft Text | `#9CA3AF` | Placeholder text, inactive states, helper text, and subtle metadata |
-| Page Background | `#FBFFF8`, `#F4FFF0`, `#EFFDF5` | Soft green page gradient and dashboard background tones |
+### Colour Palette
 
-Chart colours use distinct category-based accents so users can quickly compare spending areas, while the monthly trend chart uses a green spending line and a contrasting orange average line for clearer comparison.
+| Use | Colour |
+| --- | --- |
+| Primary green | `#4DDE83` |
+| Mint accent | `#48DDB6` |
+| Lime accent | `#A8FF78` |
+| Primary gradient | `#58E66F` to `#48DDB6` |
+| Hover gradient | `#64ED78` to `#55E8C2` |
+| Main text | `#111827` |
+| Muted text | `#7B857F` |
+| Soft text | `#9CA3AF` |
+| Page background | `#FBFFF8`, `#F4FFF0`, `#EFFDF5` |
 
 ### Typography
 
-Spendflow uses **Inter** as the primary typeface because it is clean, modern, and readable in dashboard, form, table, and chart interfaces.
-
-Headings use heavier font weights to establish structure, while body text, table data, labels, and descriptions use lighter weights so the interface feels balanced and easy to scan.
-
-### Layout and Components
-
-The application is structured as a single-page interface with authenticated and admin views:
-
-- **Login / Register screen:** A glass-style authentication screen that hides dashboard content until the user signs in.
-- **Add Expense section:** A compact dashboard form for quickly adding a new expense.
-- **Expense History section:** A searchable and editable table with filters, sorting, month filtering, pagination, and row actions.
-- **Summary and Monthly Trend sections:** Chart-based views for reviewing spending by category and month.
-- **Admin User Profile section:** An admin-only view for editing user accounts and reviewing user activity.
-
-The component system uses rounded cards, soft shadows, translucent borders, glass-like backgrounds, and consistent spacing. Custom dropdowns, the date picker, toast messages, tooltips, buttons, filters, confirmation dialogs, and chart containers follow the same visual language so the app feels cohesive.
-
-### Interaction and State Design
-
-Spendflow uses clear interaction states so users can understand what is clickable, selected, editable, invalid, or completed.
-
-| State | Behaviour |
-| --- | --- |
-| Default | Inputs and cards use soft white surfaces with subtle borders |
-| Hover | Buttons, dropdown options, and controls become slightly brighter or darker |
-| Focus | Inputs use a mint border and soft green glow |
-| Active / Selected | Filters, dropdown options, and selected dates use the primary green gradient |
-| Edit Mode | Table cells show stronger focus states only while editing is enabled |
-| Invalid Values | Invalid editable table cells show a red border and an error toast |
-| Success Feedback | Toast notifications confirm actions such as adding, saving, deleting, logging in, or logging out |
-| New Row Feedback | Newly added expenses are highlighted and the table jumps to the correct page |
-| Confirmation Dialogs | Unsaved-change and remove-user warnings use a consistent modal card with explicit actions |
-
-The category pie chart uses a tooltip positioned outside the centre label so values remain readable. The monthly trend chart shows visible points on spending and average lines so hoverable values are easier to discover.
-
-### Responsiveness and Accessibility Considerations
-
-The layout is designed to adapt across screen sizes. Filter controls wrap on smaller screens, chart sections stack when needed, and tables use ellipsis and horizontal scrolling to prevent text from being cut off on narrow viewports.
-
-Accessibility considerations include:
-
-- Clear focus states for keyboard navigation
-- `aria-label` usage for icon-only controls
-- Hidden helper labels for controls such as the calendar trigger
-- Sufficient contrast between text, backgrounds, and active states
-- Text-based feedback through status messages and toast notifications
-- Confirmation dialogs with explicit close and action buttons
+Spendflow uses **Inter** for headings, form fields, table data, chart labels, and navigation text.
 
 ## Screenshots
 
-Save screenshots in:
-
-```text
-Assets/screenshots/
-```
-
-Recommended screenshot set:
-
-| Screenshot | Save As | What It Should Showcase |
-| --- | --- | --- |
-| Login screen | `Assets/screenshots/auth-login.png` | Logged-out glass login screen, greeting text, login/register toggle, and login form |
-| Register screen | `Assets/screenshots/auth-register.png` | Register tab selected with username, email, password fields and matching card layout |
-| Dashboard and add expense | `Assets/screenshots/dashboard-add-expense.png` | Authenticated dashboard greeting, shortcut cards, Add Expense card, and the custom category dropdown opened |
-| Expense table edit mode | `Assets/screenshots/expense-history-edit-mode.png` | Search, filter, sort, month filter, clear button, editable cells, row actions, Save/Cancel controls, and table pagination |
-| Spending charts | `Assets/screenshots/expense-charts.png` | Category doughnut chart, tooltip behaviour if possible, summary values, and monthly trend chart points |
-| Admin user management | `Assets/screenshots/admin-users.png` | Admin Users table with search, role filter, sort, clear button, pagination, row edit action, and Save/Cancel controls |
-| User activity log | `Assets/screenshots/admin-activity.png` | User Activity table showing login/logout and CRUD activity with balanced column spacing |
-| Confirmation dialog | `Assets/screenshots/confirmation-dialog.png` | Unsaved changes or remove-user modal with close button and clear primary/secondary actions |
-
-After adding the image files, you can embed them below:
-
-```md
 ### Login
 
 ![Login screen](Assets/screenshots/auth-login.png)
+
+Shared login screen for regular users and admins.
 
 ### Register
 
 ![Register screen](Assets/screenshots/auth-register.png)
 
-### Dashboard and Add Expense
+Register screen for creating a new account with name, username, email, and password.
 
-![Dashboard and add expense form](Assets/screenshots/dashboard-add-expense.png)
+### User Dashboard
+
+![User dashboard tabs](Assets/screenshots/user-dashboard-tabs.png)
+
+User dashboard with tab-style navigation for Add Expense, Expense History, and Monthly Trend.
+
+### Add Expense
+
+![Add Expense tab](Assets/screenshots/dashboard-add-expense.png)
+
+Add Expense tab for logging a new expense with title, amount, category, date, and optional description.
+
+### Expense History
+
+![Expense History tab](Assets/screenshots/expense-history.png)
+
+Expense History tab with search, category filtering, month filtering, sorting, pagination, and row actions.
 
 ### Expense History Edit Mode
 
 ![Expense history table in edit mode](Assets/screenshots/expense-history-edit-mode.png)
 
-### Spending Charts
+Editable Expense History table with Save / Cancel controls and inline editing.
 
-![Category and monthly spending charts](Assets/screenshots/expense-charts.png)
+### Category Breakdown
 
-### Admin User Management
+![Category breakdown chart](Assets/screenshots/expense-charts.png)
+
+Spending summary with total spending, category totals, and category breakdown chart.
+
+### Monthly Trend
+
+![Monthly trend chart](Assets/screenshots/monthly-trend.png)
+
+Monthly trend chart showing spending patterns over time.
+
+### Manage Account
+
+![Manage Account page](Assets/screenshots/manage-account.png)
+
+Manage Account view for updating profile details and password.
+
+### Admin Dashboard
+
+![Admin dashboard](Assets/screenshots/admin-dashboard.png)
+
+Admin user administration dashboard with summary cards for users and activity.
+
+### Admin Users Tab
 
 ![Admin users table](Assets/screenshots/admin-users.png)
 
-### User Activity Log
+Admin Users tab with account search, role filtering, sorting, pagination, and account actions.
 
-![Admin user activity table](Assets/screenshots/admin-activity.png)
+### User Details Modal
 
-### Confirmation Dialog
+![User details modal](Assets/screenshots/user-details-modal.png)
+
+User Details modal for reviewing a selected user's account information and activity history.
+
+### Admin Activity Tab
+
+![Admin user activity table](Assets/screenshots/user-activity.png)
+
+Admin Activity tab showing logged user actions and account events.
+
+### Confirmation Dialogs
 
 ![Confirmation dialog](Assets/screenshots/confirmation-dialog.png)
-```
 
-## Features
+Confirmation dialog used for unsaved changes and destructive actions.
 
-- Single-page application interface
-- Login, registration, logout, and session persistence
-- JWT-protected expense routes
-- Password hashing with bcrypt
-- Create, read, update, and delete expenses from a MySQL database
-- Add expenses with title, amount, category, date, and description
-- Edit table rows with Save / Cancel workflow
-- Row-level edit mode and full-table edit mode
-- Delete expenses directly from the table
-- Filter expenses by category
-- Filter expenses by month and year
-- Sort expenses by date, amount, or name
-- Live title search
-- Pagination with 10 rows per page
-- Category breakdown summary
-- Monthly spending trend chart with average line
-- Pie chart for spending by category
-- Admin-only user profile view
-- Admin user account editing and deletion
-- Admin user activity log for login, logout, and CRUD activity
-- Search, role filter, sort, clear, and pagination controls for admin users
-- Custom-styled dropdowns, date picker, and confirmation dialogs
-- Favicon and consistent visual branding
-- Tooltips for truncated table content and chart values
-- Toast notifications for successful user actions and validation errors
-- User-facing status messages for database or server errors
-- React/Vite compatibility bridge for the current polished interface
+## Database Entities
+
+Spendflow uses three main conceptual entities:
+
+| Entity | Purpose |
+| --- | --- |
+| `users` | Stores account details, hashed passwords, roles, and account timestamps for regular users and admins. |
+| `expenses` | Stores each user's expense records, including title, amount, category, date, description, and timestamps. |
+| `user_activity` | Stores audit events such as login, logout, registration, account updates, password updates, and CRUD actions. |
+
+## CRUD Operations
+
+| Entity | Create | Read | Update | Delete |
+| --- | --- | --- | --- | --- |
+| Expenses | Users add expenses through the Add Expense tab. | Users view expenses in Expense History and chart summaries. | Users edit expense rows or table values. | Users delete expense rows. |
+| Users | Users register accounts; the admin API also supports creating accounts. | Admins view user lists and user details; users view their own account. | Users update their own account; admins update permitted user details. | Admins delete non-admin user accounts where permitted. |
+| User activity | Activity entries are created automatically when key actions occur. | Admins read activity logs in the Admin Activity tab and user details view. | Activity entries are not editable from the UI. | Activity entries are not deleted from the UI. |
 
 ## Folder Structure
 
 ```text
 expense-tracker/
-├── index.html                  # Polished dashboard interface served by Express
-├── style.css                   # Custom dashboard, auth, admin, table, and chart styling
-├── script.js                   # Frontend logic for auth, expenses, admin profile, charts, filters, and UI interactions
+├── index.html                  # Static frontend shell served by Express
+├── style.css                   # Dashboard, auth, admin, table, chart, modal, and responsive styling
+├── script.js                   # Shared frontend logic for rendering, API calls, validation, charts, and UI interactions
 ├── Assets/
-│   ├── favicon.png             # Main favicon used by the root frontend
-│   └── screenshots/            # Recommended location for README screenshots
+│   ├── favicon.png             # Main favicon
+│   └── screenshots/            # README screenshots
 ├── database/
-│   └── expense_tracker.sql     # MySQL database setup and sample structure
+│   ├── expense_tracker.sql     # MySQL database setup and seed/sample data
 ├── server/
-│   ├── server.js               # Backend entry point and frontend static file serving
+│   ├── server.js               # Express app entry point and static frontend serving
 │   ├── db.js                   # MySQL connection pool
 │   ├── routes/
-│   │   ├── authRoutes.js       # Registration, login, and logout APIs
+│   │   ├── authRoutes.js       # Register, login, logout, and current-user APIs
+│   │   ├── userRoutes.js       # Authenticated self-account APIs
 │   │   ├── expenseRoutes.js    # Protected expense CRUD APIs
-│   │   └── adminRoutes.js      # Admin user and activity APIs
+│   │   └── adminRoutes.js      # Admin-only user and activity APIs
 │   ├── middleware/
-│   │   └── authMiddleware.js   # JWT authentication and admin checks
+│   │   └── authMiddleware.js   # JWT authentication and role-based access checks
 │   ├── utils/
-│   │   └── logActivity.js      # Helper for recording user activity
-│   └── .env.example            # Example backend environment variables
+│   │   └── logActivity.js      # Helper for writing activity log entries
+│   └── .env.example            # Example environment variable template
 └── client/
-    ├── index.html              # React/Vite HTML entry
+    ├── index.html              # React/Vite HTML entry point
     ├── public/
     │   └── favicon.png         # React/Vite favicon
     └── src/
-        ├── App.jsx             # React bridge that imports the root interface
-        └── main.jsx            # React entry point
+        ├── App.jsx             # React application entry component
+        └── main.jsx            # React mount file
 ```
-
-## Challenges Overcome
-
-One challenge was converting the original front-end-only version into a database-backed CRUD application while keeping the interaction smooth. Another challenge was preserving a single-page experience after introducing authentication, backend persistence, search, pagination, admin account management, and edit mode.
-
-I also refined the table editing flow so users could make multiple changes safely using Save and Cancel instead of updating the database on every cell interaction. The admin profile view added another layer of complexity because it needed to reuse the same table logic, validation patterns, dropdown styling, pagination behaviour, and confirmation dialog language without feeling like a separate app.
-
-Finally, I improved the UI structure, responsive filter behaviour, responsive table behaviour, error handling, chart-table relationship, custom dropdowns, date input behaviour, tooltip behaviour, row highlighting, modal behaviour, and React compatibility so the experience felt more polished and intuitive.
 
 ## How to Run the Project
 
-### 1. Install Dependencies
-
-Install backend dependencies:
+### 1. Install backend dependencies
 
 ```bash
 cd server
 npm install
 ```
 
-Install React/Vite dependencies only if you want to run the React bridge:
+### 2. Import the database
 
-```bash
-cd client
-npm install
-```
-
-### 2. Import the Database Export
-
-From the project root, import the database setup file into MySQL:
+From the project root, import the main database setup file into MySQL:
 
 ```bash
 mysql -u root -p < database/expense_tracker.sql
 ```
 
-Enter your MySQL admin password when prompted. The import script creates a project database user for the app:
+You can also import `database/expense_tracker.sql` manually through MySQL Workbench or another database tool.
+
+The import script creates the `expense_tracker` database, the required tables, a local app database user, demo users, sample expenses, and an initial activity record.
+
+### 3. Configure environment variables
+
+Copy the example environment file:
+
+```bash
+cp server/.env.example server/.env
+```
+
+Check the values inside `server/.env`, especially:
 
 ```env
+DB_HOST=localhost
 DB_USER=spendflow_app
 DB_PASSWORD=spendflow123
+DB_NAME=expense_tracker
+JWT_SECRET=replace_with_your_own_secret
 ```
 
-If the `mysql` command is not recognised, confirm where MySQL is installed on your machine:
+Do not commit a real `.env` file.
 
-```bash
-which mysql
-```
-
-or:
-
-```bash
-command -v mysql
-```
-
-Then run the import command using the full path returned by your system. For example, on some macOS installations this may look like:
-
-```bash
-/usr/local/mysql/bin/mysql -u root -p < database/expense_tracker.sql
-```
-
-or, for Homebrew installations:
-
-```bash
-/opt/homebrew/bin/mysql -u root -p < database/expense_tracker.sql
-```
-
-You can also import `database/expense_tracker.sql` manually using a database tool such as MySQL Workbench.
-
-The seed data creates two demo accounts:
-
-| Role | Username | Email | Password |
-| --- | --- | --- | --- |
-| Admin | `admin` | `admin@example.com` | `password123` |
-| User | `marsi` | `marsi@example.com` | `password123` |
-
-### 3. Check the Database Connection Settings
-
-Copy `server/.env.example` to `server/.env`. The default local app database credentials are already set to `spendflow_app` / `spendflow123`.
-
-Make sure `JWT_SECRET` is set in `server/.env` before testing login.
-
-### 4. Start the Integrated App
+### 4. Start the integrated app
 
 ```bash
 cd server
@@ -316,12 +277,13 @@ Open the app in your browser:
 http://localhost:3000
 ```
 
-The same Express server serves both the frontend files and the API routes.
+### 5. Start the React/Vite frontend
 
-### 5. Optional: Start the React/Vite Bridge
+Run the React/Vite frontend during development:
 
 ```bash
 cd client
+npm install
 npm run dev
 ```
 
@@ -331,58 +293,88 @@ Open the Vite URL printed in the terminal, usually:
 http://localhost:5173
 ```
 
+The Express backend should remain running so the frontend can communicate with the authentication, user, expense, and admin APIs.
+
+## Demo Accounts
+
+The seed data creates two demo accounts for local testing:
+
+| Role | Username | Email | Password |
+| --- | --- | --- | --- |
+| Admin | `admin` | `admin@example.com` | `password123` |
+| User | `marsi` | `marsi@example.com` | `password123` |
+
 ## API Overview
 
-The frontend communicates with the backend using these REST endpoints:
+### Authentication and account routes
 
-- `POST /auth/register` - create a user account with a bcrypt-hashed password
-- `POST /auth/login` - verify the password and return a JWT plus the user's `userID`, name, username, email, and role
-- `GET /auth/me` - retrieve the current logged-in user's profile
-- `POST /auth/logout` - record a logout event for the logged-in user
-- `GET /users/me` - retrieve the current logged-in user's profile
-- `PUT /users/me` - update the current user's name, username, or email without changing their role
-- `PUT /users/me/password` - update the current user's password using the current password and a new password
-- `GET /expenses` - retrieve the logged-in user's expenses
-- `POST /expenses` - create an expense for the logged-in user
-- `PUT /expenses/:id` - update one of the logged-in user's expenses
-- `DELETE /expenses/:id` - delete one of the logged-in user's expenses
-- `GET /admin/users` - admin-only list of users
-- `POST /admin/users` - admin-only creation of a user account
-- `GET /admin/users/:id` - admin-only retrieval of one user's details
-- `PUT /admin/users/:id` - admin-only update of a user's name and username; email and role are read-only here
-- `DELETE /admin/users/:id` - admin-only deletion of a user account
-- `GET /admin/activity` - admin-only user activity history
-- `GET /admin/users/:id/activity` - admin-only activity history for one selected user
+- `POST /auth/register` - create a user account with a bcrypt-hashed password.
+- `POST /auth/login` - verify login details and return a JWT plus user profile details.
+- `GET /auth/me` - retrieve the currently authenticated user's profile.
+- `POST /auth/logout` - record a logout event for the authenticated user.
+- `GET /users/me` - retrieve the authenticated user's account details.
+- `PUT /users/me` - update the authenticated user's name, username, or email.
+- `PUT /users/me/password` - update the authenticated user's password.
 
-## Security Note
+### Expense routes
 
-Authentication uses JWTs issued by the backend after login. Passwords are hashed with bcrypt before they are stored. For local development, the token is stored in browser `localStorage` so the dashboard can stay logged in across refreshes.
+- `GET /expenses` - retrieve the authenticated user's expenses.
+- `POST /expenses` - create a new expense.
+- `PUT /expenses/:id` - update one of the authenticated user's expenses.
+- `DELETE /expenses/:id` - delete one of the authenticated user's expenses.
 
-For production, the app would need a stronger deployment-oriented auth strategy, such as secure HTTP-only cookies, stricter CORS settings, HTTPS, and environment-specific secrets.
+### Admin routes
 
-## Known Limitations and Future Improvements
+- `GET /admin/users` - retrieve all users.
+- `POST /admin/users` - create a user account through the admin API.
+- `GET /admin/users/:id` - retrieve one user's details.
+- `PUT /admin/users/:id` - update permitted details for one user.
+- `DELETE /admin/users/:id` - delete a non-admin user account.
+- `GET /admin/activity` - retrieve all user activity events.
+- `GET /admin/users/:id/activity` - retrieve activity events for one selected user.
 
-- Refactor the React/Vite bridge into native React components.
-- Move token storage from `localStorage` to a more production-safe authentication approach.
-- Add automated frontend and API tests for auth, admin flows, and editable table validation.
+## Security and Error Handling
+
+- Passwords are hashed with bcrypt before storage.
+- JWTs are issued by the backend after successful login.
+- Protected routes require a valid token.
+- Admin routes require an admin role.
+- Admin-only functions are restricted on the backend, not only hidden in the interface.
+- Password updates require the current password before a new password can be saved.
+- Password fields in Manage Account are masked by default and can be revealed only through the visibility toggle.
+- The app validates required form fields before submission.
+- Amount and date inputs include validation to prevent invalid data.
+- API failures are handled with visible error messages or toast notifications.
+- Destructive or navigation-interrupting actions use confirmation dialogs where appropriate.
+
+## Technical and Interface Design Rationale
+
+- The app uses a single-page structure to keep users in one continuous interface.
+- React components organise the authentication screen, regular user dashboard, admin dashboard, modals, tables, forms, and chart sections.
+- Frontend state tracks authentication, current user, expenses, filters, sorting, pagination, edit mode, admin tabs, and modal state.
+- API functions communicate with the Express backend after login, registration, expense, account, and admin actions.
+- Chart.js is used for the category doughnut chart and monthly trend chart.
+- Custom controls keep dropdowns, date selection, table editing, and toast feedback visually consistent.
+- Role-based rendering separates regular user and admin flows while sharing the same authentication entry point.
+
+## Workload Allocation
+
+| Group member | Files / folders written or mainly edited | Specific contribution |
+| --- | --- | --- |
+| Marie Lourdes Danielle Guerra (Marsi) | `index.html`, `style.css`, `script.js`, `Assets/screenshots/`, `README.md` | Designed and implemented the single-page dashboard interface, authentication screens, user dashboard tabs, Add Expense form, Expense History editing flow, chart interface, admin dashboard UI, custom dropdowns, date controls, toast notifications, confirmation dialogs, screenshots, and README documentation. |
+| Chun-Jie Hsieh (JJ) | `server/`, `server/routes/`, `server/middleware/`, `server/utils/`, `database/expense_tracker.sql`, `client/` | Implemented the backend and database foundation for the app, including the Express server, MySQL schema, authentication APIs, protected expense CRUD routes, user profile routes, admin user/activity routes, JWT role-based access control, activity logging, and initial React/Vite client setup. |
+
+## Professional Practice Notes
+
+- The repository uses Git version control with meaningful commits.
+- Commit messages describe the actual changes made.
+- Real environment variables are kept in `.env` and should not be committed.
+- The submitted database export contains the schema and seed data needed to run the app locally.
+- README screenshots match the submitted interface.
+
+## Future Improvements
+
+- Move token storage from `localStorage` to a production-safe authentication approach, such as secure HTTP-only cookies.
+- Add automated frontend and API tests for auth, admin flows, validation, and editable table behavior.
 - Add richer admin audit details for each CRUD event.
-- Continue improving responsive behaviour for smaller screens.
-- Consolidate older CSS overrides after the UI polish phase.
 - Add deployment configuration for a hosted frontend, backend, and database.
-
-## Notes
-
-The app is designed as a single-page application, so interactions such as filtering, editing, searching, authentication view changes, admin profile view changes, and pagination happen without navigating away from the main page.
-
-Search affects the table view only, while the charts and summary cards continue to reflect the saved expense data.
-
-Edit mode uses a Save / Cancel workflow so multiple table changes can be reviewed before being committed to the database.
-
-## Submission Files Included
-
-- Source code
-- Backend files
-- React/Vite bridge files
-- MySQL database export
-- README documentation
-- Static assets
