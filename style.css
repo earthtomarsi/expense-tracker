@@ -5447,7 +5447,7 @@ text-align: center;
 
 .admin-user-detail-activity-table th:nth-child(2),
 .admin-user-detail-activity-table td:nth-child(2) {
-width: 52%;
+width: 32%;
 }
 
 .admin-user-detail-activity-table th:nth-child(3),
