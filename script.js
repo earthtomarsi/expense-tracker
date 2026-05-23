@@ -5959,13 +5959,13 @@ function ensureAdminPanel() {
         <div class="admin-card admin-management-card">
           <div class="admin-card-header">
             <div>
-              <h4>Account management</h4>
-              <p>Review user accounts and activity across Spendflow.</p>
+              <h4>User administration</h4>
+              <p>Review user accounts and activity logs across Spendflow.</p>
             </div>
           </div>
 
           <div class="admin-management-workspace">
-            <div class="admin-management-tabs" role="tablist" aria-label="Admin account management views">
+            <div class="admin-management-tabs" role="tablist" aria-label="Admin user administration views">
               <button
                 class="admin-management-tab active"
                 type="button"
