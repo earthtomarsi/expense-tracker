@@ -1,0 +1,72 @@
+#root {
+  min-height: 100vh;
+}
+
+.auth-form .error-text {
+  margin: 0;
+}
+
+.table-toolbar input,
+.table-toolbar select,
+.admin-users-toolbar input,
+.admin-users-toolbar select,
+.admin-activity-toolbar input,
+.admin-activity-toolbar select,
+.expense-table-panel input {
+  border: 1px solid rgba(17, 24, 39, 0.12);
+  border-radius: 8px;
+  font: inherit;
+  padding: 9px 10px;
+}
+
+.admin-users-toolbar,
+.admin-activity-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-bottom: 18px;
+}
+
+.expense-table-panel input {
+  width: 100%;
+  min-width: 120px;
+}
+
+.confirmation-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 2000;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+  background: rgba(15, 23, 42, 0.42);
+}
+
+.confirmation-dialog {
+  width: min(860px, 100%);
+  max-height: min(760px, calc(100vh - 48px));
+  overflow: auto;
+  border: 1px solid rgba(17, 24, 39, 0.12);
+  border-radius: 8px;
+  background: #ffffff;
+  box-shadow: 0 24px 80px rgba(15, 23, 42, 0.22);
+  padding: 22px;
+}
+
+.confirmation-actions {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 18px;
+}
+
+.app-toast.error {
+  border-color: rgba(220, 38, 38, 0.24);
+}
+
+.summary-grid {
+  align-items: stretch;
+}
+
+.category-item > div {
+  grid-column: 1 / -1;
+}
