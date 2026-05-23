@@ -1551,24 +1551,24 @@ padding-left: calc(var(--table-cell-x) - var(--table-surface-x));
 
 .admin-activity-table th:first-child,
 .admin-activity-table td:first-child {
-width: 20%;
+width: 12%;
 padding-left: 24px;
 }
 
 .admin-activity-table th:nth-child(2),
 .admin-activity-table td:nth-child(2) {
-width: 16%;
+width: 24%;
 text-align: center;
 }
 
 .admin-activity-table th:nth-child(3),
 .admin-activity-table td:nth-child(3) {
-width: 36%;
+width: 28%;
 }
 
 .admin-activity-table th:nth-child(4),
 .admin-activity-table td:nth-child(4) {
-width: 28%;
+width: 30%;
 padding-right: 24px;
 }
 
@@ -1651,6 +1651,7 @@ background: rgba(255, 255, 255, 0.42);
 box-shadow: inset 0 0 0 1px rgba(148, 163, 184, 0.42);
 }
 
+.admin-table td.editable:not(.locked):not(.invalid-edit-cell).active-edit-cell .cell-text,
 .admin-table td.editable:not(.locked):not(.invalid-edit-cell):focus-within .cell-text,
 .admin-table td.editable:not(.locked):not(.invalid-edit-cell).editing .cell-text,
 .admin-table td.admin-role-cell:not(.locked):not(.invalid-edit-cell) select:focus {
@@ -1664,6 +1665,7 @@ outline: none;
 }
 
 .admin-table td.editable.invalid-edit-cell:not(.locked) .cell-text,
+.admin-table td.editable.invalid-edit-cell:not(.locked).active-edit-cell .cell-text,
 .admin-table td.editable.invalid-edit-cell:not(.locked):focus-within .cell-text,
 .admin-table td.editable.invalid-edit-cell:not(.locked).editing .cell-text,
 .admin-table td.admin-role-cell.invalid-edit-cell:not(.locked) select,
@@ -3417,6 +3419,9 @@ box-shadow: inset 0 0 0 1px rgba(148, 163, 184, 0.32);
 #expense-table td.date-cell.active-edit-cell:not(.locked):not(.invalid-edit-cell) .table-date-editor,
 #expense-table td.date-cell.editing:not(.locked):not(.invalid-edit-cell) .table-date-editor,
 #expense-table td.date-cell:focus-within:not(.locked):not(.invalid-edit-cell) .table-date-editor,
+#expense-table td.category-cell.active-edit-cell:not(.locked) .expense-category-trigger,
+#expense-table td.category-cell.editing:not(.locked) .expense-category-trigger,
+#expense-table td.category-cell:focus-within:not(.locked) .expense-category-trigger,
 #expense-table td.category-cell:not(.locked) select:focus,
 #expense-table td.category-cell:not(.locked) .expense-category-menu[open] .expense-category-trigger,
 #expense-table td.category-cell:not(.locked) .expense-category-trigger:focus-visible {
@@ -5634,4 +5639,34 @@ display: none;
 
 .admin-role-cell select {
 display: none;
+}
+
+
+/* Strong active rings for custom editable surfaces */
+.admin-users-table td.admin-name-cell.active-edit-cell:not(.locked):not(.invalid-edit-cell) .cell-text,
+.admin-users-table td.admin-username-cell.active-edit-cell:not(.locked):not(.invalid-edit-cell) .cell-text,
+.admin-users-table td.admin-name-cell.editing:not(.locked):not(.invalid-edit-cell) .cell-text,
+.admin-users-table td.admin-username-cell.editing:not(.locked):not(.invalid-edit-cell) .cell-text,
+.admin-users-table td.admin-name-cell:focus-within:not(.locked):not(.invalid-edit-cell) .cell-text,
+.admin-users-table td.admin-username-cell:focus-within:not(.locked):not(.invalid-edit-cell) .cell-text {
+background: rgba(255, 255, 255, 0.92) !important;
+color: var(--text-main) !important;
+font-weight: 500 !important;
+box-shadow:
+    inset 0 0 0 2px rgba(72, 221, 182, 0.95),
+    0 8px 20px rgba(15, 23, 42, 0.04) !important;
+outline: none !important;
+}
+
+#expense-table td.category-cell.active-edit-cell:not(.locked) .expense-category-trigger,
+#expense-table td.category-cell.editing:not(.locked) .expense-category-trigger,
+#expense-table td.category-cell:focus-within:not(.locked) .expense-category-trigger,
+#expense-table td.category-cell:not(.locked) .expense-category-menu[open] > .expense-category-trigger {
+background: rgba(255, 255, 255, 0.92) !important;
+color: var(--text-main) !important;
+font-weight: 500 !important;
+box-shadow:
+    inset 0 0 0 2px rgba(72, 221, 182, 0.95),
+    0 8px 20px rgba(15, 23, 42, 0.04) !important;
+outline: none !important;
 }

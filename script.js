@@ -39,6 +39,7 @@ let unsavedChangesLastFocusedElement = null;
 let deleteUserDialogResolve = null;
 let tableActionHighlightTimeoutId = null;
 let activeEditCell = null;
+let activeAdminUserCell = null;
 let selectedEditRowIndex = null;
 let editModeOrderIds = [];
 let authToken = localStorage.getItem(TOKEN_STORAGE_KEY) || "";
@@ -2077,6 +2078,7 @@ async function handleAdminUserDetailRemoveClick(event) {
     closeAdminUserDetailDialog();
     isAdminEditMode = false;
     selectedAdminUserIndex = null;
+    activeAdminUserCell = null;
     updateAdminEditButtons();
     await loadAdminProfileData();
     showAppToast("User deleted successfully.", "success");
@@ -5959,13 +5961,13 @@ function ensureAdminPanel() {
         <div class="admin-card admin-management-card">
           <div class="admin-card-header">
             <div>
-              <h4>User administration</h4>
-              <p>Review user accounts and activity logs across Spendflow.</p>
+              <h4>Account management</h4>
+              <p>Review user accounts and activity across Spendflow.</p>
             </div>
           </div>
 
           <div class="admin-management-workspace">
-            <div class="admin-management-tabs" role="tablist" aria-label="Admin user administration views">
+            <div class="admin-management-tabs" role="tablist" aria-label="Admin account management views">
               <button
                 class="admin-management-tab active"
                 type="button"
@@ -6156,6 +6158,7 @@ function ensureAdminPanel() {
     panel.querySelector("#admin-activity-prev-page-btn")?.addEventListener("click", handleAdminActivityPaginationButtonClick);
     panel.querySelector("#admin-activity-next-page-btn")?.addEventListener("click", handleAdminActivityPaginationButtonClick);
     panel.addEventListener("click", handleAdminPaginationClick, true);
+    panel.addEventListener("focusin", handleAdminUsersFocusIn);
     panel.addEventListener("focusout", handleAdminUsersFocusOut);
     panel.addEventListener("input", handleAdminUsersInput);
     panel.addEventListener("change", handleAdminPanelChange);
@@ -6865,6 +6868,7 @@ function startAdminRowEdit(index) {
   }
 
   selectedAdminUserIndex = Number.isInteger(Number(index)) ? Number(index) : null;
+  activeAdminUserCell = null;
   updateAdminEditButtons();
   renderAdminUsers();
 
@@ -6888,6 +6892,28 @@ function updateDraftAdminUser(index, field, value) {
   delete adminUserInvalidCells[`${index}:${field}`];
 }
 
+function clearActiveAdminUserCellStyles(exceptCell = null) {
+  document
+    .querySelectorAll(".admin-users-table td.editing, .admin-users-table td.active-edit-cell")
+    .forEach(cell => {
+      if (cell !== exceptCell) {
+        cell.classList.remove("editing", "active-edit-cell");
+      }
+    });
+}
+
+function activateAdminEditableCell(cell) {
+  if (!cell || !isAdminEditMode || cell.classList.contains("locked")) return;
+  if (!cell.matches("td[data-admin-field='name'], td[data-admin-field='username']")) return;
+
+  activeAdminUserCell = cell;
+  clearActiveAdminUserCellStyles(cell);
+
+  cell.classList.remove("editing", "active-edit-cell");
+  void cell.offsetWidth;
+  cell.classList.add("editing", "active-edit-cell");
+}
+
 function deleteDraftAdminUser(index) {
   if (!isAdminEditMode || !draftAdminUsers[index]) return;
 
@@ -6900,6 +6926,7 @@ function deleteDraftAdminUser(index) {
   }
 
   adminUserInvalidCells = {};
+  activeAdminUserCell = null;
   renderAdminUsers();
 }
 
@@ -6913,6 +6940,11 @@ function commitAdminEditableCell(cell) {
   if (field === "role") return;
 
   updateDraftAdminUser(index, field, getAdminEditableCellText(cell));
+}
+
+function handleAdminUsersFocusIn(event) {
+  const cell = event.target.closest("td[data-admin-field]");
+  activateAdminEditableCell(cell);
 }
 
 function handleAdminUsersFocusOut(event) {
@@ -7055,6 +7087,7 @@ async function handleAdminEditUsersClick() {
 
     isAdminEditMode = false;
     selectedAdminUserIndex = null;
+    activeAdminUserCell = null;
     updateAdminEditButtons();
     renderAdminUsers();
     showAppToast("User changes saved successfully.", "success");
@@ -7069,6 +7102,7 @@ function cancelAdminUserEdits() {
 
   isAdminEditMode = false;
   selectedAdminUserIndex = null;
+  activeAdminUserCell = null;
   draftAdminUsers = adminUsers.map(user => ({ ...user }));
   adminUserInvalidCells = {};
   updateAdminEditButtons();
@@ -7404,6 +7438,7 @@ async function handleUserProfileClick(event) {
 
   isAdminEditMode = false;
   selectedAdminUserIndex = null;
+  activeAdminUserCell = null;
 
   try {
     await loadCurrentUserProfile();
@@ -7626,7 +7661,7 @@ function updateAmountCellLive(cell) {
 function handleTablePointerDown(event) {
   if (!isEditMode) return;
 
-  const cell = event.target.closest("td[data-field]");
+  const cell = event.target.closest("td[data-field], td.category-cell");
   if (!cell || cell.classList.contains("locked")) return;
 
   activateEditableCell(cell);
@@ -7994,6 +8029,11 @@ function handleTableClick(event) {
   if (categoryTrigger) {
     const categoryCell = categoryTrigger.closest(".category-cell");
     const categoryMenu = categoryTrigger.closest(".expense-category-menu");
+
+    if (isEditMode && categoryCell && !categoryCell.classList.contains("locked")) {
+      activateEditableCell(categoryCell);
+      requestAnimationFrame(() => activateEditableCell(categoryCell));
+    }
 
     if (!isEditMode || categoryCell?.classList.contains("locked")) {
       event.preventDefault();
@@ -8376,11 +8416,19 @@ function bindEvents() {
 
   document.addEventListener("pointerdown", (event) => {
     const clickedInsideMenu = event.target.closest(".toolbar-menu, .date-picker, .dropdown, .username-wrapper");
-    const clickedTableCell = event.target.closest("#expense-table td[data-field]");
+    const clickedTableCell = event.target.closest("#expense-table td[data-field], #expense-table td.category-cell");
+    const clickedAdminUserCell = event.target.closest(".admin-users-table td[data-admin-field]");
 
     if (!clickedTableCell && activeEditCell) {
       clearActiveTableCellStyles();
       activeEditCell = null;
+    }
+
+    if (clickedAdminUserCell && !clickedAdminUserCell.classList.contains("locked")) {
+      activateAdminEditableCell(clickedAdminUserCell);
+    } else if (activeAdminUserCell) {
+      clearActiveAdminUserCellStyles();
+      activeAdminUserCell = null;
     }
 
     if (!clickedInsideMenu) {
@@ -8547,7 +8595,7 @@ function bindEvents() {
   document.addEventListener("pointerdown", (event) => {
     if (!isEditMode) return;
 
-    const clickedEditableCell = event.target.closest?.("#expense-table td[data-field]");
+    const clickedEditableCell = event.target.closest?.("#expense-table td[data-field], #expense-table td.category-cell");
 
     if (clickedEditableCell && !clickedEditableCell.classList.contains("locked")) {
       activateEditableCell(clickedEditableCell);
