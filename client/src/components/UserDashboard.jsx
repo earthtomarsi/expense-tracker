@@ -55,7 +55,7 @@ function UserDashboard({ greeting, showToast }) {
         behavior: "smooth",
         block: "start"
       });
-    }, 80);
+    }, 180);
 
     let highlightTimer;
 
@@ -115,6 +115,7 @@ function UserDashboard({ greeting, showToast }) {
       const nextExpenses = await loadExpenses();
       const newExpenseId = createdExpense?.id || nextExpenses?.[0]?.id || null;
 
+      setFilters(initialFilters);
       setHighlightedExpenseId(newExpenseId);
       setActiveTab("history");
       showToast("Expense added successfully.");
@@ -180,13 +181,14 @@ function UserDashboard({ greeting, showToast }) {
       {isLoading ? (
         <div className="status-message">Loading expenses...</div>
       ) : (
-        <div className="user-dashboard-workspace">
+        <div className="user-dashboard-workspace" data-active-tab={activeTab}>
           {activeTab === "add" && (
             <AddExpensePanel
               key="new-expense"
               editingExpense={null}
               onCancelEdit={() => {}}
               onSubmit={handleSubmitExpense}
+              showToast={showToast}
             />
           )}
 

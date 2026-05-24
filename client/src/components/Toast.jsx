@@ -10,13 +10,18 @@ function Toast({ toast, onClose }) {
 
   if (!toast) return null;
 
+  const toastType = toast.type || "success";
+
   return (
-    <div id="app-toast" className={`app-toast ${toast.type || "success"}`} aria-live="polite">
-      <span className="app-toast-icon" aria-hidden="true">
-        {toast.type === "error" ? "!" : "✓"}
-      </span>
+    <div
+      id="app-toast"
+      className={`app-toast show ${toastType}`}
+      aria-live={toastType === "error" ? "assertive" : "polite"}
+      role="status"
+    >
+      <span className="app-toast-icon" aria-hidden="true"></span>
       <span id="app-toast-message" className="app-toast-message">
-        {toast.message}
+        <span className="app-toast-body">{toast.message}</span>
       </span>
       <button id="app-toast-close" className="app-toast-close" type="button" onClick={onClose}>
         ×

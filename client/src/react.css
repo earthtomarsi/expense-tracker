@@ -949,3 +949,379 @@ main {
   display: grid;
   place-items: center;
 }
+
+/* ---------- React parity milestone 1: header, toast, Add Expense ---------- */
+.header-full {
+  transition: background 0.18s ease, box-shadow 0.18s ease, border-color 0.18s ease;
+}
+
+.header-full.is-scrolled {
+  background: rgba(255, 255, 255, 0.78) !important;
+  border-bottom: 1px solid rgba(190, 205, 196, 0.32) !important;
+  box-shadow: 0 10px 30px rgba(15, 23, 42, 0.045) !important;
+  backdrop-filter: blur(18px) !important;
+  -webkit-backdrop-filter: blur(18px) !important;
+}
+
+/* Match the original tab-card selected state more closely. */
+.user-dashboard-tab.active {
+  border-color: rgba(72, 221, 182, 0.46) !important;
+  background:
+    radial-gradient(circle at 14% 12%, rgba(168, 255, 120, 0.16), transparent 32%),
+    rgba(255, 255, 255, 0.84) !important;
+  box-shadow:
+    0 18px 40px rgba(15, 23, 42, 0.075),
+    inset 0 -3px 0 rgba(72, 221, 182, 0.50) !important;
+  transform: translateY(0) !important;
+}
+
+/* The original CSS removes the extra outer workspace card for Add Expense and Monthly Trend via data-active-tab. */
+.user-dashboard-workspace[data-active-tab="add"],
+.user-dashboard-workspace[data-active-tab="trends"] {
+  padding: 0 !important;
+  border: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+
+.quick-expense-panel {
+  padding: 34px 36px 36px !important;
+  border-radius: 22px !important;
+  overflow: visible !important;
+}
+
+.quick-expense-panel .input-row {
+  display: grid !important;
+  grid-template-columns: minmax(0, 1.1fr) minmax(120px, 0.55fr) minmax(150px, 0.7fr) minmax(150px, 0.7fr) !important;
+  column-gap: 10px !important;
+  row-gap: 10px !important;
+  align-items: start !important;
+}
+
+.quick-expense-panel .field-group,
+.quick-expense-panel .select-wrapper,
+.quick-expense-panel .date-field-group {
+  min-width: 0 !important;
+  overflow: visible !important;
+}
+
+.quick-expense-panel .description-group {
+  grid-column: 1 / -1 !important;
+}
+
+.quick-expense-panel input,
+.quick-expense-panel select {
+  height: 42px !important;
+  min-height: 42px !important;
+  font-size: 13px !important;
+}
+
+/* Restore the Add Expense date field that was being hidden by the original #date rule. */
+.quick-expense-panel #add-expense-date {
+  display: block !important;
+  width: 100% !important;
+  min-width: 140px !important;
+  padding: 0 14px !important;
+  border: 1px solid rgba(166, 186, 174, 0.38) !important;
+  border-radius: 12px !important;
+  background: rgba(255, 255, 255, 0.76) !important;
+  color: var(--text-main, #111827) !important;
+  box-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.65) inset,
+    0 8px 20px rgba(15, 23, 42, 0.025) !important;
+  font-family: "Inter", Arial, sans-serif !important;
+  font-size: 13px !important;
+  line-height: 42px !important;
+}
+
+/* Hide the native up/down spinner on the amount input. */
+.quick-expense-panel input[type="number"],
+.expense-table-panel input[type="number"] {
+  appearance: textfield !important;
+  -moz-appearance: textfield !important;
+}
+
+.quick-expense-panel input[type="number"]::-webkit-outer-spin-button,
+.quick-expense-panel input[type="number"]::-webkit-inner-spin-button,
+.expense-table-panel input[type="number"]::-webkit-outer-spin-button,
+.expense-table-panel input[type="number"]::-webkit-inner-spin-button {
+  margin: 0 !important;
+  -webkit-appearance: none !important;
+}
+
+.quick-expense-panel .select-wrapper {
+  position: relative !important;
+  width: 100% !important;
+}
+
+.quick-expense-panel .select-wrapper select {
+  width: 100% !important;
+  padding-right: 38px !important;
+  appearance: none !important;
+  -webkit-appearance: none !important;
+}
+
+.quick-expense-panel .select-arrow,
+.table-toolbar .select-arrow,
+.admin-users-toolbar .select-arrow,
+.admin-activity-toolbar .select-arrow {
+  position: absolute !important;
+  top: 50% !important;
+  right: 14px !important;
+  transform: translateY(-50%) rotate(90deg) !important;
+  pointer-events: none !important;
+  color: #647067 !important;
+  font-size: 1rem !important;
+  font-weight: 800 !important;
+}
+
+#add-btn {
+  width: 168px !important;
+  height: 38px !important;
+  margin-top: 14px !important;
+}
+
+.app-toast.show {
+  opacity: 1 !important;
+  transform: translateY(0) !important;
+}
+
+/* Make the row highlight more visible after add → Expense History. */
+#expense-table tr.recently-added-row td {
+  animation: recentlyAddedExpensePulse 2.8s ease-out !important;
+}
+
+@media (max-width: 920px) {
+  .quick-expense-panel .input-row {
+    grid-template-columns: 1fr 1fr !important;
+  }
+}
+
+@media (max-width: 620px) {
+  .quick-expense-panel .input-row {
+    grid-template-columns: 1fr !important;
+  }
+}
+
+/* ---------- React parity milestone 1b: Add Expense validation + field polish ---------- */
+.quick-expense-panel .container.add-expense-form,
+.quick-expense-panel .container.add-expense-form .input-section {
+  width: 100% !important;
+  max-width: none !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+
+.quick-expense-panel .field-group {
+  position: relative !important;
+}
+
+.quick-expense-panel .field-group.has-error input,
+.quick-expense-panel .field-group.has-error select {
+  border-color: rgba(239, 68, 68, 0.58) !important;
+  box-shadow: 0 0 0 4px rgba(239, 68, 68, 0.08) !important;
+}
+
+.quick-expense-panel .field-help {
+  display: block !important;
+  min-height: 16px !important;
+  margin-top: 6px !important;
+  color: #7B857F !important;
+  font-size: 11px !important;
+  line-height: 1.35 !important;
+  font-weight: 600 !important;
+}
+
+.quick-expense-panel .field-help.error {
+  color: #dc2626 !important;
+}
+
+.quick-expense-panel .amount-field-group .currency-prefix {
+  position: absolute !important;
+  left: 13px !important;
+  top: 21px !important;
+  transform: translateY(-50%) !important;
+  z-index: 2 !important;
+  color: #647067 !important;
+  font-size: 13px !important;
+  font-weight: 800 !important;
+  pointer-events: none !important;
+}
+
+.quick-expense-panel .amount-field-group #expense-amount {
+  padding-left: 30px !important;
+}
+
+.quick-expense-panel .add-expense-select-wrapper {
+  position: relative !important;
+  display: block !important;
+  width: 100% !important;
+  height: 42px !important;
+  min-height: 42px !important;
+  overflow: visible !important;
+}
+
+.quick-expense-panel .add-expense-select-wrapper select {
+  display: block !important;
+  width: 100% !important;
+  height: 42px !important;
+  min-height: 42px !important;
+  padding-right: 42px !important;
+  appearance: none !important;
+  -webkit-appearance: none !important;
+}
+
+.quick-expense-panel .add-expense-select-wrapper .select-arrow {
+  position: absolute !important;
+  top: 0 !important;
+  right: 2px !important;
+  width: 38px !important;
+  height: 42px !important;
+  display: grid !important;
+  place-items: center !important;
+  transform: rotate(90deg) !important;
+  transform-origin: center !important;
+  pointer-events: none !important;
+  color: #647067 !important;
+  font-size: 1.05rem !important;
+  font-weight: 900 !important;
+}
+
+.quick-expense-panel #add-expense-date:invalid,
+.quick-expense-panel #expense-amount:invalid {
+  box-shadow: none !important;
+}
+
+.add-expense-error {
+  border: 1px solid rgba(239, 68, 68, 0.16) !important;
+  background: rgba(254, 242, 242, 0.86) !important;
+  color: #b91c1c !important;
+  font-size: 0.86rem !important;
+  font-weight: 700 !important;
+}
+
+
+/* ---------- React parity milestone 1c: Add Expense validation refinements ---------- */
+.quick-expense-panel .amount-field-group .currency-prefix {
+  color: #647067 !important;
+  font-weight: 600 !important;
+  opacity: 0.88 !important;
+}
+
+.quick-expense-panel .add-expense-error {
+  display: none !important;
+}
+
+#expense-table tr.recently-added-row td {
+  animation: recentlyAddedExpenseGreenPulse 2.8s ease-out !important;
+}
+
+@keyframes recentlyAddedExpenseGreenPulse {
+  0% {
+    background: rgba(77, 222, 131, 0.18);
+    box-shadow: inset 0 0 0 2px rgba(77, 222, 131, 0.50);
+  }
+
+  45% {
+    background: rgba(77, 222, 131, 0.12);
+    box-shadow: inset 0 0 0 2px rgba(77, 222, 131, 0.30);
+  }
+
+  100% {
+    background: transparent;
+    box-shadow: inset 0 0 0 0 rgba(77, 222, 131, 0);
+  }
+}
+
+/* ---------- React parity milestone 1d: Add Expense small validation polish ---------- */
+.quick-expense-panel .amount-field-group .currency-prefix {
+  color: #7B857F !important;
+  font-weight: 400 !important;
+  opacity: 0.68 !important;
+}
+
+.quick-expense-panel .field-help,
+.quick-expense-panel .field-help.error {
+  font-weight: 500 !important;
+  letter-spacing: 0 !important;
+}
+
+.quick-expense-panel .field-help.error {
+  color: #dc2626 !important;
+}
+
+
+/* ---------- React parity milestone 1e: Add Expense helper/counter polish ---------- */
+.quick-expense-panel .amount-field-group .currency-prefix {
+  color: #7B857F !important;
+  font-size: 12px !important;
+  font-weight: 400 !important;
+  opacity: 0.48 !important;
+}
+
+.quick-expense-panel .field-help,
+.quick-expense-panel .field-help.error {
+  min-height: 14px !important;
+  margin-top: 5px !important;
+  font-size: 10.5px !important;
+  line-height: 1.2 !important;
+  font-weight: 400 !important;
+  letter-spacing: 0 !important;
+}
+
+.quick-expense-panel .field-help.error {
+  color: #dc2626 !important;
+}
+
+.quick-expense-panel .description-group .desc-info {
+  min-height: 16px !important;
+  margin-top: 5px !important;
+  display: flex !important;
+  align-items: flex-start !important;
+  justify-content: space-between !important;
+  gap: 12px !important;
+}
+
+.quick-expense-panel .description-group .desc-info small {
+  font-size: 10.5px !important;
+  line-height: 1.2 !important;
+  font-weight: 400 !important;
+  letter-spacing: 0 !important;
+}
+
+.quick-expense-panel .description-group .desc-limit-message {
+  color: #dc2626 !important;
+}
+
+.quick-expense-panel .description-group .desc-counter {
+  margin-left: auto !important;
+  color: #7B857F !important;
+  text-align: right !important;
+  white-space: nowrap !important;
+}
+
+.quick-expense-panel .description-group.has-warning input {
+  border-color: rgba(239, 68, 68, 0.58) !important;
+  box-shadow: 0 0 0 4px rgba(239, 68, 68, 0.08) !important;
+}
+
+/* ---------- React parity milestone 1f: Add Expense date invalid border fix ---------- */
+.quick-expense-panel .date-field-group.has-error input#add-expense-date,
+.quick-expense-panel .date-field-group input#add-expense-date[aria-invalid="true"] {
+  border-color: rgba(239, 68, 68, 0.72) !important;
+  box-shadow: 0 0 0 4px rgba(239, 68, 68, 0.08) !important;
+}
+
+.quick-expense-panel .date-field-group.has-error input#add-expense-date:focus,
+.quick-expense-panel .date-field-group input#add-expense-date[aria-invalid="true"]:focus {
+  border-color: rgba(239, 68, 68, 0.78) !important;
+  box-shadow: 0 0 0 4px rgba(239, 68, 68, 0.10) !important;
+}

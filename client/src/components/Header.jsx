@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 
 function Header({ user, onHome, onManageAccount, onLogout }) {
   const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false);
+  const [isScrolled, setIsScrolled] = useState(false);
   const profileRef = useRef(null);
   const displayName = user?.name || user?.username || "Log in";
 
@@ -34,6 +35,20 @@ function Header({ user, onHome, onManageAccount, onLogout }) {
     await onLogout?.();
   };
 
+
+  useEffect(() => {
+    const handleScroll = () => {
+      setIsScrolled(window.scrollY > 8);
+    };
+
+    handleScroll();
+    window.addEventListener("scroll", handleScroll, { passive: true });
+
+    return () => {
+      window.removeEventListener("scroll", handleScroll);
+    };
+  }, []);
+
   useEffect(() => {
     if (!isProfileMenuOpen) return undefined;
 
@@ -59,7 +74,7 @@ function Header({ user, onHome, onManageAccount, onLogout }) {
   }, [isProfileMenuOpen]);
 
   return (
-    <header className="header-full">
+    <header className={`header-full${isScrolled ? " is-scrolled" : ""}`}>
       <div className="header-left">
         <button
           id="brand-home"
