@@ -5,10 +5,15 @@
 }
 
 main {
-  width: min(1180px, calc(100% - 32px));
-  margin: 0 auto;
-  padding: 24px 0 56px;
+  width: 100%;
+  max-width: none;
+  margin: 0;
+  padding: 0 0 24px;
 }
+
+/* React layout foundation: sections are already width-controlled by spendflow.css.
+   Keep the React <main> full-width so cards align with the header/logo instead
+   of receiving an extra nested gutter. */
 
 /* Keep React dashboard sections aligned with the original page spacing */
 .expense-hero,
@@ -29,10 +34,13 @@ main {
 /* Auth page parity polish */
 main:has(.auth-page) {
   padding-top: 0;
+  padding-bottom: 0;
 }
 
 .auth-page {
-  margin-top: 18px;
+  margin-top: 36px;
+  margin-bottom: 0;
+  min-height: min(620px, calc(100dvh - 160px));
 }
 
 .auth-submit-btn {
@@ -263,8 +271,9 @@ main:has(.auth-page) {
 /* Responsive */
 @media (max-width: 820px) {
   main {
-    width: min(100% - 20px, 1180px);
-    padding-top: 18px;
+    width: 100%;
+    max-width: none;
+    padding-top: 0;
   }
 
   .manage-account-fields {
