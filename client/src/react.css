@@ -180,18 +180,1047 @@ main:has(.auth-page) {
   white-space: nowrap;
 }
 
+
+/* ---------- React expense history polish pass 2: original-style controls, edit mode, chart ---------- */
+.table-toolbar {
+  align-items: center !important;
+  gap: 10px !important;
+}
+
+.table-toolbar .table-search {
+  position: relative !important;
+  flex: 1 1 230px !important;
+  min-width: 220px !important;
+}
+
+.table-toolbar .table-search input {
+  height: 38px !important;
+  padding: 0 38px 0 14px !important;
+  border-radius: 12px !important;
+  border: 1px solid rgba(166, 186, 174, 0.38) !important;
+  background: rgba(255, 255, 255, 0.76) !important;
+  font-family: "Inter", Arial, sans-serif !important;
+  font-size: 12px !important;
+  font-weight: 400 !important;
+  color: #111827 !important;
+  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.65) inset, 0 8px 20px rgba(15, 23, 42, 0.025) !important;
+}
+
+.table-toolbar .table-search input::placeholder {
+  color: #647067 !important;
+  opacity: 0.82 !important;
+}
+
+.table-search-icon,
+.toolbar-menu-icon {
+  width: 16px !important;
+  height: 16px !important;
+  color: currentColor !important;
+  flex: 0 0 auto !important;
+}
+
+.table-search-icon {
+  position: absolute !important;
+  right: 14px !important;
+  top: 50% !important;
+  transform: translateY(-50%) !important;
+  color: #a3adb4 !important;
+  pointer-events: none !important;
+}
+
+.table-search-icon svg,
+.toolbar-menu-icon svg,
+.toolbar-chevron svg,
+.category-edit-chevron svg,
+.expense-pagination button svg,
+.date-picker-header button svg,
+.month-picker-header button svg,
+.add-date-trigger svg,
+.table-date-trigger svg {
+  width: 100% !important;
+  height: 100% !important;
+  display: block !important;
+  fill: none !important;
+  stroke: currentColor !important;
+}
+
+.toolbar-menu {
+  position: relative !important;
+  flex: 0 1 190px !important;
+  min-width: 170px !important;
+  z-index: 20 !important;
+}
+
+.toolbar-menu.open {
+  z-index: 120 !important;
+}
+
+.month-toolbar-menu {
+  flex-basis: 212px !important;
+}
+
+.toolbar-menu-trigger {
+  width: 100% !important;
+  height: 38px !important;
+  min-height: 38px !important;
+  padding: 0 12px !important;
+  border: 1px solid rgba(166, 186, 174, 0.38) !important;
+  border-radius: 12px !important;
+  background: rgba(255, 255, 255, 0.76) !important;
+  color: #111827 !important;
+  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.65) inset, 0 8px 20px rgba(15, 23, 42, 0.025) !important;
+  display: flex !important;
+  align-items: center !important;
+  gap: 8px !important;
+  cursor: pointer !important;
+  font-family: "Inter", Arial, sans-serif !important;
+  font-size: 12px !important;
+  font-weight: 500 !important;
+  letter-spacing: 0 !important;
+  text-align: left !important;
+}
+
+.toolbar-menu.open .toolbar-menu-trigger,
+.toolbar-menu-trigger:hover,
+.toolbar-menu-trigger:focus-visible {
+  border-color: rgba(88, 230, 111, 0.58) !important;
+  background: rgba(255, 255, 255, 0.92) !important;
+  color: #166534 !important;
+  box-shadow: 0 0 0 4px rgba(168, 255, 120, 0.14), 0 8px 22px rgba(15, 23, 42, 0.04) !important;
+  outline: none !important;
+}
+
+.toolbar-menu-label {
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+  white-space: nowrap !important;
+}
+
+.toolbar-chevron,
+.category-edit-chevron {
+  width: 16px !important;
+  height: 16px !important;
+  margin-left: auto !important;
+  color: currentColor !important;
+  flex: 0 0 auto !important;
+}
+
+.toolbar-dropdown-panel,
+.month-picker-panel,
+.category-edit-panel,
+.add-expense-category-panel,
+.date-picker-panel {
+  position: absolute !important;
+  top: calc(100% + 8px) !important;
+  left: 0 !important;
+  min-width: 100% !important;
+  padding: 8px !important;
+  border-radius: 16px !important;
+  border: 1px solid rgba(209, 219, 214, 0.62) !important;
+  background: rgba(255, 255, 255, 0.92) !important;
+  box-shadow: 0 20px 48px rgba(15, 23, 42, 0.12), 0 0 0 1px rgba(255, 255, 255, 0.72) inset !important;
+  backdrop-filter: blur(18px) !important;
+  -webkit-backdrop-filter: blur(18px) !important;
+  z-index: 200 !important;
+}
+
+.toolbar-dropdown-panel {
+  display: grid !important;
+  gap: 4px !important;
+}
+
+.sort-menu-panel {
+  width: 208px !important;
+}
+
+.category-menu-panel {
+  width: 176px !important;
+}
+
+.toolbar-option,
+.category-edit-option,
+.add-expense-category-option {
+  width: 100% !important;
+  height: 34px !important;
+  min-height: 34px !important;
+  padding: 0 10px !important;
+  border: 0 !important;
+  border-radius: 10px !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  color: #4b5563 !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: flex-start !important;
+  gap: 8px !important;
+  font-family: "Inter", Arial, sans-serif !important;
+  font-size: 12px !important;
+  font-weight: 500 !important;
+  text-align: left !important;
+  white-space: nowrap !important;
+  cursor: pointer !important;
+}
+
+.toolbar-option:hover,
+.toolbar-option:focus-visible,
+.category-edit-option:hover,
+.category-edit-option:focus-visible,
+.add-expense-category-option:hover,
+.add-expense-category-option:focus-visible {
+  background: #A8FF7824 !important;
+  color: #166534 !important;
+  outline: none !important;
+}
+
+.toolbar-option.active,
+.category-edit-option.active,
+.add-expense-category-option.active {
+  background: linear-gradient(135deg, rgba(88, 230, 111, 0.96), rgba(72, 221, 182, 0.96)) !important;
+  color: #fafafa !important;
+  box-shadow: 0 10px 24px rgba(72, 221, 182, 0.20) !important;
+}
+
+.month-picker-panel {
+  left: auto !important;
+  right: 0 !important;
+  width: 212px !important;
+  min-width: 212px !important;
+}
+
+.month-picker-header {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  gap: 8px !important;
+  margin: 0 0 8px !important;
+}
+
+.month-picker-header strong {
+  color: #7b857f !important;
+  font-family: "Inter", Arial, sans-serif !important;
+  font-size: 12px !important;
+  font-weight: 600 !important;
+  line-height: 1.2 !important;
+  letter-spacing: 0.03em !important;
+}
+
+.month-picker-header button,
+.date-picker-header button,
+.date-picker-actions button,
+.expense-pagination button {
+  width: 30px !important;
+  height: 30px !important;
+  min-width: 30px !important;
+  padding: 0 !important;
+  border-radius: 10px !important;
+  border: 1px solid rgba(190, 205, 196, 0.48) !important;
+  background: rgba(255, 255, 255, 0.72) !important;
+  color: #111827 !important;
+  box-shadow: none !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+}
+
+.month-picker-header button:hover,
+.date-picker-header button:hover,
+.date-picker-actions button:hover,
+.expense-pagination button:not(:disabled):hover,
+.expense-pagination button:not(:disabled):focus-visible {
+  background: #A8FF7824 !important;
+  color: #166534 !important;
+  outline: none !important;
+}
+
+.this-month-btn {
+  width: 100% !important;
+  height: 36px !important;
+  margin-bottom: 8px !important;
+  border: 0 !important;
+  border-radius: 10px !important;
+  background: linear-gradient(135deg, rgba(88, 230, 111, 0.96), rgba(72, 221, 182, 0.96)) !important;
+  color: #fafafa !important;
+  box-shadow: 0 10px 24px rgba(72, 221, 182, 0.20) !important;
+  font-size: 12px !important;
+  font-weight: 500 !important;
+}
+
+.month-grid {
+  display: grid !important;
+  grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+  gap: 6px !important;
+  margin-top: 8px !important;
+}
+
+.month-option {
+  height: 36px !important;
+  padding: 0 !important;
+  border: none !important;
+  border-radius: 10px !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  color: #4b5563 !important;
+  font-family: "Inter", Arial, sans-serif !important;
+  font-size: 12px !important;
+  font-weight: 500 !important;
+}
+
+.month-option:hover,
+.month-option.soft-selected {
+  background: #A8FF7824 !important;
+  color: #166534 !important;
+}
+
+.month-option.selected {
+  background: linear-gradient(135deg, rgba(88, 230, 111, 0.96), rgba(72, 221, 182, 0.96)) !important;
+  color: #fafafa !important;
+  box-shadow: 0 10px 24px rgba(72, 221, 182, 0.20) !important;
+}
+
+.toolbar-clear {
+  width: 64px !important;
+  min-width: 64px !important;
+  height: 38px !important;
+  padding: 0 10px !important;
+  border: none !important;
+  border-radius: 12px !important;
+  background: var(--gradient-green) !important;
+  color: #fafafa !important;
+  box-shadow: 0 10px 24px rgba(72, 221, 182, 0.22) !important;
+  font-size: 12px !important;
+  font-weight: 500 !important;
+}
+
+/* Add Expense custom category/date controls */
+.quick-expense-panel .add-category-field-group,
+.quick-expense-panel .date-field-group {
+  position: relative !important;
+  min-width: 0 !important;
+  overflow: visible !important;
+}
+
+.add-expense-category-menu,
+.date-input-shell,
+.table-date-picker,
+.category-edit-menu {
+  position: relative !important;
+  width: 100% !important;
+  overflow: visible !important;
+}
+
+.add-expense-category-trigger,
+.add-date-trigger,
+.table-date-trigger,
+.category-edit-trigger {
+  width: 100% !important;
+  height: 42px !important;
+  min-height: 42px !important;
+  padding: 0 12px !important;
+  border: 1px solid rgba(166, 186, 174, 0.38) !important;
+  border-radius: 12px !important;
+  background: rgba(255, 255, 255, 0.76) !important;
+  color: #111827 !important;
+  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.65) inset, 0 8px 20px rgba(15, 23, 42, 0.025) !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  gap: 10px !important;
+  font-family: "Inter", Arial, sans-serif !important;
+  font-size: 13px !important;
+  font-weight: 400 !important;
+  cursor: pointer !important;
+}
+
+.add-expense-category-trigger:hover,
+.add-expense-category-menu.open .add-expense-category-trigger,
+.add-expense-category-trigger:focus-visible,
+.add-date-trigger:hover,
+.date-input-shell.open .add-date-trigger,
+.add-date-trigger:focus-visible,
+.table-date-trigger:hover,
+.table-date-picker.open .table-date-trigger,
+.table-date-trigger:focus-visible,
+.category-edit-trigger:hover,
+.category-edit-menu.open .category-edit-trigger,
+.category-edit-trigger:focus-visible {
+  border-color: rgba(88, 230, 111, 0.58) !important;
+  background: rgba(255, 255, 255, 0.92) !important;
+  color: #166534 !important;
+  box-shadow: 0 0 0 4px rgba(168, 255, 120, 0.14), 0 8px 22px rgba(15, 23, 42, 0.04) !important;
+  outline: none !important;
+}
+
+.add-date-trigger.error,
+.table-date-trigger.has-error,
+.category-edit-trigger.has-error,
+.table-amount-input.has-error,
+#expense-table td.editable.editing.has-error .table-edit-input {
+  border-color: rgba(239, 68, 68, 0.72) !important;
+  box-shadow: 0 0 0 4px rgba(239, 68, 68, 0.08) !important;
+}
+
+.date-placeholder {
+  color: #9ca3af !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.02em !important;
+}
+
+.add-expense-category-panel {
+  display: grid !important;
+  gap: 4px !important;
+  top: calc(100% + 8px) !important;
+  left: 0 !important;
+  right: 0 !important;
+  z-index: 9998 !important;
+}
+
+.date-picker-panel {
+  right: 0 !important;
+  left: auto !important;
+  z-index: 9999 !important;
+  width: 320px !important;
+  padding: 14px !important;
+}
+
+.date-picker-header {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  gap: 10px !important;
+  margin-bottom: 12px !important;
+}
+
+.date-picker-header span {
+  color: #111827 !important;
+  font-size: 12px !important;
+  font-weight: 600 !important;
+}
+
+.date-weekdays,
+.date-picker-grid {
+  display: grid !important;
+  grid-template-columns: repeat(7, 1fr) !important;
+  gap: 6px !important;
+}
+
+.date-weekdays {
+  margin-bottom: 6px !important;
+}
+
+.date-weekdays span {
+  color: #9ca3af !important;
+  font-size: 10px !important;
+  font-weight: 600 !important;
+  text-align: center !important;
+}
+
+.date-day {
+  width: 100% !important;
+  height: 34px !important;
+  padding: 0 !important;
+  border-radius: 10px !important;
+  border: none !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  color: #4b5563 !important;
+  font-size: 11px !important;
+  font-weight: 500 !important;
+}
+
+.date-day:hover:not(:disabled) {
+  background: #A8FF7824 !important;
+  color: #166534 !important;
+}
+
+.date-day.selected {
+  background: var(--gradient-green) !important;
+  color: #fafafa !important;
+  box-shadow: 0 10px 22px rgba(72, 221, 182, 0.22) !important;
+}
+
+.date-day.today:not(.selected) {
+  box-shadow: inset 0 0 0 1px rgba(72, 221, 182, 0.55) !important;
+  color: #166534 !important;
+}
+
+.date-day.outside,
+.date-day:disabled {
+  opacity: 0.35 !important;
+}
+
+.date-picker-actions {
+  display: flex !important;
+  justify-content: flex-end !important;
+  margin-top: 12px !important;
+}
+
+.date-picker-actions button {
+  width: auto !important;
+  min-width: 70px !important;
+  padding: 0 12px !important;
+  font-size: 11px !important;
+}
+
+/* Expense history table */
+#expense-table {
+  table-layout: fixed !important;
+}
+
+#expense-table th,
+#expense-table td {
+  font-family: "Inter", Arial, sans-serif !important;
+  font-size: 12px !important;
+  font-weight: 430 !important;
+  line-height: 1.35 !important;
+  color: #4b5563 !important;
+}
+
+#expense-table th {
+  color: #111827 !important;
+  font-weight: 650 !important;
+}
+
+#expense-table th:nth-child(1),
+#expense-table td:nth-child(1) { width: 23% !important; }
+#expense-table th:nth-child(2),
+#expense-table td:nth-child(2) { width: 13% !important; }
+#expense-table th:nth-child(3),
+#expense-table td:nth-child(3) { width: 14% !important; }
+#expense-table th:nth-child(4),
+#expense-table td:nth-child(4) { width: 15% !important; }
+#expense-table th:nth-child(5),
+#expense-table td:nth-child(5) { width: auto !important; }
+#expense-table th:nth-child(6),
+#expense-table td:nth-child(6) { width: 96px !important; }
+
+#expense-table td .cell-text {
+  display: block !important;
+  width: 100% !important;
+  min-width: 0 !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+  white-space: nowrap !important;
+}
+
+#expense-table .placeholder-text {
+  color: #9ca3af !important;
+  font-style: italic !important;
+  font-weight: 400 !important;
+}
+
+#expense-table tr.selected-edit-row td {
+  background: rgba(77, 222, 131, 0.08) !important;
+}
+
+#expense-table td.editable.editing {
+  overflow: visible !important;
+  position: relative !important;
+  z-index: 2 !important;
+}
+
+#expense-table tr.selected-edit-row td.category-cell,
+#expense-table tr.selected-edit-row td.date-cell {
+  z-index: 80 !important;
+}
+
+#expense-table td.editable.editing .table-edit-input,
+#expense-table .table-amount-input,
+#expense-table .table-date-trigger,
+#expense-table .category-edit-trigger {
+  width: 100% !important;
+  min-width: 0 !important;
+  height: 34px !important;
+  min-height: 34px !important;
+  border: 1px solid rgba(166, 186, 174, 0.38) !important;
+  border-radius: 10px !important;
+  background: rgba(255, 255, 255, 0.76) !important;
+  padding: 0 10px !important;
+  color: #4b5563 !important;
+  font-family: "Inter", Arial, sans-serif !important;
+  font-size: 12px !important;
+  font-weight: 430 !important;
+  letter-spacing: -0.005em !important;
+  outline: none !important;
+  box-shadow: none !important;
+}
+
+#expense-table td.editable.editing .table-edit-input:focus,
+#expense-table .table-amount-input:focus-within,
+#expense-table .table-date-trigger:focus-visible,
+#expense-table .category-edit-trigger:focus-visible,
+#expense-table .category-edit-menu.open .category-edit-trigger,
+#expense-table .table-date-picker.open .table-date-trigger {
+  border-color: rgba(72, 221, 182, 0.95) !important;
+  background: rgba(255, 255, 255, 0.92) !important;
+  box-shadow: inset 0 0 0 1px rgba(72, 221, 182, 0.95), 0 0 0 3px rgba(168, 255, 120, 0.14) !important;
+  color: #111827 !important;
+}
+
+#expense-table td.editable.editing .table-edit-input::placeholder,
+#expense-table .description-edit-input::placeholder {
+  color: #9ca3af !important;
+  font-style: italic !important;
+  font-weight: 400 !important;
+}
+
+#expense-table td.editable.editing.has-error .table-edit-input,
+#expense-table td.editable.editing.has-error .table-amount-input,
+#expense-table td.editable.editing.has-error .table-date-trigger,
+#expense-table td.editable.editing.has-error .category-edit-trigger {
+  border-color: rgba(239, 68, 68, 0.82) !important;
+  background: rgba(255, 247, 247, 0.98) !important;
+  box-shadow: inset 0 0 0 1px rgba(239, 68, 68, 0.82), 0 0 0 3px rgba(239, 68, 68, 0.08) !important;
+}
+
+#expense-table .table-amount-input {
+  display: flex !important;
+  align-items: center !important;
+  gap: 4px !important;
+  padding-left: 10px !important;
+}
+
+#expense-table .table-amount-input > span {
+  color: #7B857F !important;
+  font-size: 12px !important;
+  font-weight: 400 !important;
+  line-height: 1 !important;
+  opacity: 0.62 !important;
+}
+
+#expense-table .table-amount-input input {
+  flex: 1 1 auto !important;
+  min-width: 0 !important;
+  height: 100% !important;
+  border: 0 !important;
+  padding: 0 !important;
+  margin: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  color: #4b5563 !important;
+  font-family: "Inter", Arial, sans-serif !important;
+  font-size: 12px !important;
+  font-weight: 430 !important;
+  outline: none !important;
+}
+
+.category-edit-panel {
+  display: grid !important;
+  gap: 4px !important;
+  top: calc(100% + 8px) !important;
+  min-width: 100% !important;
+  z-index: 9998 !important;
+}
+
+.table-date-picker-panel {
+  width: 286px !important;
+  z-index: 9999 !important;
+}
+
+#expense-table td.actions-cell {
+  padding-left: 6px !important;
+  padding-right: 16px !important;
+  overflow: visible !important;
+  white-space: nowrap !important;
+  position: relative !important;
+  z-index: 3 !important;
+  vertical-align: middle !important;
+}
+
+#expense-table .row-actions {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: flex-end !important;
+  gap: 7px !important;
+  width: 100% !important;
+  min-width: 86px !important;
+  position: relative !important;
+  z-index: 4 !important;
+  white-space: nowrap !important;
+}
+
+#expense-table .row-icon-btn {
+  width: 28px !important;
+  height: 28px !important;
+  min-width: 28px !important;
+  padding: 0 !important;
+  margin: 0 !important;
+  border: 1px solid rgba(17, 24, 39, 0.06) !important;
+  border-radius: 9px !important;
+  background: rgba(255, 255, 255, 0.78) !important;
+  color: #9ca3a8 !important;
+  box-shadow: 0 8px 20px rgba(15, 23, 42, 0.04) !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  cursor: pointer !important;
+}
+
+#expense-table .row-icon-btn svg {
+  width: 15px !important;
+  height: 15px !important;
+  fill: none !important;
+  stroke: currentColor !important;
+  display: block !important;
+}
+
+#expense-table .edit-row-btn {
+  border-color: transparent !important;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+#expense-table .edit-row-btn svg {
+  fill: currentColor !important;
+  stroke: none !important;
+}
+
+#expense-table .edit-row-btn:hover,
+#expense-table .edit-row-btn:focus-visible {
+  color: var(--accent-green) !important;
+  background: #A8FF7824 !important;
+  outline: none !important;
+}
+
+#expense-table .save-row-btn {
+  color: #16a34a !important;
+  background: #A8FF7824 !important;
+}
+
+#expense-table .save-row-btn:hover,
+#expense-table .save-row-btn:focus-visible {
+  color: #15803d !important;
+  background: rgba(77, 222, 131, 0.18) !important;
+  outline: none !important;
+}
+
+#expense-table .cancel-row-btn {
+  color: #9ca3af !important;
+  background: rgba(255, 255, 255, 0.72) !important;
+}
+
+#expense-table .cancel-row-btn:hover,
+#expense-table .cancel-row-btn:focus-visible {
+  color: #6b7280 !important;
+  background: rgba(17, 24, 39, 0.055) !important;
+  outline: none !important;
+}
+
+#expense-table .delete-row-btn {
+  color: #9ca3af !important;
+  background: rgba(255, 255, 255, 0.72) !important;
+}
+
+#expense-table .delete-row-btn:hover,
+#expense-table .delete-row-btn:focus-visible {
+  color: #dc2626 !important;
+  border-color: rgba(239, 68, 68, 0.28) !important;
+  background: rgba(254, 226, 226, 0.78) !important;
+  outline: none !important;
+}
+
+.expense-pagination {
+  margin-top: 14px !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: flex-end !important;
+  gap: 4px !important;
+  color: #4b5563 !important;
+  font-family: "Inter", Arial, sans-serif !important;
+  font-size: 12px !important;
+  font-weight: 420 !important;
+  line-height: 1 !important;
+}
+
+.expense-pagination span {
+  margin-right: 4px !important;
+}
+
+.expense-pagination button {
+  width: 26px !important;
+  height: 26px !important;
+  min-width: 26px !important;
+  border-radius: 50% !important;
+  border: none !important;
+  background: transparent !important;
+  color: #111827 !important;
+  box-shadow: none !important;
+}
+
+.expense-pagination button svg {
+  width: 16px !important;
+  height: 16px !important;
+}
+
+.expense-pagination button:disabled {
+  color: #d1d1d1 !important;
+  cursor: default !important;
+  pointer-events: none !important;
+}
+
+.delete-expense-modal {
+  z-index: 10020 !important;
+}
+
+.delete-expense-dialog-card {
+  width: min(460px, 100%) !important;
+}
+
+.delete-expense-dialog-card .unsaved-changes-actions .table-action-btn.primary {
+  background: linear-gradient(135deg, #58e37d, #3ed6ad) !important;
+  color: #ffffff !important;
+  border: 0 !important;
+  box-shadow: 0 14px 30px rgba(72, 221, 182, 0.22) !important;
+}
+
+.delete-expense-dialog-card .unsaved-changes-actions .table-action-btn.secondary {
+  background: rgba(255, 255, 255, 0.74) !important;
+  color: #666 !important;
+}
+
 /* Summary/category cards */
 .summary-section {
-  margin-top: 22px;
+  margin-top: 22px !important;
 }
 
-.summary-grid {
-  align-items: stretch;
+.expense-summary-section {
+  border-top: 1px solid rgba(17, 24, 39, 0.08) !important;
+  padding-top: 26px !important;
 }
 
-.category-item > div {
-  grid-column: 1 / -1;
+.expense-summary-grid {
+  display: grid !important;
+  grid-template-columns: minmax(280px, 0.75fr) minmax(420px, 1.15fr) !important;
+  gap: 26px !important;
+  align-items: stretch !important;
 }
+
+.expense-summary-grid .summary-left {
+  min-width: 0 !important;
+}
+
+.expense-summary-grid .category-item {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  gap: 16px !important;
+}
+
+.category-chart-card {
+  border: 1px solid rgba(255, 255, 255, 0.72) !important;
+  border-radius: 24px !important;
+  background: linear-gradient(145deg, rgba(255, 255, 255, 0.78), rgba(255, 255, 255, 0.58)) !important;
+  box-shadow: 0 20px 54px rgba(15, 23, 42, 0.08) !important;
+  backdrop-filter: blur(18px) !important;
+  -webkit-backdrop-filter: blur(18px) !important;
+  padding: 24px 30px !important;
+  min-width: 0 !important;
+}
+
+.category-chart-heading {
+  display: flex !important;
+  align-items: flex-start !important;
+  justify-content: space-between !important;
+  gap: 18px !important;
+  margin-bottom: 18px !important;
+}
+
+.category-chart-heading h4 {
+  margin: 0 !important;
+  color: #111827 !important;
+  font-size: 14px !important;
+  font-weight: 650 !important;
+  letter-spacing: -0.01em !important;
+}
+
+.category-chart-heading p {
+  margin: 5px 0 0 !important;
+  color: #647067 !important;
+  font-size: 12px !important;
+  font-weight: 420 !important;
+}
+
+.category-chart-heading > span {
+  padding: 7px 13px !important;
+  border-radius: 999px !important;
+  background: #A8FF7824 !important;
+  color: #166534 !important;
+  font-size: 11px !important;
+  font-weight: 650 !important;
+  text-transform: capitalize !important;
+}
+
+.category-chart-layout {
+  display: grid !important;
+  grid-template-columns: minmax(220px, 1fr) minmax(190px, 0.85fr) !important;
+  gap: 28px !important;
+  align-items: center !important;
+}
+
+.donut-chart {
+  width: 246px !important;
+  aspect-ratio: 1 !important;
+  justify-self: center !important;
+  position: relative !important;
+  display: grid !important;
+  place-items: center !important;
+}
+
+.donut-chart svg {
+  width: 100% !important;
+  height: 100% !important;
+  overflow: visible !important;
+}
+
+.donut-track,
+.donut-empty-track {
+  stroke: rgba(226, 232, 240, 0.7) !important;
+}
+
+.donut-segment {
+  transition: opacity 0.16s ease, filter 0.16s ease !important;
+  cursor: pointer !important;
+  filter: drop-shadow(0 6px 10px rgba(15, 23, 42, 0.06)) !important;
+}
+
+.donut-segment:hover {
+  opacity: 0.82 !important;
+  filter: drop-shadow(0 10px 16px rgba(15, 23, 42, 0.12)) !important;
+}
+
+.donut-chart-hole {
+  position: absolute !important;
+  inset: 50% auto auto 50% !important;
+  transform: translate(-50%, -50%) !important;
+  width: 104px !important;
+  height: 104px !important;
+  border-radius: 999px !important;
+  background: rgba(255, 255, 255, 0.64) !important;
+  display: grid !important;
+  place-items: center !important;
+  align-content: center !important;
+  gap: 3px !important;
+  color: #111827 !important;
+  backdrop-filter: blur(14px) !important;
+  -webkit-backdrop-filter: blur(14px) !important;
+}
+
+.donut-chart-hole strong {
+  font-size: 22px !important;
+  font-weight: 700 !important;
+  line-height: 1 !important;
+  letter-spacing: -0.03em !important;
+}
+
+.donut-chart-hole span {
+  color: #647067 !important;
+  font-size: 11px !important;
+  font-weight: 420 !important;
+}
+
+.donut-tooltip {
+  position: absolute !important;
+  z-index: 20 !important;
+  min-width: 132px !important;
+  padding: 9px 11px !important;
+  border-radius: 8px !important;
+  background: rgba(17, 24, 39, 0.92) !important;
+  color: #ffffff !important;
+  box-shadow: 0 16px 32px rgba(15, 23, 42, 0.22) !important;
+  pointer-events: none !important;
+}
+
+.donut-tooltip strong {
+  display: block !important;
+  margin-bottom: 4px !important;
+  font-size: 11px !important;
+  font-weight: 650 !important;
+}
+
+.donut-tooltip span {
+  display: flex !important;
+  align-items: center !important;
+  gap: 6px !important;
+  color: rgba(255, 255, 255, 0.88) !important;
+  font-size: 10.5px !important;
+  font-weight: 420 !important;
+  white-space: nowrap !important;
+}
+
+.donut-tooltip i {
+  width: 10px !important;
+  height: 10px !important;
+  border-radius: 999px !important;
+  display: inline-block !important;
+}
+
+.category-chart-list {
+  border-left: 1px solid rgba(17, 24, 39, 0.08) !important;
+  padding-left: 24px !important;
+}
+
+.category-chart-list > p {
+  margin: 0 0 10px !important;
+  color: #7b857f !important;
+  font-size: 10.5px !important;
+  font-weight: 700 !important;
+  letter-spacing: 0.08em !important;
+}
+
+.category-chart-row {
+  display: grid !important;
+  grid-template-columns: 10px 1fr auto !important;
+  gap: 10px !important;
+  align-items: center !important;
+  padding: 8px 0 !important;
+  border-bottom: 1px solid rgba(17, 24, 39, 0.06) !important;
+}
+
+.category-chart-row.empty {
+  display: block !important;
+  color: #647067 !important;
+  font-size: 12px !important;
+  border-bottom: 0 !important;
+}
+
+.category-dot {
+  width: 7px !important;
+  height: 7px !important;
+  border-radius: 999px !important;
+}
+
+.category-chart-row strong {
+  display: block !important;
+  color: #111827 !important;
+  font-size: 12px !important;
+  font-weight: 650 !important;
+}
+
+.category-chart-row small {
+  display: block !important;
+  margin-top: 2px !important;
+  color: #647067 !important;
+  font-size: 11px !important;
+  font-weight: 420 !important;
+}
+
+.category-chart-row b {
+  color: #111827 !important;
+  font-size: 12px !important;
+  font-weight: 650 !important;
+}
+
+@media (max-width: 980px) {
+  .expense-summary-grid,
+  .category-chart-layout {
+    grid-template-columns: 1fr !important;
+  }
+
+  .category-chart-list {
+    border-left: 0 !important;
+    padding-left: 0 !important;
+  }
+}
+
 
 /* Monthly trend placeholder bars */
 .trend-section .category-item {
@@ -1371,4 +2400,2559 @@ main:has(.auth-page) {
 .quick-expense-panel .date-field-group input#add-expense-date[aria-invalid="true"]:focus {
   border-color: rgba(239, 68, 68, 0.78) !important;
   box-shadow: 0 0 0 4px rgba(239, 68, 68, 0.10) !important;
+}
+
+/* ---------- React expense history polish pass 3: dropdown, date, chart and overlay refinements ---------- */
+.table-toolbar {
+  display: grid !important;
+  grid-template-columns: minmax(220px, 1.15fr) minmax(156px, 0.72fr) minmax(158px, 0.72fr) minmax(170px, 0.78fr) 64px !important;
+  gap: 10px !important;
+  align-items: center !important;
+}
+
+.table-toolbar .table-search,
+.table-toolbar .toolbar-menu,
+.table-toolbar .month-toolbar-menu,
+.table-toolbar .toolbar-clear {
+  width: 100% !important;
+  min-width: 0 !important;
+  flex: none !important;
+}
+
+.toolbar-menu-trigger,
+.toolbar-option,
+.category-edit-option,
+.add-expense-category-option,
+.month-option,
+.this-month-btn,
+.expense-pagination span {
+  font-family: "Inter", Arial, sans-serif !important;
+  font-size: 12px !important;
+  letter-spacing: 0 !important;
+}
+
+.toolbar-menu-trigger {
+  font-weight: 500 !important;
+}
+
+.toolbar-option,
+.category-edit-option,
+.add-expense-category-option,
+.month-option {
+  font-weight: 500 !important;
+  color: #4b5563 !important;
+}
+
+.toolbar-option:hover,
+.toolbar-option:focus-visible,
+.category-edit-option:hover,
+.category-edit-option:focus-visible,
+.add-expense-category-option:hover,
+.add-expense-category-option:focus-visible,
+.month-option:hover,
+.month-option:focus-visible {
+  background: #A8FF7824 !important;
+  color: #166534 !important;
+}
+
+.toolbar-option.active,
+.category-edit-option.active,
+.add-expense-category-option.active,
+.month-option.selected,
+.this-month-btn {
+  background: linear-gradient(135deg, rgba(88, 230, 111, 0.96), rgba(72, 221, 182, 0.96)) !important;
+  color: #ffffff !important;
+  font-weight: 600 !important;
+}
+
+.toolbar-dropdown-panel,
+.category-menu-panel,
+.sort-menu-panel {
+  width: 100% !important;
+  min-width: 100% !important;
+}
+
+.toolbar-chevron,
+.category-edit-chevron {
+  width: 12px !important;
+  height: 12px !important;
+}
+
+.toolbar-chevron svg,
+.category-edit-chevron svg,
+.add-expense-category-trigger .toolbar-chevron svg {
+  width: 12px !important;
+  height: 12px !important;
+  transform: none !important;
+  stroke-width: 1.28px !important;
+}
+
+.toolbar-menu.open .toolbar-chevron svg,
+.category-edit-menu.open .category-edit-chevron svg,
+.add-expense-category-menu.open .toolbar-chevron svg {
+  transform: none !important;
+}
+
+.month-picker-panel {
+  width: 100% !important;
+  min-width: 100% !important;
+  right: auto !important;
+  left: 0 !important;
+}
+
+.month-picker-header button,
+.date-picker-header button {
+  width: 26px !important;
+  height: 26px !important;
+  min-width: 26px !important;
+  border-radius: 9px !important;
+}
+
+.month-picker-header button svg,
+.date-picker-header button svg,
+.expense-pagination button svg {
+  width: 11px !important;
+  height: 11px !important;
+  stroke-width: 1.35px !important;
+}
+
+/* Manual date input + compact calendar controls */
+.add-date-trigger,
+.table-date-trigger {
+  cursor: text !important;
+}
+
+.date-manual-input {
+  flex: 1 1 auto !important;
+  min-width: 0 !important;
+  height: 100% !important;
+  border: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  outline: none !important;
+  color: #111827 !important;
+  font-family: "Inter", Arial, sans-serif !important;
+  font-size: 13px !important;
+  font-weight: 400 !important;
+  letter-spacing: 0.01em !important;
+}
+
+.date-manual-input::placeholder {
+  color: #9ca3af !important;
+  opacity: 0.78 !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.015em !important;
+  font-weight: 400 !important;
+}
+
+.date-icon-btn {
+  width: 24px !important;
+  height: 24px !important;
+  min-width: 24px !important;
+  padding: 0 !important;
+  border: 0 !important;
+  border-radius: 8px !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  color: #166534 !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  cursor: pointer !important;
+}
+
+.date-icon-btn:hover,
+.date-icon-btn:focus-visible {
+  background: #A8FF7824 !important;
+  outline: none !important;
+}
+
+.date-icon-btn svg,
+.add-date-trigger .date-icon-btn svg,
+.table-date-trigger .date-icon-btn svg {
+  width: 15px !important;
+  height: 15px !important;
+  stroke-width: 1.45px !important;
+}
+
+.table-date-trigger .date-icon-btn svg {
+  width: 14px !important;
+  height: 14px !important;
+}
+
+.date-input-shell .add-date-picker-panel {
+  width: 100% !important;
+  min-width: 100% !important;
+  left: 0 !important;
+  right: auto !important;
+}
+
+.table-date-picker-panel {
+  width: 292px !important;
+  min-width: 292px !important;
+  max-width: calc(100vw - 40px) !important;
+  left: 0 !important;
+  right: auto !important;
+}
+
+.date-picker-panel {
+  border-radius: 16px !important;
+}
+
+.date-weekdays span,
+.date-day {
+  font-family: "Inter", Arial, sans-serif !important;
+  font-size: 12px !important;
+}
+
+/* Table sizing, truncation and row action spacing */
+#expense-table th,
+#expense-table td {
+  font-size: 12px !important;
+}
+
+#expense-table .cell-text {
+  display: block !important;
+  max-width: 100% !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+  white-space: nowrap !important;
+}
+
+#expense-table .title-cell,
+#expense-table .description-cell {
+  max-width: 0 !important;
+}
+
+#expense-table .actions-cell {
+  width: 88px !important;
+  padding-right: 18px !important;
+}
+
+#expense-table .actions-header {
+  width: 88px !important;
+}
+
+#expense-table .row-actions {
+  justify-content: flex-end !important;
+  gap: 7px !important;
+}
+
+#expense-table .row-icon-btn {
+  width: 26px !important;
+  height: 26px !important;
+  min-width: 26px !important;
+  border-radius: 9px !important;
+}
+
+#expense-table .row-icon-btn svg {
+  width: 13px !important;
+  height: 13px !important;
+}
+
+#expense-table .cancel-row-btn {
+  color: #6b7280 !important;
+  background: rgba(255, 255, 255, 0.78) !important;
+  border-color: rgba(17, 24, 39, 0.08) !important;
+}
+
+#expense-table .delete-row-btn:hover,
+#expense-table .delete-row-btn:focus-visible {
+  color: #dc2626 !important;
+  border-color: rgba(239, 68, 68, 0.32) !important;
+  background: rgba(254, 226, 226, 0.92) !important;
+  box-shadow: 0 8px 20px rgba(239, 68, 68, 0.10) !important;
+}
+
+#expense-table .table-amount-input > span,
+.quick-expense-panel .amount-field-group .currency-prefix {
+  color: #7b857f !important;
+  font-weight: 400 !important;
+  opacity: 0.72 !important;
+}
+
+#expense-table .table-amount-input input {
+  border: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+/* Softer, single-piece newly added row highlight */
+#expense-table tr.recently-added-row {
+  animation: recentlyAddedExpenseRowPulse 2.6s ease-out !important;
+}
+
+#expense-table tr.recently-added-row td {
+  animation: none !important;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+@keyframes recentlyAddedExpenseRowPulse {
+  0% {
+    background: rgba(168, 255, 120, 0.20);
+    box-shadow: inset 0 0 0 1px rgba(72, 221, 182, 0.38);
+  }
+  48% {
+    background: rgba(168, 255, 120, 0.14);
+    box-shadow: inset 0 0 0 1px rgba(72, 221, 182, 0.22);
+  }
+  100% {
+    background: transparent;
+    box-shadow: inset 0 0 0 0 rgba(72, 221, 182, 0);
+  }
+}
+
+/* Pagination refinement */
+.expense-pagination {
+  gap: 8px !important;
+}
+
+.expense-pagination span {
+  color: #7b857f !important;
+  font-size: 11px !important;
+  font-weight: 450 !important;
+}
+
+.expense-pagination button {
+  width: 24px !important;
+  height: 24px !important;
+  min-width: 24px !important;
+  border: 0 !important;
+  background: transparent !important;
+  color: #9ca3af !important;
+}
+
+.expense-pagination button:not(:disabled):hover,
+.expense-pagination button:not(:disabled):focus-visible {
+  background: #A8FF7824 !important;
+  color: #166534 !important;
+}
+
+/* Category chart closer to the original glass treatment */
+.category-chart-card {
+  position: relative !important;
+  overflow: hidden !important;
+  background:
+    radial-gradient(circle at 92% 8%, rgba(72, 221, 182, 0.18), transparent 28%),
+    linear-gradient(145deg, rgba(255, 255, 255, 0.82), rgba(255, 255, 255, 0.58)) !important;
+  box-shadow: 0 22px 62px rgba(15, 23, 42, 0.08), inset 0 1px 0 rgba(255, 255, 255, 0.76) !important;
+}
+
+.category-chart-card::after {
+  content: "" !important;
+  position: absolute !important;
+  width: 190px !important;
+  height: 190px !important;
+  top: -70px !important;
+  right: -65px !important;
+  border-radius: 999px !important;
+  background: radial-gradient(circle, rgba(72, 221, 182, 0.18), transparent 68%) !important;
+  pointer-events: none !important;
+}
+
+.donut-chart svg {
+  filter: drop-shadow(0 12px 24px rgba(15, 23, 42, 0.08)) !important;
+}
+
+.donut-tooltip {
+  border-radius: 10px !important;
+  padding: 10px 12px !important;
+}
+
+.donut-tooltip::before {
+  content: "" !important;
+  position: absolute !important;
+  left: -7px !important;
+  top: 50% !important;
+  transform: translateY(-50%) !important;
+  width: 0 !important;
+  height: 0 !important;
+  border-top: 7px solid transparent !important;
+  border-bottom: 7px solid transparent !important;
+  border-right: 7px solid rgba(17, 24, 39, 0.92) !important;
+}
+
+.category-chart-list {
+  display: grid !important;
+  gap: 10px !important;
+}
+
+.category-chart-row {
+  gap: 12px !important;
+  padding: 11px 0 !important;
+}
+
+.category-chart-row strong {
+  font-size: 12px !important;
+  font-weight: 650 !important;
+}
+
+.category-chart-row small {
+  font-size: 11px !important;
+  font-weight: 420 !important;
+}
+
+.category-chart-row b {
+  font-size: 12px !important;
+  font-weight: 650 !important;
+}
+
+/* Delete confirmation overlay should cover the full viewport, including the header */
+.unsaved-changes-modal.delete-expense-modal {
+  position: fixed !important;
+  inset: 0 !important;
+  width: 100vw !important;
+  height: 100dvh !important;
+  z-index: 2147483000 !important;
+  padding: 24px !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  background:
+    radial-gradient(circle at 50% 32%, rgba(168, 255, 120, 0.20), transparent 32%),
+    rgba(15, 23, 42, 0.34) !important;
+  backdrop-filter: blur(18px) !important;
+  -webkit-backdrop-filter: blur(18px) !important;
+}
+
+.delete-expense-dialog-card {
+  width: min(460px, calc(100vw - 40px)) !important;
+  min-height: 0 !important;
+  padding: 28px 30px 30px !important;
+}
+
+.delete-expense-dialog-card p strong {
+  font-weight: 600 !important;
+}
+
+.delete-expense-dialog-card .unsaved-changes-copy p {
+  font-weight: 400 !important;
+}
+
+@media (max-width: 1120px) {
+  .table-toolbar {
+    grid-template-columns: minmax(220px, 1fr) minmax(150px, 1fr) minmax(150px, 1fr) !important;
+  }
+
+  .table-toolbar .month-toolbar-menu,
+  .table-toolbar .toolbar-clear {
+    grid-column: span 1 !important;
+  }
+}
+
+@media (max-width: 760px) {
+  .table-toolbar {
+    grid-template-columns: 1fr !important;
+  }
+
+  .toolbar-clear {
+    width: 100% !important;
+  }
+}
+
+
+/* ---------- React expense history polish pass 4: segmented dates, toolbar order, modal portals ---------- */
+.quick-expense-panel .input-row {
+  display: grid !important;
+  grid-template-columns: minmax(190px, 1.1fr) minmax(150px, 0.52fr) minmax(170px, 0.72fr) minmax(190px, 0.78fr) !important;
+  gap: 12px !important;
+  align-items: flex-start !important;
+}
+
+.quick-expense-panel .description-group {
+  grid-column: 1 / -1 !important;
+}
+
+@media (max-width: 960px) {
+  .quick-expense-panel .input-row {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  }
+}
+
+@media (max-width: 640px) {
+  .quick-expense-panel .input-row {
+    grid-template-columns: 1fr !important;
+  }
+}
+
+.date-segment-group {
+  display: inline-flex !important;
+  align-items: center !important;
+  flex: 1 1 auto !important;
+  min-width: 0 !important;
+  height: 100% !important;
+  gap: 1px !important;
+  color: #111827 !important;
+}
+
+.date-segment-input {
+  width: 2.35ch !important;
+  min-width: 0 !important;
+  height: 100% !important;
+  padding: 0 !important;
+  margin: 0 !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  outline: none !important;
+  color: #111827 !important;
+  font-family: "Inter", Arial, sans-serif !important;
+  font-size: 13px !important;
+  font-weight: 400 !important;
+  line-height: 1 !important;
+  text-align: center !important;
+  letter-spacing: 0.02em !important;
+}
+
+.date-year-segment {
+  width: 4.75ch !important;
+}
+
+.date-segment-input::placeholder {
+  color: #a5adb4 !important;
+  opacity: 0.78 !important;
+  text-transform: uppercase !important;
+  font-weight: 400 !important;
+  letter-spacing: 0.025em !important;
+}
+
+.date-segment-divider {
+  color: #a5adb4 !important;
+  font-size: 13px !important;
+  font-weight: 400 !important;
+  line-height: 1 !important;
+  user-select: none !important;
+}
+
+.add-date-trigger,
+.table-date-trigger {
+  overflow: visible !important;
+  cursor: default !important;
+}
+
+.add-date-trigger .date-icon-btn,
+.table-date-trigger .date-icon-btn {
+  margin-left: auto !important;
+  flex: 0 0 24px !important;
+}
+
+.date-picker-panel {
+  border-radius: 18px !important;
+  padding: 16px !important;
+  background: rgba(255, 255, 255, 0.88) !important;
+  border: 1px solid rgba(209, 219, 214, 0.70) !important;
+  box-shadow: 0 24px 62px rgba(15, 23, 42, 0.12), inset 0 1px 0 rgba(255, 255, 255, 0.76) !important;
+}
+
+.date-input-shell .add-date-picker-panel {
+  width: min(360px, calc(100vw - 40px)) !important;
+  min-width: min(360px, calc(100vw - 40px)) !important;
+  left: auto !important;
+  right: 0 !important;
+}
+
+.table-date-picker-panel {
+  width: min(320px, calc(100vw - 40px)) !important;
+  min-width: min(320px, calc(100vw - 40px)) !important;
+}
+
+.date-picker-header {
+  margin-bottom: 14px !important;
+}
+
+.date-picker-header span {
+  font-size: 14px !important;
+  font-weight: 650 !important;
+  color: #111827 !important;
+  letter-spacing: 0 !important;
+}
+
+.date-weekdays {
+  margin-bottom: 8px !important;
+}
+
+.date-weekdays span {
+  font-size: 11px !important;
+  font-weight: 650 !important;
+  color: #9ca3af !important;
+}
+
+.date-day {
+  height: 36px !important;
+  font-size: 12px !important;
+  font-weight: 500 !important;
+  border-radius: 11px !important;
+}
+
+.date-picker-actions button {
+  height: 32px !important;
+  min-width: 76px !important;
+  font-size: 12px !important;
+  font-weight: 500 !important;
+}
+
+.toolbar-menu-trigger {
+  font-weight: 500 !important;
+}
+
+.toolbar-menu-icon svg,
+.toolbar-chevron svg,
+.category-edit-chevron svg,
+.add-expense-category-trigger .toolbar-chevron svg {
+  stroke-width: 1.35px !important;
+  transform: rotate(0deg) !important;
+}
+
+.toolbar-menu.open .toolbar-chevron svg,
+.category-edit-menu.open .category-edit-chevron svg,
+.add-expense-category-menu.open .toolbar-chevron svg {
+  transform: rotate(0deg) !important;
+}
+
+.table-toolbar {
+  grid-template-columns: minmax(220px, 1.15fr) minmax(150px, 0.68fr) minmax(170px, 0.78fr) minmax(158px, 0.72fr) 64px !important;
+}
+
+.sort-menu-panel,
+.category-menu-panel,
+.month-picker-panel {
+  width: 100% !important;
+  min-width: 100% !important;
+}
+
+.toolbar-option,
+.category-edit-option,
+.add-expense-category-option,
+.month-option {
+  font-size: 12px !important;
+  font-weight: 500 !important;
+}
+
+#expense-table th:nth-child(1),
+#expense-table td:nth-child(1) { width: 22% !important; }
+#expense-table th:nth-child(2),
+#expense-table td:nth-child(2) { width: 13% !important; }
+#expense-table th:nth-child(3),
+#expense-table td:nth-child(3) { width: 14% !important; }
+#expense-table th:nth-child(4),
+#expense-table td:nth-child(4) { width: 15% !important; }
+#expense-table th:nth-child(6),
+#expense-table td:nth-child(6) { width: 112px !important; }
+
+#expense-table td.actions-cell {
+  padding-left: 4px !important;
+  padding-right: 28px !important;
+}
+
+#expense-table .actions-header {
+  width: 112px !important;
+}
+
+#expense-table .row-actions {
+  min-width: 84px !important;
+  gap: 6px !important;
+  justify-content: flex-end !important;
+}
+
+#expense-table .edit-row-btn {
+  margin-right: 2px !important;
+}
+
+#expense-table .row-icon-btn {
+  width: 27px !important;
+  height: 27px !important;
+  min-width: 27px !important;
+}
+
+#expense-table .row-icon-btn svg {
+  width: 13px !important;
+  height: 13px !important;
+}
+
+#expense-table .cancel-row-btn {
+  color: #6b7280 !important;
+  background: rgba(255, 255, 255, 0.82) !important;
+}
+
+#expense-table .delete-row-btn:hover,
+#expense-table .delete-row-btn:focus-visible {
+  color: #dc2626 !important;
+  background: rgba(254, 242, 242, 0.96) !important;
+  border-color: rgba(239, 68, 68, 0.34) !important;
+}
+
+#expense-table .table-amount-input > span,
+.quick-expense-panel .amount-field-group .currency-prefix {
+  font-weight: 400 !important;
+  opacity: 0.62 !important;
+}
+
+#expense-table td.editable.editing.has-error .table-date-trigger,
+#expense-table td.editable.editing.has-error .category-edit-trigger,
+#expense-table td.editable.editing.has-error .table-amount-input,
+#expense-table td.editable.editing.has-error .table-edit-input {
+  border-color: rgba(239, 68, 68, 0.82) !important;
+  box-shadow: inset 0 0 0 1px rgba(239, 68, 68, 0.82), 0 0 0 3px rgba(239, 68, 68, 0.08) !important;
+}
+
+#expense-table tr.recently-added-row {
+  position: relative !important;
+  background: transparent !important;
+}
+
+#expense-table tr.recently-added-row::after {
+  content: "" !important;
+  position: absolute !important;
+  inset: 0 !important;
+  pointer-events: none !important;
+  border-radius: 0 !important;
+  animation: recentlyAddedExpenseRowOverlay 2.6s ease-out !important;
+}
+
+#expense-table tr.recently-added-row td {
+  background: transparent !important;
+  box-shadow: none !important;
+  animation: none !important;
+}
+
+@keyframes recentlyAddedExpenseRowOverlay {
+  0% { background: rgba(168, 255, 120, 0.20); box-shadow: inset 0 0 0 1px rgba(72, 221, 182, 0.38); }
+  45% { background: rgba(168, 255, 120, 0.13); box-shadow: inset 0 0 0 1px rgba(72, 221, 182, 0.22); }
+  100% { background: transparent; box-shadow: inset 0 0 0 0 rgba(72, 221, 182, 0); }
+}
+
+.unsaved-changes-modal.show {
+  position: fixed !important;
+  inset: 0 !important;
+  width: 100vw !important;
+  height: 100dvh !important;
+  z-index: 2147483640 !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  padding: 24px !important;
+  background: radial-gradient(circle at 50% 36%, rgba(168, 255, 120, 0.18), transparent 34%), rgba(15, 23, 42, 0.36) !important;
+  backdrop-filter: blur(18px) !important;
+  -webkit-backdrop-filter: blur(18px) !important;
+  overscroll-behavior: contain !important;
+}
+
+.unsaved-changes-dialog-card {
+  width: min(460px, calc(100vw - 40px)) !important;
+  padding: 28px 30px 30px !important;
+}
+
+.delete-expense-dialog-card p strong {
+  font-weight: 600 !important;
+}
+
+.category-chart-card {
+  background: radial-gradient(circle at 94% 10%, rgba(72, 221, 182, 0.105), transparent 30%), linear-gradient(145deg, rgba(255, 255, 255, 0.84), rgba(255, 255, 255, 0.61)) !important;
+}
+
+.category-chart-card::after {
+  background: radial-gradient(circle, rgba(72, 221, 182, 0.10), transparent 70%) !important;
+}
+
+.donut-segment-outline {
+  stroke: rgba(226, 232, 240, 0.98) !important;
+  stroke-linecap: round !important;
+  pointer-events: none !important;
+}
+
+.donut-segment {
+  paint-order: stroke !important;
+}
+
+.donut-tooltip {
+  transform: translateY(-50%) !important;
+  border-radius: 10px !important;
+}
+
+.donut-tooltip.right::before {
+  content: "" !important;
+  position: absolute !important;
+  left: -7px !important;
+  top: 50% !important;
+  transform: translateY(-50%) !important;
+  width: 0 !important;
+  height: 0 !important;
+  border-top: 7px solid transparent !important;
+  border-bottom: 7px solid transparent !important;
+  border-right: 7px solid rgba(17, 24, 39, 0.92) !important;
+  border-left: 0 !important;
+}
+
+.donut-tooltip.left::before {
+  content: "" !important;
+  position: absolute !important;
+  right: -7px !important;
+  left: auto !important;
+  top: 50% !important;
+  transform: translateY(-50%) !important;
+  width: 0 !important;
+  height: 0 !important;
+  border-top: 7px solid transparent !important;
+  border-bottom: 7px solid transparent !important;
+  border-left: 7px solid rgba(17, 24, 39, 0.92) !important;
+  border-right: 0 !important;
+}
+
+.category-chart-list {
+  gap: 4px !important;
+}
+
+.category-chart-row {
+  padding: 8px 0 !important;
+  gap: 10px !important;
+}
+
+@media (max-width: 1120px) {
+  .table-toolbar {
+    grid-template-columns: minmax(220px, 1fr) minmax(150px, 1fr) minmax(160px, 1fr) !important;
+  }
+
+  .table-toolbar .toolbar-clear {
+    grid-column: auto !important;
+  }
+}
+
+@media (max-width: 760px) {
+  .table-toolbar {
+    grid-template-columns: 1fr !important;
+  }
+}
+
+/* ---------- React expense history polish pass 5: date masks, dialogs, toolbar, summary chart ---------- */
+.quick-expense-panel .date-segment-input,
+#expense-table .date-segment-input,
+.add-date-trigger .date-segment-input,
+.table-date-trigger .date-segment-input {
+  width: 2.25ch !important;
+  min-width: 2.25ch !important;
+  height: auto !important;
+  padding: 0 !important;
+  margin: 0 !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  outline: none !important;
+  color: #111827 !important;
+  font-family: "Inter", Arial, sans-serif !important;
+  font-size: 13px !important;
+  font-weight: 400 !important;
+  line-height: 1 !important;
+  text-align: center !important;
+  letter-spacing: 0.035em !important;
+}
+
+.quick-expense-panel .date-year-segment,
+#expense-table .date-year-segment,
+.add-date-trigger .date-year-segment,
+.table-date-trigger .date-year-segment {
+  width: 4.55ch !important;
+  min-width: 4.55ch !important;
+}
+
+.quick-expense-panel .date-segment-input::placeholder,
+#expense-table .date-segment-input::placeholder,
+.add-date-trigger .date-segment-input::placeholder,
+.table-date-trigger .date-segment-input::placeholder {
+  color: #a9b0b7 !important;
+  opacity: 0.74 !important;
+  font-weight: 400 !important;
+  text-transform: uppercase !important;
+}
+
+.quick-expense-panel .date-segment-divider,
+#expense-table .date-segment-divider,
+.add-date-trigger .date-segment-divider,
+.table-date-trigger .date-segment-divider {
+  color: #a9b0b7 !important;
+  font-size: 13px !important;
+  font-weight: 400 !important;
+  line-height: 1 !important;
+  padding: 0 1px !important;
+}
+
+.add-date-trigger.error,
+.table-date-trigger.has-error,
+#expense-table td.editable.editing.has-error .table-date-trigger {
+  border-color: rgba(239, 68, 68, 0.74) !important;
+  box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.075) !important;
+}
+
+.add-date-trigger.error .date-segment-input,
+.table-date-trigger.has-error .date-segment-input,
+#expense-table td.editable.editing.has-error .table-date-trigger .date-segment-input {
+  border: 0 !important;
+  box-shadow: none !important;
+  background: transparent !important;
+}
+
+.add-date-trigger,
+.table-date-trigger {
+  gap: 8px !important;
+  border-width: 1px !important;
+}
+
+.add-date-trigger .date-icon-btn,
+.table-date-trigger .date-icon-btn {
+  width: 24px !important;
+  height: 24px !important;
+  min-width: 24px !important;
+  border-radius: 8px !important;
+  padding: 0 !important;
+}
+
+.add-date-trigger .date-icon-btn svg,
+.table-date-trigger .date-icon-btn svg {
+  width: 15px !important;
+  height: 15px !important;
+  stroke-width: 1.35px !important;
+}
+
+.date-picker-panel {
+  border-radius: 18px !important;
+  padding: 14px 14px 16px !important;
+}
+
+.date-input-shell .add-date-picker-panel,
+.table-date-picker-panel {
+  width: min(332px, calc(100vw - 40px)) !important;
+  min-width: min(332px, calc(100vw - 40px)) !important;
+}
+
+.date-picker-header {
+  margin-bottom: 16px !important;
+  padding: 0 2px !important;
+}
+
+.date-picker-header span {
+  font-size: 13px !important;
+  font-weight: 560 !important;
+  color: #111827 !important;
+  letter-spacing: 0.005em !important;
+}
+
+.date-picker-header button {
+  width: 26px !important;
+  height: 26px !important;
+  min-width: 26px !important;
+  border-radius: 9px !important;
+}
+
+.date-picker-header button svg {
+  width: 11px !important;
+  height: 11px !important;
+  stroke-width: 1.25px !important;
+}
+
+.date-weekdays {
+  margin-bottom: 9px !important;
+}
+
+.date-weekdays span {
+  font-size: 10.5px !important;
+  font-weight: 580 !important;
+  color: #9ca3af !important;
+}
+
+.date-picker-grid {
+  row-gap: 7px !important;
+  column-gap: 6px !important;
+}
+
+.date-day {
+  height: 34px !important;
+  font-size: 11.5px !important;
+  font-weight: 480 !important;
+  border-radius: 10px !important;
+}
+
+.table-toolbar {
+  grid-template-columns: minmax(220px, 1.16fr) minmax(150px, 0.68fr) minmax(170px, 0.78fr) minmax(158px, 0.72fr) 64px !important;
+  align-items: center !important;
+}
+
+.toolbar-menu-trigger,
+.add-expense-category-trigger,
+.category-edit-trigger {
+  font-size: 12px !important;
+  font-weight: 500 !important;
+}
+
+.toolbar-chevron,
+.category-edit-chevron,
+.add-expense-category-trigger .toolbar-chevron {
+  width: 14px !important;
+  height: 14px !important;
+  color: currentColor !important;
+  transform: none !important;
+}
+
+.toolbar-chevron svg,
+.category-edit-chevron svg,
+.add-expense-category-trigger .toolbar-chevron svg {
+  width: 14px !important;
+  height: 14px !important;
+  transform: none !important;
+  stroke-width: 1.25px !important;
+}
+
+.toolbar-menu.open .toolbar-chevron svg,
+.category-edit-menu.open .category-edit-chevron svg,
+.add-expense-category-menu.open .toolbar-chevron svg {
+  transform: none !important;
+}
+
+.month-picker-panel {
+  padding: 10px !important;
+}
+
+.month-picker-header {
+  margin-bottom: 10px !important;
+}
+
+.month-picker-header strong {
+  font-size: 13px !important;
+  font-weight: 560 !important;
+  color: #7c8781 !important;
+}
+
+.month-picker-header button {
+  width: 26px !important;
+  height: 26px !important;
+  min-width: 26px !important;
+}
+
+.this-month-btn {
+  background: #A8FF7824 !important;
+  color: #166534 !important;
+  box-shadow: none !important;
+}
+
+.this-month-btn.selected {
+  background: linear-gradient(135deg, rgba(88, 230, 111, 0.96), rgba(72, 221, 182, 0.96)) !important;
+  color: #ffffff !important;
+  box-shadow: 0 10px 24px rgba(72, 221, 182, 0.20) !important;
+}
+
+.month-option.selected {
+  background: linear-gradient(135deg, rgba(88, 230, 111, 0.96), rgba(72, 221, 182, 0.96)) !important;
+  color: #ffffff !important;
+  box-shadow: 0 10px 24px rgba(72, 221, 182, 0.18) !important;
+}
+
+#expense-table .table-edit-input:focus,
+#expense-table .table-amount-input:focus-within,
+#expense-table .category-edit-trigger:focus-visible,
+#expense-table .category-edit-menu.open .category-edit-trigger,
+#expense-table .table-date-trigger:focus-within,
+#expense-table .table-date-picker.open .table-date-trigger {
+  border-color: rgba(72, 221, 182, 0.72) !important;
+  box-shadow: inset 0 0 0 1px rgba(72, 221, 182, 0.34), 0 0 0 3px rgba(168, 255, 120, 0.14) !important;
+  outline: none !important;
+}
+
+#expense-table td.editable.editing.has-error .table-date-trigger,
+#expense-table td.editable.editing.has-error .category-edit-trigger,
+#expense-table td.editable.editing.has-error .table-amount-input,
+#expense-table td.editable.editing.has-error .table-edit-input,
+#expense-table .table-amount-input.has-error {
+  border-color: rgba(239, 68, 68, 0.78) !important;
+  box-shadow: inset 0 0 0 1px rgba(239, 68, 68, 0.34), 0 0 0 3px rgba(239, 68, 68, 0.075) !important;
+}
+
+#expense-table td.actions-cell {
+  padding-right: 34px !important;
+}
+
+#expense-table .row-actions {
+  gap: 5px !important;
+  padding-right: 0 !important;
+}
+
+#expense-table .edit-row-btn {
+  margin-right: 0 !important;
+}
+
+.expense-pagination {
+  gap: 10px !important;
+  margin-top: 14px !important;
+}
+
+.expense-pagination span {
+  font-size: 12px !important;
+  font-weight: 500 !important;
+  color: #647067 !important;
+}
+
+.expense-pagination button {
+  width: 28px !important;
+  height: 28px !important;
+  min-width: 28px !important;
+  border-radius: 10px !important;
+}
+
+.expense-pagination button svg {
+  width: 12px !important;
+  height: 12px !important;
+  stroke-width: 1.35px !important;
+}
+
+.unsaved-changes-dialog-card {
+  width: min(388px, calc(100vw - 40px)) !important;
+  padding: 22px 24px 24px !important;
+  border-radius: 20px !important;
+}
+
+.unsaved-changes-close-btn {
+  top: 14px !important;
+  right: 16px !important;
+  font-size: 18px !important;
+}
+
+.unsaved-changes-icon {
+  width: 38px !important;
+  height: 38px !important;
+  min-width: 38px !important;
+  border-radius: 12px !important;
+  font-size: 16px !important;
+  margin-bottom: 18px !important;
+}
+
+.unsaved-changes-copy h3 {
+  font-size: 16px !important;
+  line-height: 1.2 !important;
+  margin-bottom: 12px !important;
+}
+
+.unsaved-changes-copy p {
+  font-size: 13px !important;
+  line-height: 1.45 !important;
+  margin: 0 0 5px !important;
+}
+
+.delete-expense-dialog-card .unsaved-changes-copy p {
+  margin-bottom: 5px !important;
+}
+
+.unsaved-changes-actions {
+  gap: 10px !important;
+  margin-top: 22px !important;
+}
+
+.unsaved-changes-actions .table-action-btn {
+  height: 38px !important;
+  font-size: 12px !important;
+  font-weight: 600 !important;
+  border-radius: 10px !important;
+}
+
+.category-chart-card {
+  background: radial-gradient(circle at 94% 9%, rgba(72, 221, 182, 0.075), transparent 28%), linear-gradient(145deg, rgba(255, 255, 255, 0.84), rgba(255, 255, 255, 0.63)) !important;
+}
+
+.category-chart-card::after {
+  background: radial-gradient(circle, rgba(72, 221, 182, 0.065), transparent 70%) !important;
+}
+
+.category-chart-heading p {
+  font-size: 11px !important;
+  color: #8A948F !important;
+  font-weight: 500 !important;
+}
+
+.category-chart-heading > span {
+  font-size: 10px !important;
+  color: #16834A !important;
+  background: #A8FF7824 !important;
+  font-weight: 600 !important;
+}
+
+.total-card {
+  width: 396.88px !important;
+  max-width: 100% !important;
+  min-height: 88.12px !important;
+  padding: 20px 22px !important;
+}
+
+.total-card p {
+  color: #4b5563 !important;
+  font-size: 11px !important;
+  font-weight: 500 !important;
+  margin: 0 0 4px !important;
+}
+
+.total-card h2 {
+  color: #111827 !important;
+  font-size: 26px !important;
+  line-height: 1.05 !important;
+  letter-spacing: 0.015em !important;
+  margin: 0 !important;
+}
+
+.category-chart-list > p {
+  font-size: 10px !important;
+  color: #7b857f !important;
+  letter-spacing: 0.08em !important;
+  font-weight: 700 !important;
+  margin-bottom: 8px !important;
+}
+
+.category-chart-row {
+  padding: 10px 0 !important;
+  gap: 10px !important;
+}
+
+.category-chart-row strong {
+  font-size: 11px !important;
+  color: #111827 !important;
+  font-weight: 700 !important;
+}
+
+.category-chart-row small {
+  font-size: 10px !important;
+  color: #8A948F !important;
+  margin: 4px 0 0 15px !important;
+  font-weight: 500 !important;
+}
+
+.category-chart-row b {
+  font-size: 11px !important;
+  color: #111827 !important;
+  font-weight: 700 !important;
+}
+
+.donut-segment {
+  stroke-linecap: round !important;
+}
+
+@media (max-width: 1120px) {
+  .table-toolbar {
+    grid-template-columns: minmax(220px, 1fr) minmax(150px, 1fr) minmax(150px, 1fr) !important;
+  }
+}
+
+/* ---------- React expense history polish pass 6: date error, row alignment, edit controls, donut separation ---------- */
+/* Keep Add Expense segmented date errors on the whole field only, not on MM/DD/YYYY mini inputs. */
+.quick-expense-panel .date-field-group.has-error .date-segment-input,
+.quick-expense-panel .date-field-group.has-error input.date-segment-input,
+.quick-expense-panel .date-field-group.has-error .date-segment-input:focus,
+.quick-expense-panel .date-field-group.has-error input.date-segment-input:focus,
+.quick-expense-panel .date-field-group.has-error .date-segment-input:invalid,
+.add-date-trigger.error .date-segment-input,
+.add-date-trigger.error input.date-segment-input {
+  border: 0 !important;
+  outline: none !important;
+  box-shadow: none !important;
+  background: transparent !important;
+}
+
+.quick-expense-panel .date-field-group.has-error .add-date-trigger,
+.quick-expense-panel .date-field-group .add-date-trigger.error {
+  border-color: rgba(239, 68, 68, 0.72) !important;
+  box-shadow: 0 0 0 4px rgba(239, 68, 68, 0.08) !important;
+}
+
+/* Normalize normal table cell rhythm. The title text was not compressed; the rows just needed a steadier vertical rhythm. */
+#expense-table tbody td {
+  vertical-align: middle !important;
+  padding-top: 13px !important;
+  padding-bottom: 13px !important;
+  line-height: 1.25 !important;
+}
+
+#expense-table .cell-text,
+#expense-table td.category-cell .cell-text,
+#expense-table td.date-cell .cell-text,
+#expense-table td.title-cell .cell-text,
+#expense-table td.description-cell .cell-text {
+  display: block !important;
+  line-height: 1.25 !important;
+  transform: none !important;
+}
+
+/* Match edit-mode inputs to the app's main input focus/error treatment instead of heavy inset borders. */
+#expense-table td.editable.editing .table-edit-input,
+#expense-table .table-amount-input,
+#expense-table .table-date-trigger,
+#expense-table .category-edit-trigger {
+  height: 36px !important;
+  min-height: 36px !important;
+  border-width: 1px !important;
+  border-color: rgba(166, 186, 174, 0.38) !important;
+  background: rgba(255, 255, 255, 0.76) !important;
+  color: #4b5563 !important;
+  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.65) inset, 0 8px 20px rgba(15, 23, 42, 0.025) !important;
+  font-size: 12px !important;
+  font-weight: 430 !important;
+  letter-spacing: 0 !important;
+  line-height: 1.2 !important;
+}
+
+#expense-table td.editable.editing .table-edit-input:focus,
+#expense-table .table-amount-input:focus-within,
+#expense-table .category-edit-trigger:focus-visible,
+#expense-table .category-edit-menu.open .category-edit-trigger,
+#expense-table .table-date-trigger:focus-within,
+#expense-table .table-date-picker.open .table-date-trigger {
+  border-color: rgba(88, 230, 111, 0.58) !important;
+  background: rgba(255, 255, 255, 0.92) !important;
+  color: #111827 !important;
+  box-shadow: 0 0 0 4px rgba(168, 255, 120, 0.14), 0 8px 22px rgba(15, 23, 42, 0.04) !important;
+  outline: none !important;
+}
+
+#expense-table td.editable.editing.has-error .table-date-trigger,
+#expense-table td.editable.editing.has-error .category-edit-trigger,
+#expense-table td.editable.editing.has-error .table-amount-input,
+#expense-table td.editable.editing.has-error .table-edit-input,
+#expense-table .table-amount-input.has-error {
+  border-color: rgba(239, 68, 68, 0.58) !important;
+  background: rgba(255, 247, 247, 0.98) !important;
+  box-shadow: 0 0 0 4px rgba(239, 68, 68, 0.08) !important;
+}
+
+#expense-table td.editable.editing.has-error .table-date-trigger .date-segment-input,
+#expense-table td.editable.editing.has-error .table-date-trigger input.date-segment-input {
+  border: 0 !important;
+  box-shadow: none !important;
+  background: transparent !important;
+}
+
+/* Balance editable date text/icon so it does not look bigger or more spaced out than other cells. */
+#expense-table .table-date-trigger {
+  gap: 5px !important;
+  padding: 0 8px 0 9px !important;
+}
+
+#expense-table .table-date-trigger .date-segment-group {
+  height: 100% !important;
+  align-items: center !important;
+  gap: 1px !important;
+}
+
+#expense-table .table-date-trigger .date-segment-input {
+  font-size: 12px !important;
+  font-weight: 430 !important;
+  letter-spacing: 0.012em !important;
+  line-height: 1 !important;
+}
+
+#expense-table .table-date-trigger .date-year-segment {
+  width: 4.35ch !important;
+  min-width: 4.35ch !important;
+}
+
+#expense-table .table-date-trigger .date-segment-divider {
+  font-size: 12px !important;
+  padding: 0 !important;
+}
+
+#expense-table .table-date-trigger .date-icon-btn {
+  width: 21px !important;
+  height: 21px !important;
+  min-width: 21px !important;
+  flex-basis: 21px !important;
+  margin-left: auto !important;
+  border-radius: 7px !important;
+}
+
+#expense-table .table-date-trigger .date-icon-btn svg {
+  width: 13px !important;
+  height: 13px !important;
+  stroke-width: 1.3px !important;
+}
+
+/* Make only edit-mode row action buttons match editable field height. */
+#expense-table tr.selected-edit-row .row-actions {
+  min-width: 120px !important;
+  gap: 6px !important;
+}
+
+#expense-table tr.selected-edit-row .row-icon-btn {
+  width: 36px !important;
+  height: 36px !important;
+  min-width: 36px !important;
+  border-radius: 10px !important;
+}
+
+#expense-table tr.selected-edit-row .row-icon-btn svg {
+  width: 15.5px !important;
+  height: 15.5px !important;
+}
+
+#expense-table th:nth-child(6),
+#expense-table td:nth-child(6),
+#expense-table .actions-header {
+  width: 138px !important;
+}
+
+#expense-table td.actions-cell {
+  padding-right: 30px !important;
+}
+
+/* Category list values should align under their headings, not drift right. */
+.category-chart-row {
+  grid-template-columns: 8px minmax(0, 1fr) auto !important;
+  align-items: center !important;
+  gap: 12px !important;
+}
+
+.category-chart-row small {
+  margin: 4px 0 0 0 !important;
+  display: block !important;
+}
+
+.category-chart-row > div {
+  min-width: 0 !important;
+}
+
+/* Donut paths now use real separated arcs. Keep round ends, but no segment overlap. */
+.donut-segment,
+.donut-segment-outline {
+  stroke-linecap: round !important;
+  vector-effect: non-scaling-stroke !important;
+}
+
+.donut-segment-outline {
+  stroke: rgba(226, 232, 240, 0.98) !important;
+  pointer-events: none !important;
+}
+
+/* ---------- React expense history polish pass 7: date spacing, table rhythm, edit row, pagination, donut ---------- */
+/* Date mask: reduce the gap a little, but keep the MM / DD / YYYY groups readable. */
+.quick-expense-panel .date-segment-group,
+.add-date-trigger .date-segment-group,
+#expense-table .table-date-trigger .date-segment-group {
+  gap: 0 !important;
+  column-gap: 0 !important;
+  justify-content: flex-start !important;
+}
+
+.quick-expense-panel .date-segment-input,
+.add-date-trigger .date-segment-input,
+#expense-table .date-segment-input,
+.table-date-trigger .date-segment-input {
+  width: 2.05ch !important;
+  min-width: 2.05ch !important;
+  letter-spacing: 0.015em !important;
+  text-align: center !important;
+}
+
+.quick-expense-panel .date-year-segment,
+.add-date-trigger .date-year-segment,
+#expense-table .date-year-segment,
+.table-date-trigger .date-year-segment {
+  width: 4.3ch !important;
+  min-width: 4.3ch !important;
+}
+
+.quick-expense-panel .date-segment-divider,
+.add-date-trigger .date-segment-divider,
+#expense-table .date-segment-divider,
+.table-date-trigger .date-segment-divider {
+  padding: 0 0.25px !important;
+  margin: 0 !important;
+}
+
+/* Table rhythm: closer to the original, with even vertical alignment across all non-edit cells. */
+#expense-table tbody td {
+  padding-top: 11px !important;
+  padding-bottom: 11px !important;
+  vertical-align: middle !important;
+  line-height: 1.35 !important;
+}
+
+#expense-table tbody td .cell-text {
+  line-height: 1.35 !important;
+  display: block !important;
+  transform: none !important;
+}
+
+#expense-table tbody td.category-cell .cell-text,
+#expense-table tbody td.date-cell .cell-text,
+#expense-table tbody td.description-cell .cell-text,
+#expense-table tbody td.title-cell .cell-text {
+  padding-top: 0 !important;
+  padding-bottom: 0 !important;
+}
+
+/* Edit row: neutral row background; keep mint only for newly added row highlight. */
+#expense-table tr.selected-edit-row td {
+  background: rgba(17, 24, 39, 0.035) !important;
+}
+
+#expense-table tr.selected-edit-row.recently-added-row td {
+  background: transparent !important;
+}
+
+/* Edit row actions: slightly smaller than the input fields and with enough right-side room. */
+#expense-table th:nth-child(6),
+#expense-table td:nth-child(6),
+#expense-table .actions-header {
+  width: 148px !important;
+}
+
+#expense-table td.actions-cell {
+  padding-left: 8px !important;
+  padding-right: 34px !important;
+  overflow: visible !important;
+}
+
+#expense-table tr.selected-edit-row .row-actions {
+  min-width: 112px !important;
+  gap: 6px !important;
+  justify-content: flex-end !important;
+}
+
+#expense-table tr.selected-edit-row .row-icon-btn {
+  width: 32px !important;
+  height: 32px !important;
+  min-width: 32px !important;
+  border-radius: 10px !important;
+}
+
+#expense-table tr.selected-edit-row .row-icon-btn svg {
+  width: 15px !important;
+  height: 15px !important;
+}
+
+#expense-table .edit-row-btn {
+  margin-right: 6px !important;
+}
+
+/* Keep edit date text compact after the date-mask spacing change. */
+#expense-table .table-date-trigger {
+  gap: 6px !important;
+  padding: 0 8px 0 9px !important;
+}
+
+#expense-table .table-date-trigger .date-icon-btn {
+  width: 20px !important;
+  height: 20px !important;
+  min-width: 20px !important;
+  flex-basis: 20px !important;
+}
+
+#expense-table .table-date-trigger .date-icon-btn svg {
+  width: 12.5px !important;
+  height: 12.5px !important;
+}
+
+/* Pagination: slightly more visible arrows and a neutral hover that stands out from the green page glow. */
+.expense-pagination {
+  gap: 6px !important;
+}
+
+.expense-pagination span {
+  font-size: 13px !important;
+  font-weight: 500 !important;
+  color: #4b5563 !important;
+  margin-right: 6px !important;
+}
+
+.expense-pagination button {
+  width: 30px !important;
+  height: 30px !important;
+  min-width: 30px !important;
+  background: transparent !important;
+  color: #111827 !important;
+}
+
+.expense-pagination button svg {
+  width: 18px !important;
+  height: 18px !important;
+}
+
+.expense-pagination button:not(:disabled):hover,
+.expense-pagination button:not(:disabled):focus-visible {
+  background: rgba(17, 24, 39, 0.065) !important;
+  color: #111827 !important;
+  border-color: rgba(17, 24, 39, 0.08) !important;
+  outline: none !important;
+}
+
+/* Doughnut: transparent track, narrower-but-clean segment gaps, and unclipped tooltip. */
+.category-chart-card,
+.category-chart-layout,
+.donut-chart {
+  overflow: visible !important;
+}
+
+.category-chart-layout {
+  grid-template-columns: minmax(235px, 0.98fr) minmax(230px, 0.86fr) !important;
+  gap: 26px !important;
+  align-items: center !important;
+}
+
+.donut-chart {
+  width: 240px !important;
+}
+
+.donut-track {
+  stroke: transparent !important;
+}
+
+.donut-segment-outline {
+  stroke: rgba(226, 232, 240, 0.92) !important;
+  stroke-width: 28px !important;
+}
+
+.category-chart-list {
+  padding-left: 24px !important;
+  gap: 0 !important;
+}
+
+.category-chart-row {
+  padding: 9px 0 !important;
+  grid-template-columns: 8px minmax(0, 1fr) auto !important;
+  column-gap: 12px !important;
+  align-items: center !important;
+}
+
+.category-chart-row small {
+  margin: 4px 0 0 0 !important;
+}
+
+.donut-tooltip {
+  z-index: 1000 !important;
+  max-width: none !important;
+  white-space: nowrap !important;
+}
+
+/* ---------- React expense history polish pass 8: date clipping, row alignment, pagination hover, month state, donut hover ---------- */
+/* Date masks: keep the separators close, but give each segment enough room so MM/DD/YYYY never clips. */
+.quick-expense-panel .date-segment-group,
+.add-date-trigger .date-segment-group,
+#expense-table .table-date-trigger .date-segment-group,
+.table-date-trigger .date-segment-group {
+  gap: 0 !important;
+  column-gap: 0 !important;
+  min-width: 9.9ch !important;
+  width: auto !important;
+  flex: 1 1 auto !important;
+  overflow: visible !important;
+}
+
+.quick-expense-panel .date-segment-input,
+.add-date-trigger .date-segment-input,
+#expense-table .date-segment-input,
+.table-date-trigger .date-segment-input {
+  width: 2.3ch !important;
+  min-width: 2.3ch !important;
+  max-width: 2.3ch !important;
+  padding: 0 !important;
+  margin: 0 !important;
+  letter-spacing: 0.012em !important;
+  text-align: center !important;
+  border: 0 !important;
+  outline: 0 !important;
+  box-shadow: none !important;
+  background: transparent !important;
+  overflow: visible !important;
+}
+
+.quick-expense-panel .date-year-segment,
+.add-date-trigger .date-year-segment,
+#expense-table .date-year-segment,
+.table-date-trigger .date-year-segment {
+  width: 4.85ch !important;
+  min-width: 4.85ch !important;
+  max-width: 4.85ch !important;
+}
+
+.quick-expense-panel .date-segment-divider,
+.add-date-trigger .date-segment-divider,
+#expense-table .date-segment-divider,
+.table-date-trigger .date-segment-divider {
+  padding: 0 1px !important;
+  margin: 0 !important;
+  line-height: 1 !important;
+}
+
+/* Invalid date states should keep the clean white/glass field and only use the outer field border. */
+.quick-expense-panel .date-field-group.has-error .add-date-trigger,
+.quick-expense-panel .add-date-trigger.error,
+#expense-table .table-date-trigger.has-error,
+#expense-table td.editable.editing.has-error .table-date-trigger {
+  background: rgba(255, 255, 255, 0.76) !important;
+  border-color: rgba(248, 113, 113, 0.92) !important;
+  box-shadow: 0 0 0 4px rgba(254, 202, 202, 0.34) !important;
+}
+
+.quick-expense-panel .date-field-group.has-error .date-segment-input,
+.quick-expense-panel .date-field-group.has-error input.date-segment-input,
+.quick-expense-panel .date-field-group.has-error .date-segment-input:focus,
+.quick-expense-panel .add-date-trigger.error .date-segment-input,
+.quick-expense-panel .add-date-trigger.error input.date-segment-input,
+#expense-table .table-date-trigger.has-error .date-segment-input,
+#expense-table .table-date-trigger.has-error input.date-segment-input,
+#expense-table td.editable.editing.has-error .table-date-trigger .date-segment-input,
+#expense-table td.editable.editing.has-error .table-date-trigger input.date-segment-input {
+  background: transparent !important;
+  border: 0 !important;
+  outline: 0 !important;
+  box-shadow: none !important;
+}
+
+/* Add a bit more space below the header before the first expense row. */
+#expense-table tbody tr:first-child td {
+  padding-top: 18px !important;
+}
+
+#expense-table.row-edit-mode tbody tr:first-child td {
+  padding-top: 14px !important;
+}
+
+/* Keep read-mode and edit-mode row rhythm consistent. */
+#expense-table tbody td {
+  vertical-align: middle !important;
+  line-height: 1.4 !important;
+}
+
+#expense-table tbody td .cell-text {
+  display: inline-block !important;
+  line-height: 1.4 !important;
+  transform: none !important;
+}
+
+#expense-table tbody td.category-cell,
+#expense-table tbody td.date-cell,
+#expense-table tbody td.description-cell,
+#expense-table tbody td.title-cell,
+#expense-table tbody td.amount-cell {
+  vertical-align: middle !important;
+}
+
+/* Neutral editing row: more clearly gray and less mint/green. */
+#expense-table tr.selected-edit-row td {
+  background: rgba(17, 24, 39, 0.055) !important;
+}
+
+#expense-table tr.selected-edit-row.recently-added-row td {
+  background: rgba(17, 24, 39, 0.055) !important;
+}
+
+/* Bring the edit action group inward so it is aligned with the row, not the table edge. */
+#expense-table th:nth-child(6),
+#expense-table td:nth-child(6),
+#expense-table .actions-header {
+  width: 132px !important;
+}
+
+#expense-table td.actions-cell {
+  padding-left: 6px !important;
+  padding-right: 28px !important;
+  overflow: visible !important;
+}
+
+#expense-table tr.selected-edit-row .row-actions {
+  min-width: 104px !important;
+  gap: 6px !important;
+  justify-content: flex-start !important;
+}
+
+#expense-table tr.selected-edit-row .row-icon-btn {
+  width: 30px !important;
+  height: 30px !important;
+  min-width: 30px !important;
+  border-radius: 10px !important;
+}
+
+#expense-table tr.selected-edit-row .row-icon-btn svg {
+  width: 14px !important;
+  height: 14px !important;
+}
+
+#expense-table .edit-row-btn {
+  margin-right: 18px !important;
+}
+
+/* Compact the edit-mode date cell so text does not fight with the calendar icon. */
+#expense-table .table-date-trigger {
+  gap: 5px !important;
+  padding: 0 7px 0 8px !important;
+  overflow: visible !important;
+}
+
+#expense-table .table-date-trigger .date-icon-btn {
+  width: 18px !important;
+  height: 18px !important;
+  min-width: 18px !important;
+  flex: 0 0 18px !important;
+}
+
+#expense-table .table-date-trigger .date-icon-btn svg {
+  width: 11.5px !important;
+  height: 11.5px !important;
+}
+
+/* Pagination: keep the larger arrows, but make hover visible against the pale green page background. */
+.expense-pagination span {
+  font-size: 13.5px !important;
+  font-weight: 500 !important;
+  color: #4b5563 !important;
+}
+
+.expense-pagination button {
+  width: 32px !important;
+  height: 32px !important;
+  min-width: 32px !important;
+  background: transparent !important;
+  color: #111827 !important;
+}
+
+.expense-pagination button svg {
+  width: 19px !important;
+  height: 19px !important;
+}
+
+.expense-pagination button:not(:disabled):hover,
+.expense-pagination button:not(:disabled):focus-visible {
+  background: rgba(255, 255, 255, 0.92) !important;
+  color: #166534 !important;
+  border-color: rgba(22, 101, 52, 0.16) !important;
+  box-shadow: 0 8px 22px rgba(15, 23, 42, 0.08) !important;
+  outline: none !important;
+}
+
+/* Month shortcut should only look selected when it was explicitly selected; regular month choices keep their own selected state. */
+.this-month-btn:not(.selected) {
+  background: transparent !important;
+  color: #166534 !important;
+}
+
+.this-month-btn:not(.selected):hover,
+.this-month-btn:not(.selected):focus-visible {
+  background: #a8ff7824 !important;
+  color: #166534 !important;
+}
+
+/* Doughnut: only make the gray hover halo more visible; keep the current gap/style otherwise. */
+.donut-segment-outline {
+  stroke: rgba(226, 232, 240, 0.98) !important;
+  stroke-width: 32px !important;
+}
+
+
+/* ---------- React expense history final polish pass 9: row stability, pagination scale, month shortcut, donut gap ---------- */
+/* Keep the newly added highlight as a row-level effect so the edit pencil does not shift while the mint highlight fades. */
+#expense-table tr.recently-added-row {
+  position: static !important;
+  background: transparent !important;
+  animation: recentlyAddedStableRowPulse 2.6s ease-out !important;
+}
+
+#expense-table tr.recently-added-row::after {
+  content: none !important;
+  display: none !important;
+}
+
+#expense-table tr.recently-added-row td {
+  background: transparent !important;
+  box-shadow: none !important;
+  animation: none !important;
+}
+
+@keyframes recentlyAddedStableRowPulse {
+  0% {
+    background-color: rgba(168, 255, 120, 0.20);
+    box-shadow: inset 0 0 0 1px rgba(72, 221, 182, 0.28);
+  }
+  48% {
+    background-color: rgba(168, 255, 120, 0.12);
+    box-shadow: inset 0 0 0 1px rgba(72, 221, 182, 0.16);
+  }
+  100% {
+    background-color: transparent;
+    box-shadow: inset 0 0 0 0 rgba(72, 221, 182, 0);
+  }
+}
+
+/* Give the first data row more breathing room and keep read/edit row rhythm consistent. */
+#expense-table tbody tr {
+  height: 64px !important;
+}
+
+#expense-table tbody td {
+  height: 64px !important;
+  padding-top: 0 !important;
+  padding-bottom: 0 !important;
+  vertical-align: middle !important;
+  line-height: 1.35 !important;
+}
+
+#expense-table tbody tr:first-child td,
+#expense-table.row-edit-mode tbody tr:first-child td {
+  padding-top: 22px !important;
+}
+
+#expense-table tbody td .cell-text {
+  display: inline-flex !important;
+  align-items: center !important;
+  min-height: var(--table-surface-height) !important;
+  line-height: 1.35 !important;
+}
+
+#expense-table tbody td.title-cell,
+#expense-table tbody td.amount-cell,
+#expense-table tbody td.category-cell,
+#expense-table tbody td.date-cell,
+#expense-table tbody td.description-cell,
+#expense-table tbody td.actions-cell {
+  vertical-align: middle !important;
+}
+
+/* Make edit mode feel like a layer on top of the same row, not a separate shifted layout. */
+#expense-table tr.selected-edit-row td {
+  background: rgba(17, 24, 39, 0.035) !important;
+}
+
+#expense-table tr.selected-edit-row.recently-added-row td {
+  background: rgba(17, 24, 39, 0.035) !important;
+}
+
+#expense-table td.editable.editing {
+  padding-top: 0 !important;
+  padding-bottom: 0 !important;
+}
+
+#expense-table td.editable.editing .table-edit-input,
+#expense-table td.editable.editing .table-amount-input,
+#expense-table td.editable.editing .category-edit-trigger,
+#expense-table td.editable.editing .table-date-trigger {
+  height: 34px !important;
+  min-height: 34px !important;
+  display: flex !important;
+  align-items: center !important;
+}
+
+#expense-table .table-date-trigger {
+  align-items: center !important;
+}
+
+/* Keep the action column stable across normal, highlighted, and edit rows. */
+#expense-table th:nth-child(5),
+#expense-table td:nth-child(5) {
+  width: 23% !important;
+}
+
+#expense-table th:nth-child(6),
+#expense-table td:nth-child(6),
+#expense-table .actions-header {
+  width: 138px !important;
+}
+
+#expense-table td.actions-cell {
+  padding-left: 4px !important;
+  padding-right: 30px !important;
+  vertical-align: middle !important;
+  overflow: visible !important;
+}
+
+#expense-table .row-actions,
+#expense-table tr.selected-edit-row .row-actions {
+  width: 100% !important;
+  min-width: 92px !important;
+  gap: 5px !important;
+  justify-content: flex-end !important;
+  align-items: center !important;
+}
+
+#expense-table tr.selected-edit-row .row-icon-btn {
+  width: 29px !important;
+  height: 29px !important;
+  min-width: 29px !important;
+  border-radius: 10px !important;
+}
+
+#expense-table tr.selected-edit-row .row-icon-btn svg {
+  width: 14px !important;
+  height: 14px !important;
+}
+
+#expense-table .edit-row-btn {
+  margin-right: 0 !important;
+}
+
+/* Month picker: the shortcut should read like a normal option unless explicitly selected/hovered. */
+.this-month-btn:not(.selected) {
+  background: transparent !important;
+  color: #4b5563 !important;
+  box-shadow: none !important;
+}
+
+.this-month-btn:not(.selected):hover,
+.this-month-btn:not(.selected):focus-visible {
+  background: #a8ff7824 !important;
+  color: #166534 !important;
+}
+
+/* Pagination should sit slightly smaller than before and match the 12px table rhythm. */
+.expense-pagination {
+  gap: 5px !important;
+}
+
+.expense-pagination span {
+  font-size: 12px !important;
+  font-weight: 500 !important;
+  line-height: 1 !important;
+  color: #4b5563 !important;
+  margin-right: 5px !important;
+}
+
+.expense-pagination button {
+  width: 28px !important;
+  height: 28px !important;
+  min-width: 28px !important;
+  color: #111827 !important;
+}
+
+.expense-pagination button svg {
+  width: 16px !important;
+  height: 16px !important;
+}
+
+.expense-pagination button:not(:disabled):hover,
+.expense-pagination button:not(:disabled):focus-visible {
+  background: rgba(255, 255, 255, 0.94) !important;
+  color: #166534 !important;
+  border-color: rgba(22, 101, 52, 0.14) !important;
+  box-shadow: 0 7px 18px rgba(15, 23, 42, 0.075) !important;
+}
+
+/* ---------- React expense history polish pass 10: final edit-row stability, add-date panel width, hover refinements ---------- */
+/* Add Expense only: keep the calendar panel visually tied to the date field width. */
+.quick-expense-panel .date-input-shell .add-date-picker-panel {
+  width: 100% !important;
+  min-width: 100% !important;
+  max-width: 100% !important;
+  left: 0 !important;
+  right: auto !important;
+  box-sizing: border-box !important;
+}
+
+/* Keep the Add Expense calendar compact when constrained to the date field width. */
+.quick-expense-panel .add-date-picker-panel .date-picker-header {
+  gap: 6px !important;
+}
+
+.quick-expense-panel .add-date-picker-panel .date-weekdays,
+.quick-expense-panel .add-date-picker-panel .date-picker-grid {
+  gap: 4px !important;
+}
+
+.quick-expense-panel .add-date-picker-panel .date-day {
+  height: 30px !important;
+}
+
+/* Restore a visible mint new-row highlight without changing the row/action layout. */
+#expense-table tr.recently-added-row {
+  position: static !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  animation: none !important;
+}
+
+#expense-table tr.recently-added-row::after {
+  content: none !important;
+  display: none !important;
+}
+
+#expense-table tr.recently-added-row td {
+  animation: recentlyAddedMintCellFade 2.8s ease-out !important;
+}
+
+@keyframes recentlyAddedMintCellFade {
+  0%, 58% {
+    background-color: rgba(168, 255, 120, 0.20);
+  }
+  100% {
+    background-color: transparent;
+  }
+}
+
+/* Edit mode should feel like the same row becoming editable, not a shifted row. */
+#expense-table tbody tr {
+  height: 64px !important;
+}
+
+#expense-table tbody td {
+  height: 64px !important;
+  padding-top: 0 !important;
+  padding-bottom: 0 !important;
+  vertical-align: middle !important;
+}
+
+#expense-table tbody td .cell-text {
+  min-height: 34px !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  line-height: 1.35 !important;
+}
+
+#expense-table td.editable.editing {
+  padding-top: 0 !important;
+  padding-bottom: 0 !important;
+  vertical-align: middle !important;
+}
+
+#expense-table td.editable.editing .table-edit-input,
+#expense-table td.editable.editing .table-amount-input,
+#expense-table td.editable.editing .category-edit-trigger,
+#expense-table td.editable.editing .table-date-trigger {
+  height: 34px !important;
+  min-height: 34px !important;
+  margin-top: 0 !important;
+  margin-bottom: 0 !important;
+  display: flex !important;
+  align-items: center !important;
+}
+
+/* Neutral edit row: more gray, less green, but still soft. */
+#expense-table tr.selected-edit-row td,
+#expense-table tr.selected-edit-row.recently-added-row td {
+  background-color: rgba(229, 231, 235, 0.48) !important;
+}
+
+/* Keep the action area inside the table edge and stable across normal/edit/highlight rows. */
+#expense-table th:nth-child(5),
+#expense-table td:nth-child(5) {
+  width: 22% !important;
+}
+
+#expense-table th:nth-child(6),
+#expense-table td:nth-child(6),
+#expense-table .actions-header {
+  width: 156px !important;
+}
+
+#expense-table td.actions-cell {
+  padding-left: 6px !important;
+  padding-right: 42px !important;
+  vertical-align: middle !important;
+  overflow: visible !important;
+}
+
+#expense-table .row-actions,
+#expense-table tr.selected-edit-row .row-actions {
+  justify-content: flex-end !important;
+  align-items: center !important;
+  gap: 5px !important;
+  min-width: 92px !important;
+  width: 100% !important;
+}
+
+#expense-table .edit-row-btn {
+  margin-right: 0 !important;
+}
+
+/* Lighter cancel hover so the gray X stays legible and does not look muddy. */
+#expense-table .cancel-row-btn:hover,
+#expense-table .cancel-row-btn:focus-visible {
+  color: #4b5563 !important;
+  background: rgba(255, 255, 255, 0.96) !important;
+  border-color: rgba(17, 24, 39, 0.10) !important;
+  box-shadow: 0 8px 18px rgba(15, 23, 42, 0.06) !important;
+  outline: none !important;
+}
+
+/* Doughnut: keep the current chart styling but add a subtle lifted hover feel. */
+.donut-segment {
+  transform-box: view-box !important;
+  transform-origin: 110px 110px !important;
+  transition: opacity 0.16s ease, filter 0.16s ease, transform 0.16s ease !important;
+}
+
+.donut-segment:hover {
+  transform: scale(1.018) !important;
+}
+
+/* ---------- React expense history polish pass 11: restore date panel size, row stability, highlight, softer edit state ---------- */
+/* Add Expense only: restore the roomier calendar panel size. The table date-cell calendar is intentionally unchanged. */
+.quick-expense-panel .date-input-shell .add-date-picker-panel {
+  width: min(332px, calc(100vw - 40px)) !important;
+  min-width: min(332px, calc(100vw - 40px)) !important;
+  max-width: min(332px, calc(100vw - 40px)) !important;
+  left: auto !important;
+  right: 0 !important;
+  box-sizing: border-box !important;
+}
+
+/* New expense highlight: use a real background-color override, because older transparent !important rules were cancelling the animation. */
+#expense-table tbody td {
+  transition: background-color 0.45s ease, box-shadow 0.45s ease !important;
+}
+
+#expense-table tr.recently-added-row:not(.selected-edit-row) td {
+  background-color: rgba(168, 255, 120, 0.18) !important;
+  box-shadow: inset 0 0 0 1px rgba(72, 221, 182, 0.16) !important;
+  animation: none !important;
+}
+
+/* Keep the table grid fixed so swapping text for inputs does not make the row feel like it moves. */
+#expense-table {
+  table-layout: fixed !important;
+}
+
+#expense-table tbody tr {
+  height: 64px !important;
+}
+
+#expense-table tbody td,
+#expense-table.row-edit-mode tbody td,
+#expense-table tbody tr:first-child td,
+#expense-table.row-edit-mode tbody tr:first-child td {
+  height: 64px !important;
+  padding-top: 0 !important;
+  padding-bottom: 0 !important;
+  vertical-align: middle !important;
+}
+
+#expense-table td.title-cell,
+#expense-table td.amount-cell,
+#expense-table td.category-cell,
+#expense-table td.date-cell,
+#expense-table td.description-cell {
+  padding-left: 16px !important;
+  padding-right: 16px !important;
+}
+
+#expense-table tbody td .cell-text,
+#expense-table tbody td.title-cell .cell-text,
+#expense-table tbody td.amount-cell .cell-text,
+#expense-table tbody td.category-cell .cell-text,
+#expense-table tbody td.date-cell .cell-text,
+#expense-table tbody td.description-cell .cell-text {
+  min-height: 34px !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  line-height: 1.35 !important;
+  transform: none !important;
+  padding: 0 !important;
+}
+
+#expense-table td.editable.editing {
+  padding-top: 0 !important;
+  padding-bottom: 0 !important;
+  vertical-align: middle !important;
+}
+
+#expense-table td.editable.editing .table-edit-input,
+#expense-table td.editable.editing .table-amount-input,
+#expense-table td.editable.editing .category-edit-trigger,
+#expense-table td.editable.editing .table-date-trigger {
+  height: 34px !important;
+  min-height: 34px !important;
+  margin-top: 0 !important;
+  margin-bottom: 0 !important;
+  display: flex !important;
+  align-items: center !important;
+}
+
+/* Softer edit row: neutral gray, lighter than the previous gray-green wash. */
+#expense-table tr.selected-edit-row td,
+#expense-table tr.selected-edit-row.recently-added-row td {
+  background-color: rgba(243, 244, 246, 0.64) !important;
+  box-shadow: none !important;
+}
+
+/* Keep the action column steady and move the controls slightly inward from the table edge. */
+#expense-table th:nth-child(6),
+#expense-table td:nth-child(6),
+#expense-table .actions-header {
+  width: 158px !important;
+}
+
+#expense-table td.actions-cell {
+  padding-left: 6px !important;
+  padding-right: 48px !important;
+  vertical-align: middle !important;
+  overflow: visible !important;
+}
+
+#expense-table .row-actions,
+#expense-table tr.selected-edit-row .row-actions {
+  justify-content: flex-end !important;
+  align-items: center !important;
+  gap: 5px !important;
+  min-width: 92px !important;
+  width: 100% !important;
+}
+
+#expense-table .row-icon-btn.cancel-row-btn {
+  color: #b7bfc7 !important;
+  background: rgba(255, 255, 255, 0.78) !important;
+}
+
+#expense-table .cancel-row-btn:hover,
+#expense-table .cancel-row-btn:focus-visible {
+  color: #6b7280 !important;
+  background: rgba(255, 255, 255, 0.98) !important;
+  border-color: rgba(17, 24, 39, 0.08) !important;
+  box-shadow: 0 8px 18px rgba(15, 23, 42, 0.055) !important;
+  outline: none !important;
+}
+
+/* ---------- React expense history polish pass 12: single-piece row highlights and steadier table spacing ---------- */
+/* Add a little more left breathing room so the title column does not sit too close to the table edge. */
+#expense-table th:first-child,
+#expense-table td.title-cell.locked {
+  padding-left: 22px !important;
+}
+
+/* Keep edit-mode text aligned with read-mode text: cells hold the field slightly further left,
+   then the field's own padding places the typed text back on the same visual line. */
+#expense-table td.title-cell.editing {
+  padding-left: 12px !important;
+  padding-right: 8px !important;
+}
+
+#expense-table td.amount-cell.editing,
+#expense-table td.category-cell.editing,
+#expense-table td.description-cell.editing {
+  padding-left: 6px !important;
+  padding-right: 6px !important;
+}
+
+#expense-table td.date-cell.editing {
+  padding-left: 8px !important;
+  padding-right: 6px !important;
+}
+
+#expense-table td.editable.editing .table-edit-input,
+#expense-table td.editable.editing .table-amount-input,
+#expense-table td.editable.editing .category-edit-trigger {
+  padding-left: 10px !important;
+  padding-right: 10px !important;
+}
+
+#expense-table td.editable.editing .table-date-trigger {
+  padding-left: 8px !important;
+  padding-right: 7px !important;
+}
+
+/* Use the row itself for background color so highlights read as one continuous strip,
+   not separate highlighted cells. */
+#expense-table tbody tr.selected-edit-row {
+  background-color: #eeeeee !important;
+}
+
+#expense-table tbody tr.selected-edit-row td,
+#expense-table tbody tr.selected-edit-row.recently-added-row td {
+  background-color: transparent !important;
+  box-shadow: none !important;
+}
+
+#expense-table tbody tr.recently-added-row:not(.selected-edit-row) {
+  background-color: rgba(168, 255, 120, 0.18) !important;
+  animation: recentlyAddedSingleRowFade 2.8s ease-out forwards !important;
+}
+
+#expense-table tbody tr.recently-added-row:not(.selected-edit-row) td {
+  background-color: transparent !important;
+  box-shadow: none !important;
+  animation: none !important;
+}
+
+@keyframes recentlyAddedSingleRowFade {
+  0%, 58% {
+    background-color: rgba(168, 255, 120, 0.18);
+  }
+  100% {
+    background-color: transparent;
+  }
+}
+
+/* Keep the edit action area stable and comfortably inside the table edge. */
+#expense-table th:nth-child(6),
+#expense-table td:nth-child(6),
+#expense-table .actions-header {
+  width: 158px !important;
+}
+
+#expense-table td.actions-cell {
+  padding-left: 4px !important;
+  padding-right: 48px !important;
+}
+
+#expense-table .row-actions,
+#expense-table tr.selected-edit-row .row-actions {
+  justify-content: flex-end !important;
+  align-items: center !important;
+  width: 100% !important;
+  min-width: 92px !important;
+  gap: 5px !important;
+}
+
+/* Slightly lighter normal X icon and clearer hover. */
+#expense-table .row-icon-btn.cancel-row-btn {
+  color: #c2c8cf !important;
+}
+
+#expense-table .cancel-row-btn:hover,
+#expense-table .cancel-row-btn:focus-visible {
+  color: #6b7280 !important;
+  background: rgba(255, 255, 255, 0.98) !important;
+  border-color: rgba(17, 24, 39, 0.08) !important;
+  box-shadow: 0 8px 18px rgba(15, 23, 42, 0.055) !important;
+  outline: none !important;
+}
+
+/* ---------- React expense history polish pass 13: final table spacing, row strips, invalid amount bg ---------- */
+/* Balance the table edges: more left breathing room, a little less right inset. */
+#expense-table th:first-child,
+#expense-table td.title-cell.locked {
+  padding-left: 28px !important;
+}
+
+/* Keep edit-mode title text visually aligned with read-mode title text:
+   18px cell padding + 10px input padding = 28px text start. */
+#expense-table td.title-cell.editing {
+  padding-left: 18px !important;
+  padding-right: 8px !important;
+}
+
+/* Reduce the right-side padding and make the edit buttons align to the same
+   right edge as the pencil button in read mode. */
+#expense-table th:nth-child(6),
+#expense-table td:nth-child(6),
+#expense-table .actions-header {
+  width: 140px !important;
+}
+
+#expense-table td.actions-cell {
+  padding-left: 2px !important;
+  padding-right: 30px !important;
+  vertical-align: middle !important;
+}
+
+#expense-table .row-actions,
+#expense-table tr.selected-edit-row .row-actions {
+  justify-content: flex-end !important;
+  align-items: center !important;
+  width: 100% !important;
+  min-width: 88px !important;
+  gap: 5px !important;
+}
+
+/* Soften the edit row: #EEE at 70% opacity. */
+#expense-table tbody tr.selected-edit-row {
+  background-color: rgba(238, 238, 238, 0.70) !important;
+}
+
+#expense-table tbody tr.selected-edit-row td,
+#expense-table tbody tr.selected-edit-row.recently-added-row td {
+  background-color: transparent !important;
+  box-shadow: none !important;
+}
+
+/* New-expense highlight as one continuous mint strip, not separate cell blocks. */
+#expense-table tbody tr.recently-added-row:not(.selected-edit-row) {
+  position: relative !important;
+  background-color: rgba(168, 255, 120, 0.16) !important;
+  animation: recentlyAddedUnifiedRowFade 2.8s ease-out forwards !important;
+}
+
+#expense-table tbody tr.recently-added-row:not(.selected-edit-row)::before {
+  content: "" !important;
+  position: absolute !important;
+  inset: 0 !important;
+  pointer-events: none !important;
+  z-index: 0 !important;
+  background-color: rgba(168, 255, 120, 0.16) !important;
+  box-shadow: inset 0 0 0 1px rgba(72, 221, 182, 0.14) !important;
+  animation: recentlyAddedUnifiedRowFade 2.8s ease-out forwards !important;
+}
+
+#expense-table tbody tr.recently-added-row:not(.selected-edit-row) td {
+  position: relative !important;
+  z-index: 1 !important;
+  background-color: transparent !important;
+  box-shadow: none !important;
+  animation: none !important;
+}
+
+@keyframes recentlyAddedUnifiedRowFade {
+  0%, 58% {
+    background-color: rgba(168, 255, 120, 0.16);
+    box-shadow: inset 0 0 0 1px rgba(72, 221, 182, 0.14);
+  }
+  100% {
+    background-color: transparent;
+    box-shadow: inset 0 0 0 0 rgba(72, 221, 182, 0);
+  }
+}
+
+/* Invalid amount should keep the same white-ish input fill as the invalid date field,
+   with only the red border/glow communicating the error. */
+#expense-table td.amount-cell.editable.editing.has-error .table-amount-input,
+#expense-table td.editable.editing.has-error .table-amount-input,
+#expense-table .table-amount-input.has-error {
+  background: rgba(255, 255, 255, 0.76) !important;
+}
+
+#expense-table td.amount-cell.editable.editing.has-error .table-amount-input input,
+#expense-table .table-amount-input.has-error input {
+  background: transparent !important;
+}
+
+/* ---------- React expense history polish pass 14: stable newly-added row strip ---------- */
+/* Do not use tr::before/::after for the new-expense highlight. On table rows, pseudo-elements
+   can behave like extra table cells, which was causing the pencil icon to disappear and the row
+   content to shift right during the mint highlight. */
+#expense-table tbody tr.recently-added-row::before,
+#expense-table tbody tr.recently-added-row::after,
+#expense-table tbody tr.recently-added-row:not(.selected-edit-row)::before,
+#expense-table tbody tr.recently-added-row:not(.selected-edit-row)::after {
+  content: none !important;
+  display: none !important;
+}
+
+/* Match the newly-added mint strip to the same row height/rhythm as the edit-mode gray strip. */
+#expense-table tbody tr.recently-added-row:not(.selected-edit-row) {
+  position: static !important;
+  height: 64px !important;
+  min-height: 64px !important;
+  background-color: rgba(168, 255, 120, 0.16) !important;
+  box-shadow: inset 0 0 0 1px rgba(72, 221, 182, 0.14) !important;
+  animation: recentlyAddedStableMintRowFade 2.8s ease-out forwards !important;
+}
+
+#expense-table tbody tr.recently-added-row:not(.selected-edit-row) td {
+  position: static !important;
+  z-index: auto !important;
+  height: 64px !important;
+  min-height: 64px !important;
+  background-color: transparent !important;
+  box-shadow: none !important;
+  animation: none !important;
+}
+
+/* Keep the action column/pencil visible and aligned during the highlight fade. */
+#expense-table tbody tr.recently-added-row:not(.selected-edit-row) td.actions-cell,
+#expense-table tbody tr.recently-added-row:not(.selected-edit-row) .row-actions,
+#expense-table tbody tr.recently-added-row:not(.selected-edit-row) .edit-row-btn {
+  position: relative !important;
+  z-index: 2 !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+  pointer-events: auto !important;
+}
+
+@keyframes recentlyAddedStableMintRowFade {
+  0%, 58% {
+    background-color: rgba(168, 255, 120, 0.16);
+    box-shadow: inset 0 0 0 1px rgba(72, 221, 182, 0.14);
+  }
+  100% {
+    background-color: transparent;
+    box-shadow: inset 0 0 0 0 rgba(72, 221, 182, 0);
+  }
 }
