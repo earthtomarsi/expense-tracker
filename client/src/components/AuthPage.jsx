@@ -56,10 +56,10 @@ function AuthPage({ onAuthSuccess, showToast }) {
   return (
     <section className="auth-page">
       <div className="auth-copy">
-        <p className="auth-kicker">Spendflow</p>
-        <h2>{mode === "login" ? "Welcome back" : "Create your account"}</h2>
+        <p className="auth-kicker">Welcome to Spendflow</p>
+        <h2>Hi there, ready to start tracking your spending?</h2>
         <p>
-          Track expenses, review spending patterns, and manage your account from one dashboard.
+          Log in or register to manage your expenses, review spending patterns, and keep your account activity connected to your profile.
         </p>
       </div>
 

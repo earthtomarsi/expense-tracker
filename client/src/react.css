@@ -24,6 +24,44 @@ main {
   margin-top: 24px;
 }
 
+
+
+/* Auth page parity polish */
+main:has(.auth-page) {
+  padding-top: 0;
+}
+
+.auth-page {
+  margin-top: 18px;
+}
+
+.auth-submit-btn {
+  height: 40px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--gradient-green);
+  color: #ffffff;
+  box-shadow: 0 10px 24px rgba(72, 221, 182, 0.22);
+  font-size: 12px;
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+.auth-submit-btn:hover:not(:disabled),
+.auth-submit-btn:focus-visible:not(:disabled) {
+  background: var(--gradient-green-hover);
+  box-shadow: 0 14px 34px rgba(72, 221, 182, 0.32);
+  outline: none;
+}
+
+.auth-submit-btn:disabled {
+  cursor: not-allowed;
+  opacity: 0.72;
+  transform: none;
+  box-shadow: 0 8px 18px rgba(72, 221, 182, 0.16);
+}
+
 /* User dashboard tab cards */
 .user-dashboard-tabs {
   align-items: stretch;
