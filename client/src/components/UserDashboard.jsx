@@ -215,6 +215,22 @@ function UserDashboard({ greeting, showToast }) {
     };
   }, [activeTab, highlightedExpenseId]);
 
+
+  useEffect(() => {
+    if (activeTab !== "trends") return undefined;
+
+    const scrollTimer = window.setTimeout(() => {
+      document.getElementById("monthly-trends")?.scrollIntoView({
+        behavior: "smooth",
+        block: "start"
+      });
+    }, 180);
+
+    return () => {
+      window.clearTimeout(scrollTimer);
+    };
+  }, [activeTab]);
+
   const filteredExpenses = useMemo(() => {
     const normalizedSearch = filters.search.trim().toLowerCase();
 

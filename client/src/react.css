@@ -28,10 +28,6 @@ main {
   width: 100%;
   margin-top: 24px;
 }
-
-
-
-/* Auth page parity polish */
 main:has(.auth-page) {
   padding-top: 0;
   padding-bottom: 0;
@@ -181,7 +177,7 @@ main:has(.auth-page) {
 }
 
 
-/* ---------- React expense history polish pass 2: original-style controls, edit mode, chart ---------- */
+/* Expense history controls, inline editing, and category summary */
 .table-toolbar {
   align-items: center !important;
   gap: 10px !important;
@@ -1782,8 +1778,6 @@ main:has(.auth-page) {
     grid-template-columns: 1fr;
   }
 }
-
-/* React Admin Activity parity pass */
 .admin-profile-panel {
   margin-top: 26px;
 }
@@ -2025,8 +2019,6 @@ main:has(.auth-page) {
   display: grid;
   place-items: center;
 }
-
-/* ---------- React parity milestone 1: header, toast, Add Expense ---------- */
 .header-full {
   transition: background 0.18s ease, box-shadow 0.18s ease, border-color 0.18s ease;
 }
@@ -2038,8 +2030,6 @@ main:has(.auth-page) {
   backdrop-filter: blur(18px) !important;
   -webkit-backdrop-filter: blur(18px) !important;
 }
-
-/* Match the original tab-card selected state more closely. */
 .user-dashboard-tab.active {
   border-color: rgba(72, 221, 182, 0.46) !important;
   background:
@@ -2050,8 +2040,6 @@ main:has(.auth-page) {
     inset 0 -3px 0 rgba(72, 221, 182, 0.50) !important;
   transform: translateY(0) !important;
 }
-
-/* The original CSS removes the extra outer workspace card for Add Expense and Monthly Trend via data-active-tab. */
 .user-dashboard-workspace[data-active-tab="add"],
 .user-dashboard-workspace[data-active-tab="trends"] {
   padding: 0 !important;
@@ -2093,8 +2081,6 @@ main:has(.auth-page) {
   min-height: 42px !important;
   font-size: 13px !important;
 }
-
-/* Restore the Add Expense date field that was being hidden by the original #date rule. */
 .quick-expense-panel #add-expense-date {
   display: block !important;
   width: 100% !important;
@@ -2111,8 +2097,6 @@ main:has(.auth-page) {
   font-size: 13px !important;
   line-height: 42px !important;
 }
-
-/* Hide the native up/down spinner on the amount input. */
 .quick-expense-panel input[type="number"],
 .expense-table-panel input[type="number"] {
   appearance: textfield !important;
@@ -2163,8 +2147,6 @@ main:has(.auth-page) {
   opacity: 1 !important;
   transform: translateY(0) !important;
 }
-
-/* Make the row highlight more visible after add → Expense History. */
 #expense-table tr.recently-added-row td {
   animation: recentlyAddedExpensePulse 2.8s ease-out !important;
 }
@@ -2180,8 +2162,6 @@ main:has(.auth-page) {
     grid-template-columns: 1fr !important;
   }
 }
-
-/* ---------- React parity milestone 1b: Add Expense validation + field polish ---------- */
 .quick-expense-panel .container.add-expense-form,
 .quick-expense-panel .container.add-expense-form .input-section {
   width: 100% !important;
@@ -2283,9 +2263,6 @@ main:has(.auth-page) {
   font-size: 0.86rem !important;
   font-weight: 700 !important;
 }
-
-
-/* ---------- React parity milestone 1c: Add Expense validation refinements ---------- */
 .quick-expense-panel .amount-field-group .currency-prefix {
   color: #647067 !important;
   font-weight: 600 !important;
@@ -2316,8 +2293,6 @@ main:has(.auth-page) {
     box-shadow: inset 0 0 0 0 rgba(77, 222, 131, 0);
   }
 }
-
-/* ---------- React parity milestone 1d: Add Expense small validation polish ---------- */
 .quick-expense-panel .amount-field-group .currency-prefix {
   color: #7B857F !important;
   font-weight: 400 !important;
@@ -2333,9 +2308,6 @@ main:has(.auth-page) {
 .quick-expense-panel .field-help.error {
   color: #dc2626 !important;
 }
-
-
-/* ---------- React parity milestone 1e: Add Expense helper/counter polish ---------- */
 .quick-expense-panel .amount-field-group .currency-prefix {
   color: #7B857F !important;
   font-size: 12px !important;
@@ -2388,8 +2360,6 @@ main:has(.auth-page) {
   border-color: rgba(239, 68, 68, 0.58) !important;
   box-shadow: 0 0 0 4px rgba(239, 68, 68, 0.08) !important;
 }
-
-/* ---------- React parity milestone 1f: Add Expense date invalid border fix ---------- */
 .quick-expense-panel .date-field-group.has-error input#add-expense-date,
 .quick-expense-panel .date-field-group input#add-expense-date[aria-invalid="true"] {
   border-color: rgba(239, 68, 68, 0.72) !important;
@@ -2401,8 +2371,6 @@ main:has(.auth-page) {
   border-color: rgba(239, 68, 68, 0.78) !important;
   box-shadow: 0 0 0 4px rgba(239, 68, 68, 0.10) !important;
 }
-
-/* ---------- React expense history polish pass 3: dropdown, date, chart and overlay refinements ---------- */
 .table-toolbar {
   display: grid !important;
   grid-template-columns: minmax(220px, 1.15fr) minmax(156px, 0.72fr) minmax(158px, 0.72fr) minmax(170px, 0.78fr) 64px !important;
@@ -2702,8 +2670,6 @@ main:has(.auth-page) {
     box-shadow: inset 0 0 0 0 rgba(72, 221, 182, 0);
   }
 }
-
-/* Pagination refinement */
 .expense-pagination {
   gap: 8px !important;
 }
@@ -2850,9 +2816,6 @@ main:has(.auth-page) {
     width: 100% !important;
   }
 }
-
-
-/* ---------- React expense history polish pass 4: segmented dates, toolbar order, modal portals ---------- */
 .quick-expense-panel .input-row {
   display: grid !important;
   grid-template-columns: minmax(190px, 1.1fr) minmax(150px, 0.52fr) minmax(170px, 0.72fr) minmax(190px, 0.78fr) !important;
@@ -3224,8 +3187,6 @@ main:has(.auth-page) {
     grid-template-columns: 1fr !important;
   }
 }
-
-/* ---------- React expense history polish pass 5: date masks, dialogs, toolbar, summary chart ---------- */
 .quick-expense-panel .date-segment-input,
 #expense-table .date-segment-input,
 .add-date-trigger .date-segment-input,
@@ -3637,8 +3598,6 @@ main:has(.auth-page) {
     grid-template-columns: minmax(220px, 1fr) minmax(150px, 1fr) minmax(150px, 1fr) !important;
   }
 }
-
-/* ---------- React expense history polish pass 6: date error, row alignment, edit controls, donut separation ---------- */
 /* Keep Add Expense segmented date errors on the whole field only, not on MM/DD/YYYY mini inputs. */
 .quick-expense-panel .date-field-group.has-error .date-segment-input,
 .quick-expense-panel .date-field-group.has-error input.date-segment-input,
@@ -3824,8 +3783,6 @@ main:has(.auth-page) {
   stroke: rgba(226, 232, 240, 0.98) !important;
   pointer-events: none !important;
 }
-
-/* ---------- React expense history polish pass 7: date spacing, table rhythm, edit row, pagination, donut ---------- */
 /* Date mask: reduce the gap a little, but keep the MM / DD / YYYY groups readable. */
 .quick-expense-panel .date-segment-group,
 .add-date-trigger .date-segment-group,
@@ -4025,8 +3982,6 @@ main:has(.auth-page) {
   max-width: none !important;
   white-space: nowrap !important;
 }
-
-/* ---------- React expense history polish pass 8: date clipping, row alignment, pagination hover, month state, donut hover ---------- */
 /* Date masks: keep the separators close, but give each segment enough room so MM/DD/YYYY never clips. */
 .quick-expense-panel .date-segment-group,
 .add-date-trigger .date-segment-group,
@@ -4239,9 +4194,6 @@ main:has(.auth-page) {
   stroke: rgba(226, 232, 240, 0.98) !important;
   stroke-width: 32px !important;
 }
-
-
-/* ---------- React expense history final polish pass 9: row stability, pagination scale, month shortcut, donut gap ---------- */
 /* Keep the newly added highlight as a row-level effect so the edit pencil does not shift while the mint highlight fades. */
 #expense-table tr.recently-added-row {
   position: static !important;
@@ -4426,8 +4378,6 @@ main:has(.auth-page) {
   border-color: rgba(22, 101, 52, 0.14) !important;
   box-shadow: 0 7px 18px rgba(15, 23, 42, 0.075) !important;
 }
-
-/* ---------- React expense history polish pass 10: final edit-row stability, add-date panel width, hover refinements ---------- */
 /* Add Expense only: keep the calendar panel visually tied to the date field width. */
 .quick-expense-panel .date-input-shell .add-date-picker-panel {
   width: 100% !important;
@@ -4573,8 +4523,6 @@ main:has(.auth-page) {
 .donut-segment:hover {
   transform: scale(1.018) !important;
 }
-
-/* ---------- React expense history polish pass 11: restore date panel size, row stability, highlight, softer edit state ---------- */
 /* Add Expense only: restore the roomier calendar panel size. The table date-cell calendar is intentionally unchanged. */
 .quick-expense-panel .date-input-shell .add-date-picker-panel {
   width: min(332px, calc(100vw - 40px)) !important;
@@ -4699,8 +4647,6 @@ main:has(.auth-page) {
   box-shadow: 0 8px 18px rgba(15, 23, 42, 0.055) !important;
   outline: none !important;
 }
-
-/* ---------- React expense history polish pass 12: single-piece row highlights and steadier table spacing ---------- */
 /* Add a little more left breathing room so the title column does not sit too close to the table edge. */
 #expense-table th:first-child,
 #expense-table td.title-cell.locked {
@@ -4804,8 +4750,6 @@ main:has(.auth-page) {
   box-shadow: 0 8px 18px rgba(15, 23, 42, 0.055) !important;
   outline: none !important;
 }
-
-/* ---------- React expense history polish pass 13: final table spacing, row strips, invalid amount bg ---------- */
 /* Balance the table edges: more left breathing room, a little less right inset. */
 #expense-table th:first-child,
 #expense-table td.title-cell.locked {
@@ -4902,8 +4846,6 @@ main:has(.auth-page) {
 #expense-table .table-amount-input.has-error input {
   background: transparent !important;
 }
-
-/* ---------- React expense history polish pass 14: stable newly-added row strip ---------- */
 /* Do not use tr::before/::after for the new-expense highlight. On table rows, pseudo-elements
    can behave like extra table cells, which was causing the pencil icon to disappear and the row
    content to shift right during the mint highlight. */
@@ -4954,5 +4896,386 @@ main:has(.auth-page) {
   100% {
     background-color: transparent;
     box-shadow: inset 0 0 0 0 rgba(72, 221, 182, 0);
+  }
+}
+
+/* Monthly trend stat cards, legend, and chart shell */
+.monthly-trend-card {
+  position: relative !important;
+  overflow: hidden !important;
+  background:
+    radial-gradient(circle at 94% 11%, rgba(72, 221, 182, 0.075), transparent 30%),
+    linear-gradient(145deg, rgba(255, 255, 255, 0.84), rgba(255, 255, 255, 0.63)) !important;
+  border: 1px solid rgba(255, 255, 255, 0.72) !important;
+  backdrop-filter: blur(18px) !important;
+  -webkit-backdrop-filter: blur(18px) !important;
+}
+
+.monthly-trend-card::after {
+  content: "" !important;
+  position: absolute !important;
+  top: -58px !important;
+  right: -40px !important;
+  width: 220px !important;
+  height: 220px !important;
+  border-radius: 999px !important;
+  background: radial-gradient(circle, rgba(72, 221, 182, 0.06), transparent 70%) !important;
+  pointer-events: none !important;
+}
+
+.monthly-trend-card > * {
+  position: relative !important;
+  z-index: 1 !important;
+}
+
+.monthly-trend-summary {
+  display: grid !important;
+  grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  gap: 14px !important;
+  margin: 20px 0 22px !important;
+}
+
+.monthly-trend-stat {
+  position: relative !important;
+  min-height: 88.12px !important;
+  overflow: hidden !important;
+  border: 1px solid rgba(255, 255, 255, 0.72) !important;
+  border-radius: 20px !important;
+  background:
+    radial-gradient(circle at 92% 8%, rgba(72, 221, 182, 0.07), transparent 34%),
+    linear-gradient(145deg, rgba(255, 255, 255, 0.78), rgba(255, 255, 255, 0.6)) !important;
+  padding: 20px 22px !important;
+  box-shadow: 0 16px 34px rgba(15, 23, 42, 0.055) !important;
+  backdrop-filter: blur(16px) !important;
+  -webkit-backdrop-filter: blur(16px) !important;
+}
+
+.monthly-trend-stat span {
+  display: block !important;
+  margin: 0 0 6px !important;
+  color: #4b5563 !important;
+  font-family: "Inter", Arial, sans-serif !important;
+  font-size: 11px !important;
+  font-weight: 500 !important;
+  line-height: 1.2 !important;
+}
+
+.monthly-trend-stat strong {
+  display: block !important;
+  color: #111827 !important;
+  font-family: "Inter", Arial, sans-serif !important;
+  font-size: 20px !important;
+  font-weight: 700 !important;
+  line-height: 1.05 !important;
+  letter-spacing: 0.002em !important;
+}
+
+.monthly-chart-shell {
+  position: relative !important;
+  min-height: 340px !important;
+  overflow: hidden !important;
+  border: 1px solid rgba(17, 24, 39, 0.075) !important;
+  border-radius: 24px !important;
+  background:
+    radial-gradient(circle at 94% 12%, rgba(72, 221, 182, 0.08), transparent 36%),
+    linear-gradient(145deg, rgba(255, 255, 255, 0.78), rgba(255, 255, 255, 0.58)) !important;
+  padding: 22px 24px 18px !important;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.7), 0 14px 36px rgba(15, 23, 42, 0.045) !important;
+  backdrop-filter: blur(16px) !important;
+  -webkit-backdrop-filter: blur(16px) !important;
+}
+
+.monthly-chart-shell canvas {
+  width: 100% !important;
+  height: 300px !important;
+}
+
+@media (max-width: 700px) {
+  .monthly-trend-summary {
+    grid-template-columns: 1fr !important;
+  }
+
+  .monthly-trend-stat {
+    min-height: 82px !important;
+  }
+
+  .monthly-chart-shell {
+    min-height: 300px !important;
+    padding: 16px !important;
+  }
+
+  .monthly-chart-shell canvas {
+    height: 260px !important;
+  }
+}
+.monthly-chart-shell {
+  border: 0 !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+  overflow: visible !important;
+  padding: 16px 10px 0 !important;
+}
+
+.monthly-chart-shell canvas {
+  width: 100% !important;
+  height: 300px !important;
+}
+
+@media (max-width: 700px) {
+  .monthly-chart-shell {
+    padding: 12px 4px 0 !important;
+  }
+}
+.monthly-chart-legend {
+  display: flex !important;
+  justify-content: center !important;
+  align-items: center !important;
+  gap: 18px !important;
+  margin: 4px 0 -2px !important;
+  color: #647067 !important;
+  font-family: "Inter", Arial, sans-serif !important;
+  font-size: 12px !important;
+  font-weight: 600 !important;
+  line-height: 1 !important;
+}
+
+.monthly-chart-legend span {
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 6px !important;
+  line-height: 1 !important;
+}
+
+.monthly-legend-dot {
+  display: inline-block !important;
+  width: 10px !important;
+  height: 10px !important;
+  border-radius: 999px !important;
+  background: #ffffff !important;
+  box-sizing: border-box !important;
+  flex: 0 0 10px !important;
+}
+
+.monthly-legend-dot-total {
+  border: 2px solid #4ade80 !important;
+}
+
+.monthly-legend-dot-average {
+  border: 2px solid #f59e0b !important;
+}
+
+.monthly-chart-shell {
+  padding-top: 8px !important;
+}
+.monthly-trend-summary {
+  margin: 20px 0 36px !important;
+}
+
+.monthly-chart-legend {
+  margin: 0 0 8px !important;
+  color: #647067 !important;
+  font-size: 12px !important;
+  font-weight: 420 !important;
+  line-height: 1.35 !important;
+}
+
+.monthly-chart-legend span {
+  align-items: center !important;
+  line-height: 1.35 !important;
+}
+
+.monthly-legend-dot {
+  width: 10px !important;
+  height: 10px !important;
+  flex-basis: 10px !important;
+  transform: translateY(0) !important;
+}
+
+.monthly-legend-dot-total,
+.monthly-legend-dot-average {
+  border-width: 2px !important;
+}
+
+.monthly-chart-shell {
+  min-height: 292px !important;
+  padding: 8px 10px 0 !important;
+  margin-bottom: -8px !important;
+}
+
+.monthly-chart-shell canvas {
+  height: 282px !important;
+}
+
+@media (max-width: 700px) {
+  .monthly-chart-shell {
+    min-height: 266px !important;
+    padding: 10px 4px 0 !important;
+    margin-bottom: -6px !important;
+  }
+
+  .monthly-chart-shell canvas {
+    height: 250px !important;
+  }
+}
+.monthly-chart-shell {
+  min-height: 362px !important;
+  padding: 8px 10px 0 !important;
+  margin-bottom: -2px !important;
+}
+
+.monthly-chart-shell canvas {
+  height: 350px !important;
+}
+
+@media (max-width: 700px) {
+  .monthly-chart-shell {
+    min-height: 312px !important;
+    padding: 10px 4px 0 !important;
+    margin-bottom: -2px !important;
+  }
+
+  .monthly-chart-shell canvas {
+    height: 300px !important;
+  }
+}
+.monthly-chart-shell {
+  width: calc(100% + 32px) !important;
+  max-width: none !important;
+  margin-left: -16px !important;
+  margin-right: -16px !important;
+  padding-left: 6px !important;
+  padding-right: 6px !important;
+  overflow: visible !important;
+}
+
+.monthly-chart-shell canvas {
+  width: 100% !important;
+}
+
+.monthly-legend-dot-total {
+  border-color: #4dde83 !important;
+}
+
+@media (max-width: 700px) {
+  .monthly-chart-shell {
+    width: calc(100% + 12px) !important;
+    margin-left: -6px !important;
+    margin-right: -6px !important;
+    padding-left: 2px !important;
+    padding-right: 2px !important;
+  }
+}
+.monthly-trend-summary {
+  margin: 20px 0 40px !important;
+}
+
+.monthly-chart-legend {
+  margin: 0 0 8px !important;
+  color: #647067 !important;
+  font-family: "Inter", Arial, sans-serif !important;
+  font-size: 12px !important;
+  font-weight: 420 !important;
+  line-height: 1.35 !important;
+  transform: none !important;
+}
+
+.monthly-chart-legend span {
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 6px !important;
+  line-height: 1.35 !important;
+  transform: none !important;
+}
+
+.monthly-legend-dot-total {
+  border-color: #58e37d !important;
+}
+
+.monthly-chart-shell {
+  width: calc(100% + 58px) !important;
+  max-width: none !important;
+  margin-left: -29px !important;
+  margin-right: -29px !important;
+  padding-left: 10px !important;
+  padding-right: 10px !important;
+  overflow: visible !important;
+}
+
+.monthly-chart-shell canvas {
+  width: 100% !important;
+}
+
+@media (max-width: 700px) {
+  .monthly-trend-summary {
+    margin: 18px 0 28px !important;
+  }
+
+  .monthly-chart-shell {
+    width: calc(100% + 20px) !important;
+    margin-left: -10px !important;
+    margin-right: -10px !important;
+    padding-left: 4px !important;
+    padding-right: 4px !important;
+  }
+}
+.monthly-chart-legend {
+  margin: 0 0 2px !important;
+}
+
+.monthly-chart-shell {
+  width: calc(100% + 76px) !important;
+  max-width: none !important;
+  margin-left: -58px !important;
+  margin-right: -18px !important;
+  padding-top: 0 !important;
+  padding-left: 8px !important;
+  padding-right: 14px !important;
+  overflow: visible !important;
+}
+
+.monthly-chart-shell canvas {
+  width: 100% !important;
+}
+
+@media (max-width: 700px) {
+  .monthly-chart-legend {
+    margin-bottom: 2px !important;
+  }
+
+  .monthly-chart-shell {
+    width: calc(100% + 18px) !important;
+    margin-left: -12px !important;
+    margin-right: -6px !important;
+    padding-left: 4px !important;
+    padding-right: 6px !important;
+  }
+}
+
+
+/* ---------- Monthly trend axis width balance: slightly wider, centered, with protected edge padding ---------- */
+.monthly-chart-shell {
+  width: calc(100% + 100px) !important;
+  max-width: none !important;
+  margin-left: -50px !important;
+  margin-right: -50px !important;
+  padding-left: 8px !important;
+  padding-right: 12px !important;
+  overflow: visible !important;
+}
+
+.monthly-chart-shell canvas {
+  width: 100% !important;
+}
+
+@media (max-width: 700px) {
+  .monthly-chart-shell {
+    width: calc(100% + 26px) !important;
+    margin-left: -13px !important;
+    margin-right: -13px !important;
+    padding-left: 6px !important;
+    padding-right: 8px !important;
   }
 }
