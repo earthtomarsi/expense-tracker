@@ -148,6 +148,8 @@ function App() {
             currentUser={user}
             onUserUpdate={handleUserUpdate}
             showToast={showToast}
+            onNavigateHome={handleGoHome}
+            onLogout={handleLogout}
           />
         ) : isAdmin ? (
           <AdminDashboard currentUser={user} showToast={showToast} />

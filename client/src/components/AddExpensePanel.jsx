@@ -45,6 +45,27 @@ function formatAmount(value) {
   return amount.toFixed(2);
 }
 
+function getAmountLiveError(value) {
+  const amountValue = String(value || "").trim();
+
+  if (!amountValue) return "";
+
+  const amount = parseAmount(amountValue);
+
+  if (!Number.isFinite(amount)) return "Please enter a valid amount.";
+  if (amount <= 0) return "Amount must be greater than 0.";
+
+  return "";
+}
+
+function getAmountSaveError(value) {
+  const amountValue = String(value || "").trim();
+
+  if (!amountValue) return "Amount is required.";
+
+  return getAmountLiveError(amountValue);
+}
+
 function parseDateValue(value) {
   if (!value) return null;
   const [year, month, day] = String(value).slice(0, 10).split("-").map(Number);
@@ -419,10 +440,7 @@ function AddExpensePanel({ editingExpense, onCancelEdit, onSubmit, showToast }) 
     }
 
     if (field === "amount") {
-      const amount = parseAmount(value);
-      if (!Number.isFinite(amount) || amount <= 0) {
-        return "Please enter a valid amount greater than 0.";
-      }
+      return getAmountLiveError(value);
     }
 
     if (field === "date") {
@@ -435,6 +453,14 @@ function AddExpensePanel({ editingExpense, onCancelEdit, onSubmit, showToast }) 
   const updateField = (field, value) => {
     setFormError("");
     setForm((current) => ({ ...current, [field]: value }));
+
+    if (field === "amount") {
+      setFieldErrors((current) => ({
+        ...current,
+        amount: getAmountLiveError(value)
+      }));
+      return;
+    }
 
     setFieldErrors((current) => {
       if (!current[field] && field !== "date") return current;
@@ -460,8 +486,10 @@ function AddExpensePanel({ editingExpense, onCancelEdit, onSubmit, showToast }) 
       errors.expenseName = "Please enter an expense title.";
     }
 
-    if (!Number.isFinite(amount) || amount <= 0) {
-      errors.amount = "Please enter a valid amount greater than 0.";
+    const amountError = getAmountSaveError(form.amount);
+
+    if (amountError) {
+      errors.amount = amountError;
     }
 
     if (dateError) {
@@ -573,6 +601,7 @@ function AddExpensePanel({ editingExpense, onCancelEdit, onSubmit, showToast }) 
                 placeholder="0.00"
                 value={form.amount}
                 aria-invalid={Boolean(fieldErrors.amount)}
+                aria-describedby="amount-error"
                 onChange={(event) => updateField("amount", event.target.value)}
                 onBlur={(event) => {
                   handleAmountBlur();
@@ -584,7 +613,11 @@ function AddExpensePanel({ editingExpense, onCancelEdit, onSubmit, showToast }) 
                   }
                 }}
               />
-              {fieldErrors.amount && <small className="field-help error">{fieldErrors.amount}</small>}
+              {fieldErrors.amount && (
+                <small id="amount-error" className="field-help error" role="alert">
+                  {fieldErrors.amount}
+                </small>
+              )}
             </div>
 
             <div className="field-group add-category-field-group">
