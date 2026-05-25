@@ -18,6 +18,103 @@ const fullMonths = [
 ];
 const pageSize = 10;
 
+const expenseHistoryEllipsisStyles = `
+.expense-table-panel {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+#expense-table {
+  table-layout: fixed;
+  width: 100%;
+  min-width: 980px;
+}
+
+#expense-table th,
+#expense-table td {
+  min-width: 0;
+}
+
+#expense-table th:nth-child(1),
+#expense-table .title-cell {
+  width: 18%;
+}
+
+#expense-table th:nth-child(2),
+#expense-table .amount-cell {
+  width: 13%;
+}
+
+#expense-table th:nth-child(3),
+#expense-table .category-cell {
+  width: 14%;
+}
+
+#expense-table th:nth-child(4),
+#expense-table .date-cell {
+  width: 16%;
+}
+
+#expense-table th:nth-child(5),
+#expense-table .description-cell {
+  width: 27%;
+}
+
+#expense-table th:nth-child(6),
+#expense-table .actions-cell {
+  width: 88px;
+  min-width: 88px;
+}
+
+#expense-table .cell-text {
+  display: block;
+  min-width: 0;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+#expense-table .table-edit-input,
+#expense-table .amount-edit-input {
+  display: block;
+  width: 100%;
+  min-width: 0;
+  max-width: 100%;
+  box-sizing: border-box;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+#expense-table .table-amount-input,
+#expense-table .category-edit-menu,
+#expense-table .category-edit-trigger,
+#expense-table .table-date-picker,
+#expense-table .table-date-trigger,
+#expense-table .date-segment-group {
+  width: 100%;
+  min-width: 0;
+  max-width: 100%;
+  box-sizing: border-box;
+}
+
+#expense-table .table-amount-input input {
+  min-width: 0;
+}
+
+#expense-table .category-edit-trigger span:first-child {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+#expense-table .date-segment-input {
+  min-width: 0;
+}
+`;
+
 function formatCurrency(value) {
   return new Intl.NumberFormat("en-US", {
     style: "currency",
@@ -783,6 +880,7 @@ function ExpenseHistoryPanel({
 
   return (
     <div id="expense-history" className="table-section user-dashboard-panel" role="tabpanel" ref={panelRef}>
+      <style>{expenseHistoryEllipsisStyles}</style>
       <div className="table-header">
         <div className="table-title-group">
           <div>
