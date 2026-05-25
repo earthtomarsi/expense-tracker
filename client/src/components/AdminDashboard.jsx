@@ -11,6 +11,21 @@ import {
   updateAdminUser
 } from "../services/api.js";
 
+function formatLastLogin(value) {
+  if (!value) return "Last login: Not available";
+
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return `Last login: ${value}`;
+
+  return `Last login: ${date.toLocaleString("en-US", {
+    year: "numeric",
+    month: "short",
+    day: "numeric",
+    hour: "numeric",
+    minute: "2-digit"
+  })}`;
+}
+
 function AdminDashboard({ currentUser, showToast }) {
   const [activeTab, setActiveTab] = useState("users");
   const [users, setUsers] = useState([]);
@@ -30,17 +45,14 @@ function AdminDashboard({ currentUser, showToast }) {
 
     setUsers(nextUsers);
     setActivity(nextActivity);
+
+    return [nextUsers, nextActivity];
   };
 
   useEffect(() => {
     let isMounted = true;
 
-    Promise.all([getAdminUsers(), getAdminActivity()])
-      .then(([nextUsers, nextActivity]) => {
-        if (!isMounted) return;
-        setUsers(nextUsers);
-        setActivity(nextActivity);
-      })
+    loadAdminData()
       .catch((error) => {
         if (isMounted) showToast(error.message, "error");
       })
@@ -59,34 +71,47 @@ function AdminDashboard({ currentUser, showToast }) {
       setUsers((current) => [created, ...current]);
       showToast("User created successfully.");
       await loadAdminData();
+      return true;
     } catch (error) {
       showToast(error.message, "error");
+      return false;
     }
   };
 
   const handleUpdateUser = async (id, payload) => {
     try {
       const updated = await updateAdminUser(id, payload);
+
       setUsers((current) =>
-        current.map((user) => (user.id === updated.id ? updated : user))
+        current.map((user) => (String(user.id) === String(updated.id) ? updated : user))
       );
+
+      setSelectedUser((current) =>
+        current && String(current.id) === String(updated.id)
+          ? { ...current, ...updated }
+          : current
+      );
+
       showToast("User updated successfully.");
       await loadAdminData();
+      return true;
     } catch (error) {
       showToast(error.message, "error");
+      return false;
     }
   };
 
   const handleDeleteUser = async (id) => {
-    if (!window.confirm("Delete this user?")) return;
-
     try {
       await deleteAdminUser(id);
-      setUsers((current) => current.filter((user) => user.id !== id));
-      showToast("User deleted successfully.");
+      setUsers((current) => current.filter((user) => String(user.id) !== String(id)));
+      setSelectedUser((current) => (current && String(current.id) === String(id) ? null : current));
+      showToast("User removed successfully.");
       await loadAdminData();
+      return true;
     } catch (error) {
       showToast(error.message, "error");
+      return false;
     }
   };
 
@@ -100,80 +125,101 @@ function AdminDashboard({ currentUser, showToast }) {
     }
   };
 
+  const displayName = currentUser.name || currentUser.username || "Admin";
+
   return (
     <section className="admin-profile-panel">
-      <div className="admin-profile-header">
-        <div>
-          <p className="admin-kicker">Admin dashboard</p>
-          <h3>Welcome, {currentUser.name || currentUser.username}</h3>
-          <p>Manage user accounts and review system activity.</p>
+      <div className="admin-summary-card">
+        <div className="admin-profile-header">
+          <div>
+            <p className="admin-kicker">Admin dashboard</p>
+            <h3>Hi {displayName}, here's today's account overview.</h3>
+            <p>Edit existing user accounts and review login, logout, and CRUD activity.</p>
+          </div>
+
+          <span className="admin-last-login-pill">
+            {formatLastLogin(currentUser.last_login || currentUser.lastLogin || currentUser.updated_at || currentUser.updatedAt)}
+          </span>
+        </div>
+
+        <div className="admin-overview-grid">
+          <div className="admin-overview-card">
+            <span className="admin-overview-label">Total users</span>
+            <strong>{users.length}</strong>
+            <small>Across all roles</small>
+          </div>
+
+          <div className="admin-overview-card">
+            <span className="admin-overview-label">Admins</span>
+            <strong>{adminUsersCount}</strong>
+            <small>Can manage accounts</small>
+          </div>
+
+          <div className="admin-overview-card">
+            <span className="admin-overview-label">Regular users</span>
+            <strong>{regularUsersCount}</strong>
+            <small>Expense tracking accounts</small>
+          </div>
+
+          <div className="admin-overview-card">
+            <span className="admin-overview-label">Activity events</span>
+            <strong>{activity.length}</strong>
+            <small>Logged user actions</small>
+          </div>
         </div>
       </div>
 
-      <div className="admin-overview-grid">
-        <div className="admin-overview-card">
-          <span className="admin-overview-label">Total users</span>
-          <strong>{users.length}</strong>
-          <small>registered accounts</small>
+      <section className="admin-management-card">
+        <div className="admin-card-header">
+          <div>
+            <h3>User administration</h3>
+            <p>Review user accounts and activity across Spendflow.</p>
+          </div>
         </div>
 
-        <div className="admin-overview-card">
-          <span className="admin-overview-label">Admin users</span>
-          <strong>{adminUsersCount}</strong>
-          <small>administrator accounts</small>
+        <div className="admin-management-tabs">
+          {[
+            ["users", "Users", `${users.length} ${users.length === 1 ? "count" : "counts"}`],
+            ["activity", "User activity", `${activity.length} ${activity.length === 1 ? "event" : "events"}`]
+          ].map(([tab, label, subLabel]) => (
+            <button
+              key={tab}
+              className={activeTab === tab ? "admin-management-tab active" : "admin-management-tab"}
+              type="button"
+              onClick={() => setActiveTab(tab)}
+            >
+              <span>{label}</span>
+              <small>{subLabel}</small>
+            </button>
+          ))}
         </div>
 
-        <div className="admin-overview-card">
-          <span className="admin-overview-label">Regular users</span>
-          <strong>{regularUsersCount}</strong>
-          <small>standard accounts</small>
-        </div>
+        {isLoading ? (
+          <div className="status-message">Loading admin data...</div>
+        ) : (
+          <div className="admin-management-workspace">
+            {activeTab === "users" && (
+              <AdminUsersPanel
+                users={users}
+                currentUser={currentUser}
+                onCreateUser={handleCreateUser}
+                onUpdateUser={handleUpdateUser}
+                onDeleteUser={handleDeleteUser}
+                onOpenDetails={openUserDetails}
+              />
+            )}
 
-        <div className="admin-overview-card">
-          <span className="admin-overview-label">Activity events</span>
-          <strong>{activity.length}</strong>
-          <small>audit records</small>
-        </div>
-      </div>
-
-      <div className="admin-management-tabs">
-        {[
-          ["users", "Users", "Manage accounts"],
-          ["activity", "Activity", "Audit log"]
-        ].map(([tab, label, subLabel]) => (
-          <button
-            key={tab}
-            className={activeTab === tab ? "admin-management-tab active" : "admin-management-tab"}
-            type="button"
-            onClick={() => setActiveTab(tab)}
-          >
-            <span>{label}</span>
-            <small>{subLabel}</small>
-          </button>
-        ))}
-      </div>
-
-      {isLoading ? (
-        <div className="status-message">Loading admin data...</div>
-      ) : (
-        <div className="admin-management-workspace">
-          {activeTab === "users" && (
-            <AdminUsersPanel
-              users={users}
-              onCreateUser={handleCreateUser}
-              onUpdateUser={handleUpdateUser}
-              onDeleteUser={handleDeleteUser}
-              onOpenDetails={openUserDetails}
-            />
-          )}
-
-          {activeTab === "activity" && <AdminActivityPanel activity={activity} />}
-        </div>
-      )}
+            {activeTab === "activity" && <AdminActivityPanel activity={activity} />}
+          </div>
+        )}
+      </section>
 
       <UserDetailsModal
         user={selectedUser}
         activity={selectedUserActivity}
+        currentUser={currentUser}
+        onUpdateUser={handleUpdateUser}
+        onDeleteUser={handleDeleteUser}
         onClose={() => {
           setSelectedUser(null);
           setSelectedUserActivity([]);

@@ -1,6 +1,14 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 const ROWS_PER_PAGE = 10;
+const sortOptions = [
+  ["time-desc", "Time: Most Recent"],
+  ["time-asc", "Time: Oldest"],
+  ["username-asc", "Username: A to Z"],
+  ["username-desc", "Username: Z to A"],
+  ["action-asc", "Action: A to Z"],
+  ["action-desc", "Action: Z to A"]
+];
 
 function formatDateTime(value) {
   if (!value) return "-";
@@ -42,21 +50,109 @@ function getActionClass(action) {
   return "default";
 }
 
+function SearchIcon() {
+  return (
+    <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" focusable="false">
+      <path d="M10.5 5a5.5 5.5 0 1 1 0 11 5.5 5.5 0 0 1 0-11Zm4.2 9.7L19 19" stroke="currentColor" strokeWidth="1.45" strokeLinecap="round" />
+    </svg>
+  );
+}
+
+function ChevronDownIcon() {
+  return (
+    <svg aria-hidden="true" viewBox="0 0 20 20" fill="none" focusable="false">
+      <path d="M5.5 7.75 10 12.25l4.5-4.5" stroke="currentColor" strokeWidth="1.25" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  );
+}
+
+function ChevronLeftIcon() {
+  return (
+    <svg aria-hidden="true" viewBox="0 0 20 20" fill="none" focusable="false">
+      <path d="m12 5-5 5 5 5" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  );
+}
+
+function ChevronRightIcon() {
+  return (
+    <svg aria-hidden="true" viewBox="0 0 20 20" fill="none" focusable="false">
+      <path d="m8 5 5 5-5 5" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  );
+}
+
+function ToolbarSelect({ id, value, options, openMenu, setOpenMenu, onChange, prefix = "" }) {
+  const isOpen = openMenu === id;
+  const selectedLabel = options.find(([optionValue]) => optionValue === value)?.[1] || options[0]?.[1] || "Select";
+  const currentLabel = prefix ? `${prefix}: ${selectedLabel}` : selectedLabel;
+
+  return (
+    <div className={`toolbar-menu admin-toolbar-menu ${isOpen ? "open" : ""}`}>
+      <button
+        className="toolbar-menu-trigger"
+        type="button"
+        aria-haspopup="listbox"
+        aria-expanded={isOpen}
+        onClick={() => setOpenMenu(isOpen ? null : id)}
+      >
+        <span className="toolbar-menu-label">{currentLabel}</span>
+        <span className="toolbar-chevron" aria-hidden="true"><ChevronDownIcon /></span>
+      </button>
+
+      {isOpen && (
+        <div className="toolbar-dropdown-panel admin-toolbar-dropdown-panel" role="listbox">
+          {options.map(([optionValue, optionLabel]) => (
+            <button
+              key={optionValue}
+              className={optionValue === value ? "toolbar-option active" : "toolbar-option"}
+              type="button"
+              role="option"
+              aria-selected={optionValue === value}
+              onClick={() => {
+                onChange(optionValue);
+                setOpenMenu(null);
+              }}
+            >
+              {optionLabel}
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
 function AdminActivityPanel({ activity }) {
   const [search, setSearch] = useState("");
   const [actionFilter, setActionFilter] = useState("All");
   const [sort, setSort] = useState("time-desc");
   const [page, setPage] = useState(1);
+  const [openMenu, setOpenMenu] = useState(null);
 
-  const actions = useMemo(() => {
+  useEffect(() => {
+    if (!openMenu) return undefined;
+
+    const handlePointerDown = (event) => {
+      if (event.target.closest(".admin-toolbar-menu")) return;
+      setOpenMenu(null);
+    };
+
+    document.addEventListener("pointerdown", handlePointerDown);
+    return () => document.removeEventListener("pointerdown", handlePointerDown);
+  }, [openMenu]);
+
+  const actionOptions = useMemo(() => {
     return [
-      "All",
-      ...new Set(
-        activity
-          .map((item) => getActionLabel(item.action))
-          .filter(Boolean)
-          .sort()
-      )
+      ["All", "All"],
+      ...Array.from(
+        new Set(
+          activity
+            .map((item) => getActionLabel(item.action))
+            .filter(Boolean)
+            .sort()
+        )
+      ).map((action) => [action, action])
     ];
   }, [activity]);
 
@@ -73,12 +169,7 @@ function AdminActivityPanel({ activity }) {
 
         if (!query) return true;
 
-        return [
-          username,
-          action,
-          item.details,
-          created
-        ]
+        return [username, action, item.details, created]
           .filter(Boolean)
           .some((value) => String(value).toLowerCase().includes(query));
       })
@@ -123,132 +214,103 @@ function AdminActivityPanel({ activity }) {
 
   return (
     <section className="admin-activity-panel">
-      <div className="admin-activity-card">
-        <div className="admin-card-header admin-activity-header">
-          <div>
-            <h3>Activity</h3>
-            <p>Review login, logout, expense, account, and admin actions.</p>
-          </div>
-
-          <span>{visibleActivity.length} {visibleActivity.length === 1 ? "record" : "records"}</span>
+      <div className="admin-activity-toolbar admin-toolbar-grid" aria-label="Admin activity controls">
+        <div className="admin-search-field">
+          <label className="sr-only" htmlFor="admin-activity-search">Search activity</label>
+          <input
+            id="admin-activity-search"
+            type="text"
+            placeholder="Search activity"
+            value={search}
+            onChange={(event) => resetToFirstPage(() => setSearch(event.target.value))}
+          />
+          <span className="admin-search-icon" aria-hidden="true"><SearchIcon /></span>
         </div>
 
-        <div className="admin-activity-toolbar" aria-label="Admin activity controls">
-          <div className="admin-activity-search">
-            <input
-              id="admin-activity-search"
-              type="text"
-              placeholder="Search activity"
-              value={search}
-              onChange={(event) =>
-                resetToFirstPage(() => setSearch(event.target.value))
-              }
-            />
-          </div>
+        <ToolbarSelect
+          id="action"
+          value={actionFilter}
+          options={actionOptions}
+          prefix="Action"
+          openMenu={openMenu}
+          setOpenMenu={setOpenMenu}
+          onChange={(value) => resetToFirstPage(() => setActionFilter(value))}
+        />
 
-          <div className="select-wrapper admin-activity-select">
-            <select
-              value={actionFilter}
-              onChange={(event) =>
-                resetToFirstPage(() => setActionFilter(event.target.value))
-              }
-            >
-              {actions.map((action) => (
-                <option key={action} value={action}>
-                  Action: {action}
-                </option>
-              ))}
-            </select>
-            <span className="select-arrow">›</span>
-          </div>
+        <ToolbarSelect
+          id="time-sort"
+          value={sort}
+          options={sortOptions}
+          openMenu={openMenu}
+          setOpenMenu={setOpenMenu}
+          onChange={(value) => resetToFirstPage(() => setSort(value))}
+        />
 
-          <div className="select-wrapper admin-activity-select">
-            <select
-              value={sort}
-              onChange={(event) =>
-                resetToFirstPage(() => setSort(event.target.value))
-              }
-            >
-              <option value="time-desc">Time: Most Recent</option>
-              <option value="time-asc">Time: Oldest</option>
-              <option value="username-asc">Username: A to Z</option>
-              <option value="username-desc">Username: Z to A</option>
-              <option value="action-asc">Action: A to Z</option>
-              <option value="action-desc">Action: Z to A</option>
-            </select>
-            <span className="select-arrow">›</span>
-          </div>
+        <button className="toolbar-clear" type="button" onClick={clearControls}>
+          Clear
+        </button>
+      </div>
 
-          <button className="toolbar-clear" type="button" onClick={clearControls}>
-            Clear
-          </button>
-        </div>
+      <div className="admin-table-shell admin-activity-table-shell">
+        <table className="admin-table admin-activity-table">
+          <thead>
+            <tr>
+              <th><span className="th-text">Username</span></th>
+              <th><span className="th-text">Action</span></th>
+              <th><span className="th-text">Details</span></th>
+              <th><span className="th-text">Time</span></th>
+            </tr>
+          </thead>
 
-        <div className="admin-table-shell">
-          <table className="admin-table admin-activity-table">
-            <thead>
+          <tbody>
+            {pageActivity.length === 0 ? (
               <tr>
-                <th>Username</th>
-                <th>Action</th>
-                <th>Details</th>
-                <th>Time</th>
+                <td colSpan="4" className="empty-table-cell">
+                  No activity found.
+                </td>
               </tr>
-            </thead>
+            ) : (
+              pageActivity.map((item, index) => {
+                const username = getUsername(item);
+                const details = item.details || "-";
+                const time = formatDateTime(item.created_at || item.createdAt);
 
-            <tbody>
-              {pageActivity.length === 0 ? (
-                <tr>
-                  <td colSpan="4" className="empty-table-cell">
-                    No activity found.
-                  </td>
-                </tr>
-              ) : (
-                pageActivity.map((item, index) => (
+                return (
                   <tr key={item.id || `${item.created_at}-${index}`}>
-                    <td>{getUsername(item)}</td>
+                    <td><span className="admin-cell-text" title={username}>{username}</span></td>
                     <td>
                       <span className={`admin-activity-action ${getActionClass(item.action)}`}>
                         {getActionLabel(item.action)}
                       </span>
                     </td>
-                    <td>{item.details || "-"}</td>
-                    <td>{formatDateTime(item.created_at || item.createdAt)}</td>
+                    <td><span className="admin-cell-text" title={details}>{details}</span></td>
+                    <td><span className="admin-cell-text" title={time}>{time}</span></td>
                   </tr>
-                ))
-              )}
-            </tbody>
-          </table>
-        </div>
+                );
+              })
+            )}
+          </tbody>
+        </table>
+      </div>
 
-        <div className="table-footer admin-activity-footer">
-          <span className="page-indicator">
-            {showingStart}-{showingEnd} of {visibleActivity.length}
-          </span>
-
-          <div className="table-pagination">
-            <button
-              className="page-btn"
-              type="button"
-              data-page-glyph="‹"
-              aria-label="Previous activity page"
-              disabled={safePage <= 1}
-              onClick={() => setPage((current) => Math.max(1, current - 1))}
-            >
-              ‹
-            </button>
-
-            <button
-              className="page-btn"
-              type="button"
-              data-page-glyph="›"
-              aria-label="Next activity page"
-              disabled={safePage >= totalPages}
-              onClick={() => setPage((current) => Math.min(totalPages, current + 1))}
-            >
-              ›
-            </button>
-          </div>
-        </div>
+      <div className="expense-pagination admin-activity-pagination" aria-label="Activity pagination">
+        <span>{showingStart}-{showingEnd} of {visibleActivity.length}</span>
+        <button
+          type="button"
+          aria-label="Previous activity page"
+          disabled={safePage <= 1}
+          onClick={() => setPage((current) => Math.max(1, current - 1))}
+        >
+          <ChevronLeftIcon />
+        </button>
+        <button
+          type="button"
+          aria-label="Next activity page"
+          disabled={safePage >= totalPages}
+          onClick={() => setPage((current) => Math.min(totalPages, current + 1))}
+        >
+          <ChevronRightIcon />
+        </button>
       </div>
     </section>
   );
