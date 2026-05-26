@@ -58,6 +58,23 @@ function SearchIcon() {
   );
 }
 
+
+function FilterIcon() {
+  return (
+    <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" focusable="false">
+      <path d="M5 7h14M8 12h8M10 17h4" stroke="currentColor" strokeWidth="1.45" strokeLinecap="round" />
+    </svg>
+  );
+}
+
+function SortIcon() {
+  return (
+    <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" focusable="false">
+      <path d="M8 5v14M8 19l-3-3M8 19l3-3M16 19V5M16 5l-3 3M16 5l3 3" stroke="currentColor" strokeWidth="1.45" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  );
+}
+
 function ChevronDownIcon() {
   return (
     <svg aria-hidden="true" viewBox="0 0 20 20" fill="none" focusable="false">
@@ -82,7 +99,7 @@ function ChevronRightIcon() {
   );
 }
 
-function ToolbarSelect({ id, value, options, openMenu, setOpenMenu, onChange, prefix = "" }) {
+function ToolbarSelect({ id, icon, value, options, openMenu, setOpenMenu, onChange, prefix = "" }) {
   const isOpen = openMenu === id;
   const selectedLabel = options.find(([optionValue]) => optionValue === value)?.[1] || options[0]?.[1] || "Select";
   const currentLabel = prefix ? `${prefix}: ${selectedLabel}` : selectedLabel;
@@ -96,6 +113,7 @@ function ToolbarSelect({ id, value, options, openMenu, setOpenMenu, onChange, pr
         aria-expanded={isOpen}
         onClick={() => setOpenMenu(isOpen ? null : id)}
       >
+        {icon && <span className="toolbar-menu-icon" aria-hidden="true">{icon}</span>}
         <span className="toolbar-menu-label">{currentLabel}</span>
         <span className="toolbar-chevron" aria-hidden="true"><ChevronDownIcon /></span>
       </button>
@@ -220,7 +238,7 @@ function AdminActivityPanel({ activity }) {
           <input
             id="admin-activity-search"
             type="text"
-            placeholder="Search activity"
+            placeholder="Search"
             value={search}
             onChange={(event) => resetToFirstPage(() => setSearch(event.target.value))}
           />
@@ -229,6 +247,7 @@ function AdminActivityPanel({ activity }) {
 
         <ToolbarSelect
           id="action"
+          icon={<FilterIcon />}
           value={actionFilter}
           options={actionOptions}
           prefix="Action"
@@ -239,6 +258,7 @@ function AdminActivityPanel({ activity }) {
 
         <ToolbarSelect
           id="time-sort"
+          icon={<SortIcon />}
           value={sort}
           options={sortOptions}
           openMenu={openMenu}

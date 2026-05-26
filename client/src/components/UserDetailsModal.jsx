@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 
 const ROWS_PER_PAGE = 10;
@@ -70,12 +70,19 @@ function TrashIcon() {
   );
 }
 
-function UserDetailsModal({ user, activity = [], currentUser, onClose, onUpdateUser, onDeleteUser }) {
+function UserDetailsModal({ user, activity = [], currentUser, onClose, onUpdateUser, onDeleteUser, onEditStateChange }) {
   const [isEditing, setIsEditing] = useState(false);
   const [draft, setDraft] = useState(() => createDraft(user));
   const [page, setPage] = useState(1);
   const [showRemoveConfirm, setShowRemoveConfirm] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
+  const [pendingLeaveAction, setPendingLeaveAction] = useState(null);
+  const saveActionsRef = useRef(null);
+
+  const hasUnsavedChanges = Boolean(user && isEditing && (
+    String(user.name || "") !== String(draft.name || "") ||
+    String(user.username || "") !== String(draft.username || "")
+  ));
 
   useEffect(() => {
     setDraft(createDraft(user));
@@ -96,6 +103,35 @@ function UserDetailsModal({ user, activity = [], currentUser, onClose, onUpdateU
     };
   }, [showRemoveConfirm]);
 
+  useEffect(() => {
+    if (!isEditing) return undefined;
+
+    const handleBeforeUnload = (event) => {
+      event.preventDefault();
+      event.returnValue = "";
+      return "";
+    };
+
+    window.addEventListener("beforeunload", handleBeforeUnload);
+    return () => window.removeEventListener("beforeunload", handleBeforeUnload);
+  }, [isEditing]);
+
+  useEffect(() => {
+    if (!isEditing) return undefined;
+
+    const handleKeyDown = (event) => {
+      if (event.key !== "Escape") return;
+      event.preventDefault();
+      requestGuardedLeave(() => {
+        cancelEdit();
+        onClose?.();
+      });
+    };
+
+    document.addEventListener("keydown", handleKeyDown);
+    return () => document.removeEventListener("keydown", handleKeyDown);
+  }, [isEditing, onClose]);
+
   const totalPages = Math.max(1, Math.ceil(activity.length / ROWS_PER_PAGE));
   const safePage = Math.min(page, totalPages);
   const startIndex = (safePage - 1) * ROWS_PER_PAGE;
@@ -107,12 +143,41 @@ function UserDetailsModal({ user, activity = [], currentUser, onClose, onUpdateU
   const showingStart = activity.length === 0 ? 0 : startIndex + 1;
   const showingEnd = Math.min(endIndex, activity.length);
 
-  if (!user) return null;
-
-  const userLabel = user.name || user.username || "User";
-  const isAdminProfile = user.role === "admin";
-  const isCurrentUser = String(currentUser?.id ?? currentUser?.userID ?? "") === String(user.id);
+  const userLabel = user?.name || user?.username || "User";
+  const isAdminProfile = user?.role === "admin";
+  const isCurrentUser = String(currentUser?.id ?? currentUser?.userID ?? "") === String(user?.id ?? "");
   const canRemoveUser = isEditing && !isAdminProfile && !isCurrentUser;
+
+  const highlightSaveButton = () => {
+    const saveButton = document.getElementById("admin-user-detail-save-btn");
+    const target = saveActionsRef.current || saveButton;
+
+    target?.scrollIntoView({ behavior: "smooth", block: "center" });
+
+    window.setTimeout(() => {
+      if (!saveButton) return;
+      saveButton.classList.add("table-action-attention");
+      saveButton.focus({ preventScroll: true });
+      window.setTimeout(() => {
+        saveButton.classList.remove("table-action-attention");
+      }, 1600);
+    }, 420);
+  };
+
+  const keepEditing = () => {
+    setPendingLeaveAction(null);
+    highlightSaveButton();
+  };
+
+  const requestGuardedLeave = (leaveAction) => {
+    if (!isEditing) {
+      leaveAction?.();
+      return;
+    }
+
+    setPendingLeaveAction(() => leaveAction);
+  };
+
 
   const updateDraft = (field, value) => {
     setDraft((current) => ({ ...current, [field]: value }));
@@ -131,7 +196,9 @@ function UserDetailsModal({ user, activity = [], currentUser, onClose, onUpdateU
     try {
       const success = await onUpdateUser?.(user.id, {
         name: String(draft.name || "").trim(),
-        username: String(draft.username || "").trim()
+        username: String(draft.username || "").trim(),
+        email: user.email || "",
+        role: user.role || "user"
       });
 
       if (success) setIsEditing(false);
@@ -141,7 +208,7 @@ function UserDetailsModal({ user, activity = [], currentUser, onClose, onUpdateU
   };
 
   const confirmRemoveUser = async () => {
-    if (!canRemoveUser) return;
+    if (!canRemoveUser || !user) return;
 
     const success = await onDeleteUser?.(user.id);
     if (success) {
@@ -150,15 +217,69 @@ function UserDetailsModal({ user, activity = [], currentUser, onClose, onUpdateU
     }
   };
 
+  useEffect(() => {
+    onEditStateChange?.({
+      isEditing: Boolean(user && isEditing),
+      hasUnsavedChanges,
+      discard: cancelEdit,
+      keepEditing
+    });
+  }, [hasUnsavedChanges, isEditing, onEditStateChange, user?.id]);
+
+  useEffect(() => {
+    return () => {
+      onEditStateChange?.({
+        isEditing: false,
+        hasUnsavedChanges: false,
+        discard: null,
+        keepEditing: null
+      });
+    };
+  }, [onEditStateChange]);
+
+
+  useEffect(() => {
+    window.__spendflowAdminDetailEditGuard = {
+      isEditing: Boolean(user && isEditing),
+      hasUnsavedChanges,
+      discard: cancelEdit,
+      keepEditing
+    };
+
+    return () => {
+      window.__spendflowAdminDetailEditGuard = null;
+    };
+  }, [hasUnsavedChanges, isEditing, user?.id]);
+
+  if (!user) return null;
+
   return (
-    <div className="confirmation-backdrop user-details-backdrop" role="presentation">
+    <div
+      className="confirmation-backdrop user-details-backdrop"
+      role="presentation"
+      onMouseDown={(event) => {
+        if (event.target !== event.currentTarget) return;
+        requestGuardedLeave(() => {
+          cancelEdit();
+          onClose?.();
+        });
+      }}
+    >
       <div
         className={`confirmation-dialog user-details-modal ${isEditing ? "is-editing" : ""}`}
         role="dialog"
         aria-modal="true"
         aria-labelledby="user-details-title"
       >
-        <button className="modal-x-button" type="button" aria-label="Close user details" onClick={onClose}>
+        <button
+          className="modal-x-button"
+          type="button"
+          aria-label="Close user details"
+          onClick={() => requestGuardedLeave(() => {
+            cancelEdit();
+            onClose?.();
+          })}
+        >
           ×
         </button>
 
@@ -181,7 +302,10 @@ function UserDetailsModal({ user, activity = [], currentUser, onClose, onUpdateU
                     ? "You cannot remove your own account here"
                     : "Remove user"
             }
-            onClick={() => setShowRemoveConfirm(true)}
+            onClick={() => {
+              if (!canRemoveUser) return;
+              setShowRemoveConfirm(true);
+            }}
           >
             <TrashIcon />
             Remove user
@@ -221,18 +345,18 @@ function UserDetailsModal({ user, activity = [], currentUser, onClose, onUpdateU
             <input id="user-details-role" value={user.role || "user"} readOnly disabled />
           </div>
 
-          <div className="user-details-actions">
+          <div className="user-details-actions" ref={saveActionsRef}>
             {isEditing ? (
               <>
-                <button className="table-action-btn primary" type="button" onClick={saveEdit} disabled={isSaving}>
+                <button id="admin-user-detail-save-btn" className="table-action-btn primary" type="button" onClick={saveEdit} disabled={isSaving}>
                   {isSaving ? "Saving..." : "Save changes"}
                 </button>
-                <button className="table-action-btn secondary" type="button" onClick={cancelEdit} disabled={isSaving}>
+                <button id="admin-user-detail-cancel-btn" className="table-action-btn secondary" type="button" onClick={cancelEdit} disabled={isSaving}>
                   Cancel
                 </button>
               </>
             ) : (
-              <button className="table-action-btn primary" type="button" onClick={() => setIsEditing(true)}>
+              <button id="admin-user-detail-edit-btn" className="table-action-btn primary" type="button" onClick={() => setIsEditing(true)}>
                 Edit user
               </button>
             )}
@@ -250,7 +374,10 @@ function UserDetailsModal({ user, activity = [], currentUser, onClose, onUpdateU
                   type="button"
                   aria-label="Previous user activity page"
                   disabled={safePage <= 1}
-                  onClick={() => setPage((current) => Math.max(1, current - 1))}
+                  onClick={() => requestGuardedLeave(() => {
+                    cancelEdit();
+                    setPage((current) => Math.max(1, current - 1));
+                  })}
                 >
                   <ChevronLeftIcon />
                 </button>
@@ -258,7 +385,10 @@ function UserDetailsModal({ user, activity = [], currentUser, onClose, onUpdateU
                   type="button"
                   aria-label="Next user activity page"
                   disabled={safePage >= totalPages}
-                  onClick={() => setPage((current) => Math.min(totalPages, current + 1))}
+                  onClick={() => requestGuardedLeave(() => {
+                    cancelEdit();
+                    setPage((current) => Math.min(totalPages, current + 1));
+                  })}
                 >
                   <ChevronRightIcon />
                 </button>
@@ -302,6 +432,53 @@ function UserDetailsModal({ user, activity = [], currentUser, onClose, onUpdateU
           )}
         </div>
       </div>
+
+      {pendingLeaveAction && createPortal(
+        <div className="unsaved-changes-modal show user-details-unsaved-modal" role="presentation" onMouseDown={(event) => event.stopPropagation()}>
+          <div
+            className="unsaved-changes-dialog-card user-details-unsaved-dialog-card"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="user-details-unsaved-title"
+            aria-describedby="user-details-unsaved-message"
+          >
+            <button
+              className="unsaved-changes-close-btn"
+              type="button"
+              aria-label="Close unsaved changes confirmation"
+              onClick={keepEditing}
+            >
+              ×
+            </button>
+
+            <div className="unsaved-changes-icon" aria-hidden="true">!</div>
+
+            <div className="unsaved-changes-copy">
+              <h3 id="user-details-unsaved-title">Unsaved changes</h3>
+              <p id="user-details-unsaved-message">Are you sure you want to leave this user profile?</p>
+              <p>Your changes will be lost.</p>
+            </div>
+
+            <div className="unsaved-changes-actions">
+              <button className="table-action-btn primary" type="button" onClick={keepEditing}>
+                Keep editing
+              </button>
+              <button
+                className="table-action-btn secondary"
+                type="button"
+                onClick={() => {
+                  const action = pendingLeaveAction;
+                  setPendingLeaveAction(null);
+                  action?.();
+                }}
+              >
+                Leave without saving
+              </button>
+            </div>
+          </div>
+        </div>,
+        document.body
+      )}
 
       {showRemoveConfirm && createPortal(
         <div className="unsaved-changes-modal show delete-user-modal" role="presentation" onMouseDown={(event) => event.stopPropagation()}>

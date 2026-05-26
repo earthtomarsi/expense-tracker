@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { createPortal } from "react-dom";
 import AdminActivityPanel from "./AdminActivityPanel.jsx";
 import AdminUsersPanel from "./AdminUsersPanel.jsx";
 import UserDetailsModal from "./UserDetailsModal.jsx";
@@ -26,13 +27,26 @@ function formatLastLogin(value) {
   })}`;
 }
 
-function AdminDashboard({ currentUser, showToast }) {
+function AdminDashboard({ currentUser, showToast, onAdminEditStateChange }) {
   const [activeTab, setActiveTab] = useState("users");
   const [users, setUsers] = useState([]);
   const [activity, setActivity] = useState([]);
   const [selectedUser, setSelectedUser] = useState(null);
   const [selectedUserActivity, setSelectedUserActivity] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [userEditGuard, setUserEditGuard] = useState({
+    isEditing: false,
+    hasUnsavedChanges: false,
+    discard: null,
+    keepEditing: null
+  });
+  const [detailEditGuard, setDetailEditGuard] = useState({
+    isEditing: false,
+    hasUnsavedChanges: false,
+    discard: null,
+    keepEditing: null
+  });
+  const [pendingTab, setPendingTab] = useState(null);
 
   const adminUsersCount = users.filter((user) => user.role === "admin").length;
   const regularUsersCount = users.filter((user) => user.role !== "admin").length;
@@ -64,6 +78,51 @@ function AdminDashboard({ currentUser, showToast }) {
       isMounted = false;
     };
   }, [showToast]);
+
+  useEffect(() => {
+    if (!pendingTab) return undefined;
+
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+
+    return () => {
+      document.body.style.overflow = previousOverflow;
+    };
+  }, [pendingTab]);
+
+  useEffect(() => {
+    const activeGuard = detailEditGuard.isEditing ? detailEditGuard : userEditGuard;
+    onAdminEditStateChange?.(activeGuard);
+  }, [detailEditGuard, onAdminEditStateChange, userEditGuard]);
+
+  const getActiveEditGuard = () => (detailEditGuard.isEditing ? detailEditGuard : userEditGuard);
+
+  const requestTabChange = (nextTab) => {
+    if (nextTab === activeTab) return;
+
+    const activeGuard = getActiveEditGuard();
+
+    if (activeGuard.isEditing) {
+      setPendingTab(nextTab);
+      return;
+    }
+
+    setActiveTab(nextTab);
+  };
+
+  const keepEditingUsers = () => {
+    const activeGuard = getActiveEditGuard();
+    setPendingTab(null);
+    activeGuard.keepEditing?.();
+  };
+
+  const leaveUsersWithoutSaving = () => {
+    const nextTab = pendingTab;
+    const activeGuard = getActiveEditGuard();
+    activeGuard.discard?.();
+    setPendingTab(null);
+    if (nextTab) setActiveTab(nextTab);
+  };
 
   const handleCreateUser = async (payload) => {
     try {
@@ -186,7 +245,7 @@ function AdminDashboard({ currentUser, showToast }) {
               key={tab}
               className={activeTab === tab ? "admin-management-tab active" : "admin-management-tab"}
               type="button"
-              onClick={() => setActiveTab(tab)}
+              onClick={() => requestTabChange(tab)}
             >
               <span>{label}</span>
               <small>{subLabel}</small>
@@ -206,6 +265,8 @@ function AdminDashboard({ currentUser, showToast }) {
                 onUpdateUser={handleUpdateUser}
                 onDeleteUser={handleDeleteUser}
                 onOpenDetails={openUserDetails}
+                onEditStateChange={setUserEditGuard}
+                showToast={showToast}
               />
             )}
 
@@ -220,11 +281,51 @@ function AdminDashboard({ currentUser, showToast }) {
         currentUser={currentUser}
         onUpdateUser={handleUpdateUser}
         onDeleteUser={handleDeleteUser}
+        onEditStateChange={setDetailEditGuard}
         onClose={() => {
           setSelectedUser(null);
           setSelectedUserActivity([]);
         }}
       />
+
+      {pendingTab && createPortal(
+        <div className="unsaved-changes-modal show admin-tab-unsaved-modal" role="presentation" onMouseDown={(event) => event.stopPropagation()}>
+          <div
+            className="unsaved-changes-dialog-card admin-tab-unsaved-dialog-card"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="admin-tab-unsaved-title"
+            aria-describedby="admin-tab-unsaved-message"
+          >
+            <button
+              className="unsaved-changes-close-btn"
+              type="button"
+              aria-label="Close unsaved changes confirmation"
+              onClick={keepEditingUsers}
+            >
+              ×
+            </button>
+
+            <div className="unsaved-changes-icon" aria-hidden="true">!</div>
+
+            <div className="unsaved-changes-copy">
+              <h3 id="admin-tab-unsaved-title">Unsaved changes</h3>
+              <p id="admin-tab-unsaved-message">Are you sure you want to leave the Users tab?</p>
+              <p>Your user edits will be lost.</p>
+            </div>
+
+            <div className="unsaved-changes-actions">
+              <button className="table-action-btn primary" type="button" onClick={keepEditingUsers}>
+                Keep editing
+              </button>
+              <button className="table-action-btn secondary" type="button" onClick={leaveUsersWithoutSaving}>
+                Leave without saving
+              </button>
+            </div>
+          </div>
+        </div>,
+        document.body
+      )}
     </section>
   );
 }
