@@ -1,13 +1,14 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { lazy, Suspense, useCallback, useEffect, useMemo, useState } from "react";
 import AddExpensePanel from "./AddExpensePanel.jsx";
 import ExpenseHistoryPanel from "./ExpenseHistoryPanel.jsx";
-import MonthlyTrendPanel from "./MonthlyTrendPanel.jsx";
 import {
   createExpense,
   deleteExpense,
   getExpenses,
   updateExpense
 } from "../services/api.js";
+
+const MonthlyTrendPanel = lazy(() => import("./MonthlyTrendPanel.jsx"));
 
 const initialFilters = {
   search: "",
@@ -449,7 +450,11 @@ function UserDashboard({ greeting, showToast }) {
             </>
           )}
 
-          {activeTab === "trends" && <MonthlyTrendPanel expenses={expenses} />}
+          {activeTab === "trends" && (
+            <Suspense fallback={<div className="status-message">Loading monthly trend...</div>}>
+              <MonthlyTrendPanel expenses={expenses} />
+            </Suspense>
+          )}
         </div>
       )}
     </section>

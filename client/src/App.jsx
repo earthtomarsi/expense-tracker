@@ -1,13 +1,14 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { lazy, Suspense, useCallback, useEffect, useMemo, useState } from "react";
 import { createPortal } from "react-dom";
 import "./react.css";
 import AuthPage from "./components/AuthPage.jsx";
 import Header from "./components/Header.jsx";
 import Toast from "./components/Toast.jsx";
 import UserDashboard from "./components/UserDashboard.jsx";
-import AdminDashboard from "./components/AdminDashboard.jsx";
 import ManageAccountPanel from "./components/ManageAccountPanel.jsx";
 import { getCurrentUser, logout as logoutRequest, setAuthToken } from "./services/api.js";
+
+const AdminDashboard = lazy(() => import("./components/AdminDashboard.jsx"));
 
 const TOKEN_STORAGE_KEY = "spendflowToken";
 const USER_STORAGE_KEY = "spendflowUser";
@@ -226,7 +227,9 @@ function App() {
             onLogout={handleLogout}
           />
         ) : isAdmin ? (
-          <AdminDashboard currentUser={user} showToast={showToast} onAdminEditStateChange={setAdminEditGuard} />
+          <Suspense fallback={<div className="status-message">Loading admin dashboard...</div>}>
+            <AdminDashboard currentUser={user} showToast={showToast} onAdminEditStateChange={setAdminEditGuard} />
+          </Suspense>
         ) : (
           <UserDashboard
             currentUser={user}
