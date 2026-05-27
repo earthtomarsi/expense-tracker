@@ -198,13 +198,11 @@ function combineDateSegments(segments) {
   return `${segments.month}/${segments.day}/${segments.year}`;
 }
 
-function SegmentedDateInput({ value, onChange, onCommit, inputIdPrefix = "table-date" }) {
+function SegmentedDateInput({ value, onChange, inputIdPrefix = "table-date" }) {
   const monthRef = useRef(null);
   const dayRef = useRef(null);
   const yearRef = useRef(null);
   const segments = getDisplayDateSegments(value);
-
-  const commitIfComplete = () => {};
 
   const updateSegment = (segment, rawValue) => {
     const maxLength = segment === "year" ? 4 : 2;
@@ -581,7 +579,7 @@ function DateEditPicker({ value, isOpen, onToggle, onChange, onClose, hasError }
   return (
     <div className={`table-date-picker ${isOpen ? "open" : ""}`}>
       <div className={`table-date-trigger ${hasError ? "has-error" : ""}`}>
-        <SegmentedDateInput value={value} onChange={onChange} onCommit={onChange} />
+        <SegmentedDateInput value={value} onChange={onChange} />
         <button
           className="date-icon-btn"
           type="button"
@@ -749,16 +747,6 @@ function ExpenseHistoryPanel({
     }, 120);
     return () => window.clearTimeout(timer);
   }, [highlightedExpenseId, safePage]);
-
-  const editingExpense = useMemo(
-    () => expenses.find((expense) => String(expense.id) === String(editingId)) || null,
-    [expenses, editingId]
-  );
-
-  const draftHasChanges = useMemo(() => {
-    if (!editingExpense || !draft) return false;
-    return JSON.stringify(createDraft(editingExpense)) !== JSON.stringify(draft);
-  }, [editingExpense, draft]);
 
   useEffect(() => {
     if (!pendingDelete && !showUnsavedModal) return undefined;

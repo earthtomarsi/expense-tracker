@@ -37,14 +37,6 @@ function parseAmount(value) {
   return Number(normalized);
 }
 
-function formatAmount(value) {
-  const amount = parseAmount(value);
-
-  if (!Number.isFinite(amount) || amount <= 0) return value;
-
-  return amount.toFixed(2);
-}
-
 function getAmountLiveError(value) {
   const amountValue = String(value || "").trim();
 
@@ -77,12 +69,6 @@ function parseDateValue(value) {
 function toInputDate(date) {
   if (!(date instanceof Date) || Number.isNaN(date.getTime())) return "";
   return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`;
-}
-
-function formatDateDisplay(value) {
-  const parsed = parseDateValue(value);
-  if (!parsed) return String(value || "");
-  return `${String(parsed.getMonth() + 1).padStart(2, "0")}/${String(parsed.getDate()).padStart(2, "0")}/${parsed.getFullYear()}`;
 }
 
 function parseDisplayDateInput(value) {
@@ -233,13 +219,11 @@ function combineDateSegments(segments) {
   return `${segments.month}/${segments.day}/${segments.year}`;
 }
 
-function SegmentedDateInput({ value, onChange, onCommit, inputIdPrefix = "add-expense-date" }) {
+function SegmentedDateInput({ value, onChange, inputIdPrefix = "add-expense-date" }) {
   const monthRef = useRef(null);
   const dayRef = useRef(null);
   const yearRef = useRef(null);
   const segments = getDisplayDateSegments(value);
-
-  const commitIfComplete = () => {};
 
   const updateSegment = (segment, rawValue) => {
     const maxLength = segment === "year" ? 4 : 2;
@@ -333,7 +317,7 @@ function DatePickerField({ value, isOpen, onToggle, onChange, onClose, hasError 
   return (
     <div className={`date-input-shell ${isOpen ? "open" : ""}`}>
       <div className={`add-date-trigger ${hasError ? "error" : ""}`}>
-        <SegmentedDateInput value={value} onChange={onChange} onCommit={onChange} />
+        <SegmentedDateInput value={value} onChange={onChange} />
         <button
           className="date-icon-btn"
           type="button"
@@ -402,7 +386,6 @@ function DatePickerField({ value, isOpen, onToggle, onChange, onClose, hasError 
 
 function AddExpensePanel({ editingExpense, onCancelEdit, onSubmit, showToast }) {
   const [openControl, setOpenControl] = useState(null);
-  const panelRef = useRef(null);
 
   useEffect(() => {
     if (!openControl) return undefined;
@@ -671,6 +654,11 @@ function AddExpensePanel({ editingExpense, onCancelEdit, onSubmit, showToast }) 
           </div>
 
           <div className="button-section">
+            {formError && (
+              <p className="add-expense-mode-error" role="alert">
+                {formError}
+              </p>
+            )}
             <button id="add-btn" type="submit" disabled={isSubmitting}>
               {isSubmitting
                 ? "Saving..."
