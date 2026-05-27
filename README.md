@@ -151,7 +151,7 @@ Admin user administration dashboard with summary cards for users and activity.
 
 ![Admin users table](Assets/screenshots/admin-users.png)
 
-Admin Users tab with account search, role filtering, sorting, pagination, and account actions.
+Admin Users tab with account search, role filtering, sorting, pagination, row actions, and table-level edit mode for updating multiple accounts before saving.
 
 ### User Details Modal
 
@@ -193,16 +193,17 @@ Spendflow uses three main conceptual entities:
 
 ```text
 expense-tracker/
-├── index.html                  # Static frontend shell served by Express
-├── style.css                   # Dashboard, auth, admin, table, chart, modal, and responsive styling
-├── script.js                   # Shared frontend logic for rendering, API calls, validation, charts, and UI interactions
+├── index.html                  # Original static HTML version kept as a reference build
+├── style.css                   # Original static CSS reference for the Spendflow visual system
+├── script.js                   # Original static JavaScript reference implementation
 ├── Assets/
 │   ├── favicon.png             # Main favicon
 │   └── screenshots/            # README screenshots
 ├── database/
 │   ├── expense_tracker.sql     # MySQL database setup and seed/sample data
 ├── server/
-│   ├── server.js               # Express app entry point and static frontend serving
+│   ├── package.json            # Backend scripts and dependencies
+│   ├── server.js               # Express API entry point and local static reference serving
 │   ├── db.js                   # MySQL connection pool
 │   ├── routes/
 │   │   ├── authRoutes.js       # Register, login, logout, and current-user APIs
@@ -215,12 +216,33 @@ expense-tracker/
 │   │   └── logActivity.js      # Helper for writing activity log entries
 │   └── .env.example            # Example environment variable template
 └── client/
+    ├── package.json            # React/Vite scripts and dependencies
     ├── index.html              # React/Vite HTML entry point
+    ├── vite.config.js          # Vite configuration
     ├── public/
-    │   └── favicon.png         # React/Vite favicon
+    │   ├── favicon.png         # React/Vite favicon
+    │   ├── favicon.svg         # Vector favicon
+    │   └── icons.svg           # Shared icon sprite
     └── src/
-        ├── App.jsx             # React application entry component
-        └── main.jsx            # React mount file
+        ├── main.jsx            # React mount file
+        ├── App.jsx             # Main application state, routing, and data coordination
+        ├── spendflow.css       # Imported original visual baseline
+        ├── react.css           # React conversion compatibility and UI polish layer
+        ├── services/
+        │   └── api.js          # Frontend API client and response normalization helpers
+        └── components/
+            ├── AuthPage.jsx              # Login and registration UI
+            ├── Header.jsx                # Shared logo, account menu, and navigation shell
+            ├── UserDashboard.jsx         # Regular user dashboard layout and tabs
+            ├── AddExpensePanel.jsx       # Add Expense form
+            ├── ExpenseHistoryPanel.jsx   # Expense History table, filters, pagination, and edit flow
+            ├── MonthlyTrendPanel.jsx     # Monthly trend chart view
+            ├── ManageAccountPanel.jsx    # Account details and password update view
+            ├── AdminDashboard.jsx        # Admin dashboard shell, summaries, tabs, and edit guards
+            ├── AdminUsersPanel.jsx       # Admin Users table, filters, row actions, and edit mode
+            ├── AdminActivityPanel.jsx    # Admin Activity table, filters, sorting, and pagination
+            ├── UserDetailsModal.jsx      # Admin user details and selected-user activity modal
+            └── Toast.jsx                 # Toast notification component
 ```
 
 ## How to Run the Project
@@ -264,18 +286,20 @@ JWT_SECRET=replace_with_your_own_secret
 
 Do not commit a real `.env` file.
 
-### 4. Start the integrated app
+### 4. Start the backend API
 
 ```bash
 cd server
 npm start
 ```
 
-Open the app in your browser:
+The backend API runs at:
 
 ```text
 http://localhost:3000
 ```
+
+Keep this server running for API requests. Do not use `http://localhost:3000` to review the latest frontend; the root route still serves the original static HTML/CSS/JavaScript reference version.
 
 ### 5. Start the React/Vite frontend
 
@@ -287,13 +311,22 @@ npm install
 npm run dev
 ```
 
-Open the Vite URL printed in the terminal, usually:
+Open the Vite URL printed in the terminal to review the current React version of Spendflow, usually:
 
 ```text
 http://localhost:5173
 ```
 
-The Express backend should remain running so the frontend can communicate with the authentication, user, expense, and admin APIs.
+The Express backend at `http://localhost:3000` should remain running in the background so the React frontend can communicate with the authentication, user, expense, and admin APIs.
+
+### 6. Build the React frontend
+
+To verify the current React client builds successfully:
+
+```bash
+cd client
+npm run build
+```
 
 ## Demo Accounts
 
@@ -349,7 +382,7 @@ The seed data creates two demo accounts for local testing:
 
 ## Technical and Interface Design Rationale
 
-- The app uses a single-page structure to keep users in one continuous interface.
+- The app uses a single-page structure to dynamically rewrite the current page with new data rather than reloading a new page from the server.
 - React components organise the authentication screen, regular user dashboard, admin dashboard, modals, tables, forms, and chart sections.
 - Frontend state tracks authentication, current user, expenses, filters, sorting, pagination, edit mode, admin tabs, and modal state.
 - API functions communicate with the Express backend after login, registration, expense, account, and admin actions.
@@ -361,8 +394,8 @@ The seed data creates two demo accounts for local testing:
 
 | Group member | Files / folders written or mainly edited | Specific contribution |
 | --- | --- | --- |
-| Marie Lourdes Danielle Guerra (Marsi) | `index.html`, `style.css`, `script.js`, `Assets/screenshots/`, `README.md` | Designed and implemented the single-page dashboard interface, authentication screens, user dashboard tabs, Add Expense form, Expense History editing flow, chart interface, admin dashboard UI, custom dropdowns, date controls, toast notifications, confirmation dialogs, screenshots, and README documentation. |
-| Chun-Jie Hsieh (JJ) | `server/`, `server/routes/`, `server/middleware/`, `server/utils/`, `database/expense_tracker.sql`, `client/` | Implemented the backend and database foundation for the app, including the Express server, MySQL schema, authentication APIs, protected expense CRUD routes, user profile routes, admin user/activity routes, JWT role-based access control, activity logging, and initial React/Vite client setup. |
+| Marie Lourdes Danielle Guerra (Marsi) | `client/src/App.jsx`, `client/src/components/`, `client/src/react.css`, `client/src/spendflow.css`, `index.html`, `style.css`, `script.js`, `Assets/screenshots/`, `README.md` | Designed the Spendflow interface and converted the original static UI into the current React/Vite experience, including authentication screens, user dashboard tabs, Add Expense, Expense History editing, charts, Manage Account, admin summary cards, Admin Users and User Activity tabs, user details modal, custom controls, confirmation dialogs, toast feedback, screenshots, and project documentation. |
+| Chun-Jie Hsieh (JJ) | `server/`, `server/routes/`, `server/middleware/`, `server/utils/`, `database/expense_tracker.sql`, `client/package.json`, `client/vite.config.js`, `client/src/main.jsx` | Implemented the backend and database foundation for the app, including the Express server, MySQL schema, authentication APIs, protected expense CRUD routes, user profile routes, admin user/activity routes, JWT role-based access control, activity logging, seed data, and React/Vite project setup. |
 
 ## Professional Practice Notes
 
@@ -370,7 +403,7 @@ The seed data creates two demo accounts for local testing:
 - Commit messages describe the actual changes made.
 - Real environment variables are kept in `.env` and should not be committed.
 - The submitted database export contains the schema and seed data needed to run the app locally.
-- README screenshots match the submitted interface.
+- README screenshots document the submitted interface and the React version follows the same Spendflow visual system.
 
 ## Future Improvements
 
@@ -378,3 +411,16 @@ The seed data creates two demo accounts for local testing:
 - Add automated frontend and API tests for auth, admin flows, validation, and editable table behavior.
 - Add richer admin audit details for each CRUD event.
 - Add deployment configuration for a hosted frontend, backend, and database.
+
+## Submission Files
+
+The submitted project includes:
+
+- `client/` - Current React/Vite frontend application.
+- `server/` - Express backend API, authentication, user, expense, and admin routes.
+- `database/expense_tracker.sql` - MySQL schema, seed data, and local database setup.
+- `Assets/screenshots/` - Interface screenshots used in this README.
+- `README.md` - Project overview, setup steps, feature summary, API notes, folder structure, and contribution notes.
+- `index.html`, `style.css`, and `script.js` - Original static HTML/CSS/JavaScript version kept as a reference for the React conversion.
+
+For the latest version of Spendflow, run the backend from `server/`, run the React/Vite frontend from `client/`, and open the Vite app at `http://localhost:5173`.
