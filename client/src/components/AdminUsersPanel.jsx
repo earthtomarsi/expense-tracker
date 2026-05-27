@@ -41,6 +41,7 @@ function createDraftMap(users) {
   return Object.fromEntries(users.map((user) => [String(user.id), createDraft(user)]));
 }
 
+// Admin table edits are staged locally so multiple account changes can be saved or discarded together.
 function hasDraftChanged(user, draft) {
   if (!draft) return false;
 

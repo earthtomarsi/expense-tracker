@@ -48,8 +48,8 @@ app.use("/users", userRoutes);
 app.use("/expenses", expenseRoutes);
 app.use("/admin", adminRoutes);
 
-// Serve the polished frontend from the backend so the app can run from one URL.
-// Only frontend assets are exposed; server/database files stay private.
+// The backend also serves the original static frontend reference at /.
+// The current React app runs from client/ during development and calls these APIs.
 app.get("/", (req, res) => {
   res.sendFile(path.join(frontendRoot, "index.html"));
 });

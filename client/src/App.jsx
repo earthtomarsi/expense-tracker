@@ -21,6 +21,7 @@ function getStoredUser() {
   }
 }
 
+// App owns session state and routes users between auth, dashboard, admin, and account views.
 function App() {
   const [token, setToken] = useState(() => localStorage.getItem(TOKEN_STORAGE_KEY) || "");
   const [user, setUser] = useState(getStoredUser);

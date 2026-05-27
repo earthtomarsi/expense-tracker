@@ -1,4 +1,4 @@
-/* React compatibility layer for Spendflow conversion */
+/* React-specific layout and polish layer. spendflow.css keeps the original static UI baseline. */
 
 #root {
   min-height: 100vh;
@@ -114,7 +114,7 @@ main:has(.auth-page) {
   background: rgba(255, 255, 255, 0.86);
 }
 
-/* Make native selects less ugly while still functional */
+/* Native select cleanup */
 .select-wrapper select {
   width: 100%;
   appearance: none;
@@ -1530,7 +1530,7 @@ main:has(.auth-page) {
   }
 }
 
-/* Stronger full-screen delete confirmation overlay */
+/* Full-screen delete confirmation overlay */
 .confirmation-backdrop {
   position: fixed !important;
   top: 0 !important;
@@ -2645,7 +2645,7 @@ main:has(.auth-page) {
   box-shadow: none !important;
 }
 
-/* Softer, single-piece newly added row highlight */
+/* Newly added row highlight */
 #expense-table tr.recently-added-row {
   animation: recentlyAddedExpenseRowPulse 2.6s ease-out !important;
 }
@@ -2695,7 +2695,7 @@ main:has(.auth-page) {
   color: #166534 !important;
 }
 
-/* Category chart closer to the original glass treatment */
+/* Category chart glass treatment */
 .category-chart-card {
   position: relative !important;
   overflow: hidden !important;
@@ -3618,7 +3618,6 @@ main:has(.auth-page) {
   box-shadow: 0 0 0 4px rgba(239, 68, 68, 0.08) !important;
 }
 
-/* Normalize normal table cell rhythm. The title text was not compressed; the rows just needed a steadier vertical rhythm. */
 #expense-table tbody td {
   vertical-align: middle !important;
   padding-top: 13px !important;
@@ -3636,7 +3635,6 @@ main:has(.auth-page) {
   transform: none !important;
 }
 
-/* Match edit-mode inputs to the app's main input focus/error treatment instead of heavy inset borders. */
 #expense-table td.editable.editing .table-edit-input,
 #expense-table .table-amount-input,
 #expense-table .table-date-trigger,
@@ -3684,7 +3682,6 @@ main:has(.auth-page) {
   background: transparent !important;
 }
 
-/* Balance editable date text/icon so it does not look bigger or more spaced out than other cells. */
 #expense-table .table-date-trigger {
   gap: 5px !important;
   padding: 0 8px 0 9px !important;
@@ -3728,7 +3725,6 @@ main:has(.auth-page) {
   stroke-width: 1.3px !important;
 }
 
-/* Make only edit-mode row action buttons match editable field height. */
 #expense-table tr.selected-edit-row .row-actions {
   min-width: 120px !important;
   gap: 6px !important;
@@ -3756,7 +3752,6 @@ main:has(.auth-page) {
   padding-right: 30px !important;
 }
 
-/* Category list values should align under their headings, not drift right. */
 .category-chart-row {
   grid-template-columns: 8px minmax(0, 1fr) auto !important;
   align-items: center !important;
@@ -3772,7 +3767,6 @@ main:has(.auth-page) {
   min-width: 0 !important;
 }
 
-/* Donut paths now use real separated arcs. Keep round ends, but no segment overlap. */
 .donut-segment,
 .donut-segment-outline {
   stroke-linecap: round !important;
@@ -3818,7 +3812,6 @@ main:has(.auth-page) {
   margin: 0 !important;
 }
 
-/* Table rhythm: closer to the original, with even vertical alignment across all non-edit cells. */
 #expense-table tbody td {
   padding-top: 11px !important;
   padding-bottom: 11px !important;
@@ -3840,7 +3833,6 @@ main:has(.auth-page) {
   padding-bottom: 0 !important;
 }
 
-/* Edit row: neutral row background; keep mint only for newly added row highlight. */
 #expense-table tr.selected-edit-row td {
   background: rgba(17, 24, 39, 0.035) !important;
 }
@@ -3849,7 +3841,6 @@ main:has(.auth-page) {
   background: transparent !important;
 }
 
-/* Edit row actions: slightly smaller than the input fields and with enough right-side room. */
 #expense-table th:nth-child(6),
 #expense-table td:nth-child(6),
 #expense-table .actions-header {
@@ -3884,7 +3875,6 @@ main:has(.auth-page) {
   margin-right: 6px !important;
 }
 
-/* Keep edit date text compact after the date-mask spacing change. */
 #expense-table .table-date-trigger {
   gap: 6px !important;
   padding: 0 8px 0 9px !important;
@@ -3902,7 +3892,6 @@ main:has(.auth-page) {
   height: 12.5px !important;
 }
 
-/* Pagination: slightly more visible arrows and a neutral hover that stands out from the green page glow. */
 .expense-pagination {
   gap: 6px !important;
 }
@@ -3935,7 +3924,6 @@ main:has(.auth-page) {
   outline: none !important;
 }
 
-/* Doughnut: transparent track, narrower-but-clean segment gaps, and unclipped tooltip. */
 .category-chart-card,
 .category-chart-layout,
 .donut-chart {
@@ -4031,7 +4019,6 @@ main:has(.auth-page) {
   line-height: 1 !important;
 }
 
-/* Invalid date states should keep the clean white/glass field and only use the outer field border. */
 .quick-expense-panel .date-field-group.has-error .add-date-trigger,
 .quick-expense-panel .add-date-trigger.error,
 #expense-table .table-date-trigger.has-error,
@@ -4056,7 +4043,6 @@ main:has(.auth-page) {
   box-shadow: none !important;
 }
 
-/* Add a bit more space below the header before the first expense row. */
 #expense-table tbody tr:first-child td {
   padding-top: 18px !important;
 }
@@ -4065,7 +4051,6 @@ main:has(.auth-page) {
   padding-top: 14px !important;
 }
 
-/* Keep read-mode and edit-mode row rhythm consistent. */
 #expense-table tbody td {
   vertical-align: middle !important;
   line-height: 1.4 !important;
@@ -4085,7 +4070,6 @@ main:has(.auth-page) {
   vertical-align: middle !important;
 }
 
-/* Neutral editing row: more clearly gray and less mint/green. */
 #expense-table tr.selected-edit-row td {
   background: rgba(17, 24, 39, 0.055) !important;
 }
@@ -4094,7 +4078,6 @@ main:has(.auth-page) {
   background: rgba(17, 24, 39, 0.055) !important;
 }
 
-/* Bring the edit action group inward so it is aligned with the row, not the table edge. */
 #expense-table th:nth-child(6),
 #expense-table td:nth-child(6),
 #expense-table .actions-header {
@@ -4129,7 +4112,6 @@ main:has(.auth-page) {
   margin-right: 18px !important;
 }
 
-/* Compact the edit-mode date cell so text does not fight with the calendar icon. */
 #expense-table .table-date-trigger {
   gap: 5px !important;
   padding: 0 7px 0 8px !important;
@@ -4148,7 +4130,6 @@ main:has(.auth-page) {
   height: 11.5px !important;
 }
 
-/* Pagination: keep the larger arrows, but make hover visible against the pale green page background. */
 .expense-pagination span {
   font-size: 13.5px !important;
   font-weight: 500 !important;
@@ -4177,7 +4158,6 @@ main:has(.auth-page) {
   outline: none !important;
 }
 
-/* Month shortcut should only look selected when it was explicitly selected; regular month choices keep their own selected state. */
 .this-month-btn:not(.selected) {
   background: transparent !important;
   color: #166534 !important;
@@ -4189,12 +4169,10 @@ main:has(.auth-page) {
   color: #166534 !important;
 }
 
-/* Doughnut: only make the gray hover halo more visible; keep the current gap/style otherwise. */
 .donut-segment-outline {
   stroke: rgba(226, 232, 240, 0.98) !important;
   stroke-width: 32px !important;
 }
-/* Keep the newly added highlight as a row-level effect so the edit pencil does not shift while the mint highlight fades. */
 #expense-table tr.recently-added-row {
   position: static !important;
   background: transparent !important;
@@ -4227,7 +4205,6 @@ main:has(.auth-page) {
   }
 }
 
-/* Give the first data row more breathing room and keep read/edit row rhythm consistent. */
 #expense-table tbody tr {
   height: 64px !important;
 }
@@ -4261,7 +4238,6 @@ main:has(.auth-page) {
   vertical-align: middle !important;
 }
 
-/* Make edit mode feel like a layer on top of the same row, not a separate shifted layout. */
 #expense-table tr.selected-edit-row td {
   background: rgba(17, 24, 39, 0.035) !important;
 }
@@ -4289,7 +4265,6 @@ main:has(.auth-page) {
   align-items: center !important;
 }
 
-/* Keep the action column stable across normal, highlighted, and edit rows. */
 #expense-table th:nth-child(5),
 #expense-table td:nth-child(5) {
   width: 23% !important;
@@ -4333,7 +4308,6 @@ main:has(.auth-page) {
   margin-right: 0 !important;
 }
 
-/* Month picker: the shortcut should read like a normal option unless explicitly selected/hovered. */
 .this-month-btn:not(.selected) {
   background: transparent !important;
   color: #4b5563 !important;
@@ -4346,7 +4320,6 @@ main:has(.auth-page) {
   color: #166534 !important;
 }
 
-/* Pagination should sit slightly smaller than before and match the 12px table rhythm. */
 .expense-pagination {
   gap: 5px !important;
 }
@@ -4378,7 +4351,6 @@ main:has(.auth-page) {
   border-color: rgba(22, 101, 52, 0.14) !important;
   box-shadow: 0 7px 18px rgba(15, 23, 42, 0.075) !important;
 }
-/* Add Expense only: keep the calendar panel visually tied to the date field width. */
 .quick-expense-panel .date-input-shell .add-date-picker-panel {
   width: 100% !important;
   min-width: 100% !important;
@@ -4388,7 +4360,6 @@ main:has(.auth-page) {
   box-sizing: border-box !important;
 }
 
-/* Keep the Add Expense calendar compact when constrained to the date field width. */
 .quick-expense-panel .add-date-picker-panel .date-picker-header {
   gap: 6px !important;
 }
@@ -4402,7 +4373,6 @@ main:has(.auth-page) {
   height: 30px !important;
 }
 
-/* Restore a visible mint new-row highlight without changing the row/action layout. */
 #expense-table tr.recently-added-row {
   position: static !important;
   background: transparent !important;
@@ -4428,7 +4398,6 @@ main:has(.auth-page) {
   }
 }
 
-/* Edit mode should feel like the same row becoming editable, not a shifted row. */
 #expense-table tbody tr {
   height: 64px !important;
 }
@@ -4465,13 +4434,11 @@ main:has(.auth-page) {
   align-items: center !important;
 }
 
-/* Neutral edit row: more gray, less green, but still soft. */
 #expense-table tr.selected-edit-row td,
 #expense-table tr.selected-edit-row.recently-added-row td {
   background-color: rgba(229, 231, 235, 0.48) !important;
 }
 
-/* Keep the action area inside the table edge and stable across normal/edit/highlight rows. */
 #expense-table th:nth-child(5),
 #expense-table td:nth-child(5) {
   width: 22% !important;
@@ -4503,7 +4470,6 @@ main:has(.auth-page) {
   margin-right: 0 !important;
 }
 
-/* Lighter cancel hover so the gray X stays legible and does not look muddy. */
 #expense-table .cancel-row-btn:hover,
 #expense-table .cancel-row-btn:focus-visible {
   color: #4b5563 !important;
@@ -4513,7 +4479,6 @@ main:has(.auth-page) {
   outline: none !important;
 }
 
-/* Doughnut: keep the current chart styling but add a subtle lifted hover feel. */
 .donut-segment {
   transform-box: view-box !important;
   transform-origin: 110px 110px !important;
@@ -4523,7 +4488,7 @@ main:has(.auth-page) {
 .donut-segment:hover {
   transform: scale(1.018) !important;
 }
-/* Add Expense only: restore the roomier calendar panel size. The table date-cell calendar is intentionally unchanged. */
+/* Add Expense keeps a roomier calendar panel; table date-cell calendars stay compact. */
 .quick-expense-panel .date-input-shell .add-date-picker-panel {
   width: min(332px, calc(100vw - 40px)) !important;
   min-width: min(332px, calc(100vw - 40px)) !important;
@@ -4533,7 +4498,7 @@ main:has(.auth-page) {
   box-sizing: border-box !important;
 }
 
-/* New expense highlight: use a real background-color override, because older transparent !important rules were cancelling the animation. */
+/* New-expense feedback uses a row-level color so the highlight reads as one strip. */
 #expense-table tbody td {
   transition: background-color 0.45s ease, box-shadow 0.45s ease !important;
 }
@@ -4604,14 +4569,12 @@ main:has(.auth-page) {
   align-items: center !important;
 }
 
-/* Softer edit row: neutral gray, lighter than the previous gray-green wash. */
 #expense-table tr.selected-edit-row td,
 #expense-table tr.selected-edit-row.recently-added-row td {
   background-color: rgba(243, 244, 246, 0.64) !important;
   box-shadow: none !important;
 }
 
-/* Keep the action column steady and move the controls slightly inward from the table edge. */
 #expense-table th:nth-child(6),
 #expense-table td:nth-child(6),
 #expense-table .actions-header {
@@ -4647,7 +4610,6 @@ main:has(.auth-page) {
   box-shadow: 0 8px 18px rgba(15, 23, 42, 0.055) !important;
   outline: none !important;
 }
-/* Add a little more left breathing room so the title column does not sit too close to the table edge. */
 #expense-table th:first-child,
 #expense-table td.title-cell.locked {
   padding-left: 22px !important;
@@ -4716,7 +4678,6 @@ main:has(.auth-page) {
   }
 }
 
-/* Keep the edit action area stable and comfortably inside the table edge. */
 #expense-table th:nth-child(6),
 #expense-table td:nth-child(6),
 #expense-table .actions-header {
@@ -4737,7 +4698,6 @@ main:has(.auth-page) {
   gap: 5px !important;
 }
 
-/* Slightly lighter normal X icon and clearer hover. */
 #expense-table .row-icon-btn.cancel-row-btn {
   color: #c2c8cf !important;
 }
@@ -4750,7 +4710,6 @@ main:has(.auth-page) {
   box-shadow: 0 8px 18px rgba(15, 23, 42, 0.055) !important;
   outline: none !important;
 }
-/* Balance the table edges: more left breathing room, a little less right inset. */
 #expense-table th:first-child,
 #expense-table td.title-cell.locked {
   padding-left: 28px !important;
@@ -4763,8 +4722,7 @@ main:has(.auth-page) {
   padding-right: 8px !important;
 }
 
-/* Reduce the right-side padding and make the edit buttons align to the same
-   right edge as the pencil button in read mode. */
+/* Keep edit actions aligned to the same right edge as the pencil button in read mode. */
 #expense-table th:nth-child(6),
 #expense-table td:nth-child(6),
 #expense-table .actions-header {
@@ -4786,7 +4744,6 @@ main:has(.auth-page) {
   gap: 5px !important;
 }
 
-/* Soften the edit row: #EEE at 70% opacity. */
 #expense-table tbody tr.selected-edit-row {
   background-color: rgba(238, 238, 238, 0.70) !important;
 }
@@ -4797,7 +4754,6 @@ main:has(.auth-page) {
   box-shadow: none !important;
 }
 
-/* New-expense highlight as one continuous mint strip, not separate cell blocks. */
 #expense-table tbody tr.recently-added-row:not(.selected-edit-row) {
   position: relative !important;
   background-color: rgba(168, 255, 120, 0.16) !important;
@@ -4857,7 +4813,6 @@ main:has(.auth-page) {
   display: none !important;
 }
 
-/* Match the newly-added mint strip to the same row height/rhythm as the edit-mode gray strip. */
 #expense-table tbody tr.recently-added-row:not(.selected-edit-row) {
   position: static !important;
   height: 64px !important;
@@ -4877,7 +4832,6 @@ main:has(.auth-page) {
   animation: none !important;
 }
 
-/* Keep the action column/pencil visible and aligned during the highlight fade. */
 #expense-table tbody tr.recently-added-row:not(.selected-edit-row) td.actions-cell,
 #expense-table tbody tr.recently-added-row:not(.selected-edit-row) .row-actions,
 #expense-table tbody tr.recently-added-row:not(.selected-edit-row) .edit-row-btn {
@@ -5255,7 +5209,7 @@ main:has(.auth-page) {
 }
 
 
-/* ---------- Monthly trend axis width balance: slightly wider, centered, with protected edge padding ---------- */
+/* Monthly trend axis layout */
 .monthly-chart-shell {
   width: calc(100% + 100px) !important;
   max-width: none !important;
@@ -5450,7 +5404,7 @@ main:has(.auth-page) {
   }
 }
 
-/* Admin dashboard/user administration restore */
+/* Admin dashboard and user administration layout */
 .admin-profile-panel {
   width: min(100%, 1320px) !important;
   max-width: 1320px !important;
@@ -6359,7 +6313,7 @@ main:has(.auth-page) {
   }
 }
 
-/* Admin UI second-pass refinements: match the original admin table rhythm and expense-history controls */
+/* Admin dashboard table rhythm and toolbar controls */
 .admin-management-card {
   padding: 28px 24px 24px !important;
 }
@@ -6761,7 +6715,7 @@ main:has(.auth-page) {
   }
 }
 
-/* Admin users/activity final polish: align with expense table controls and original admin spacing. */
+/* Admin users and activity table controls */
 .admin-management-card {
   padding: 28px 24px 26px !important;
 }
@@ -7131,7 +7085,7 @@ main:has(.auth-page) {
   }
 }
 
-/* ---------- Final admin polish: align React admin UI with original CSS ---------- */
+/* Admin typography and table alignment */
 .admin-profile-panel {
   width: min(var(--dashboard-content-width, 1180px), calc(100% - var(--dashboard-page-gutter, 96px))) !important;
   max-width: var(--dashboard-content-width, 1180px) !important;
@@ -8067,7 +8021,7 @@ main:has(.auth-page) {
   }
 }
 
-/* ---------- Admin UI final alignment patch ---------- */
+/* Admin visual alignment */
 .admin-summary-card {
   background:
     linear-gradient(145deg, rgba(255, 255, 255, 0.86), rgba(255, 255, 255, 0.66)),
@@ -8420,7 +8374,7 @@ main:has(.auth-page) {
   }
 }
 
-/* ---------- Admin users/modal surgical alignment patch ---------- */
+/* Admin users table and modal alignment */
 /* Header account menu: keep the dropdown exactly as wide as the username trigger. */
 .profile .dropdown {
   width: 146px !important;
@@ -8743,7 +8697,7 @@ main:has(.auth-page) {
   }
 }
 
-/* ---------- Admin users final targeted fixes ---------- */
+/* Admin users interaction states */
 .admin-management-tabs {
   margin-bottom: 0 !important;
 }
@@ -8880,7 +8834,7 @@ main:has(.auth-page) {
   color: var(--text-main, #111827) !important;
 }
 
-/* ---------- Admin/users follow-up polish ---------- */
+/* Admin users workspace spacing */
 .admin-card-header {
   margin-bottom: 28px !important;
 }
@@ -8948,14 +8902,14 @@ main:has(.auth-page) {
   width: 13% !important;
 }
 
-/* Nudge the visual Role column closer to Email while keeping badge/header aligned. */
+/* Role column sits close to Email while keeping the badge centered under its heading. */
 .admin-users-table th:nth-child(4) .th-text,
 .admin-users-table td:nth-child(4) .admin-role-badge {
   position: relative !important;
   left: -10px !important;
 }
 
-/* Auth form polish */
+/* Auth form field spacing */
 .auth-form label {
   display: grid !important;
   gap: 6px !important;
@@ -8966,7 +8920,7 @@ main:has(.auth-page) {
   opacity: 1 !important;
 }
 
-/* Reduce Expense History edit-mode row wash by about 30%. */
+/* Expense History edit-mode row wash */
 #expense-table tr.selected-edit-row td,
 #expense-table tr.selected-edit-row.recently-added-row td {
   background: rgba(17, 24, 39, 0.025) !important;
@@ -8988,7 +8942,7 @@ main:has(.auth-page) {
   line-height: 1.18 !important;
 }
 
-/* Let the full user details overlay/page scroll, not the modal or activity table. */
+/* User details modal grows with content; the page handles scrolling. */
 .user-details-backdrop {
   align-items: flex-start !important;
   place-items: start center !important;
@@ -9119,7 +9073,7 @@ main:has(.auth-page) {
   box-shadow: none !important;
 }
 
-/* ---------- Admin users hover/alignment final pass ---------- */
+/* Admin users hover and edit-mode alignment */
 .admin-users-toolbar,
 .admin-activity-toolbar {
   padding-top: 8px !important;
@@ -9247,7 +9201,7 @@ main:has(.auth-page) {
   box-shadow: 0 10px 24px rgba(72, 221, 182, 0.22) !important;
 }
 
-/* ---------- Confirmation dialogs and users edit alignment ---------- */
+/* Confirmation dialog sizing and users edit alignment */
 .unsaved-changes-actions {
   margin-top: 26px !important;
 }
@@ -9282,7 +9236,7 @@ main:has(.auth-page) {
   box-sizing: border-box !important;
 }
 
-/* ---------- Admin users edit text alignment and menu width ---------- */
+/* Admin users edit text alignment and menu width */
 .admin-users-toolbar .admin-toolbar-menu,
 .admin-activity-toolbar .admin-toolbar-menu {
   flex: 0 0 196px !important;
@@ -9317,7 +9271,7 @@ main:has(.auth-page) {
   text-align: left !important;
 }
 
-/* ---------- Match original admin users edit-cell alignment ---------- */
+/* Keep admin edit inputs aligned with read-mode table text. */
 .admin-users-table.edit-mode th:nth-child(1) {
   padding-left: 24px !important;
   padding-right: var(--table-cell-x, 14px) !important;
@@ -9363,7 +9317,7 @@ main:has(.auth-page) {
   letter-spacing: -0.005em !important;
 }
 
-/* Keep users table text metrics identical between read and edit modes. */
+/* Users table text metrics stay identical between read and edit modes. */
 .admin-users-table .admin-cell-text,
 .admin-users-table .admin-name-link,
 .admin-users-table.edit-mode .admin-table-edit-input,
@@ -9392,7 +9346,7 @@ main:has(.auth-page) {
   margin-right: auto !important;
 }
 
-/* Give the Users table email column a little less horizontal space. */
+/* Users table column widths */
 .admin-users-table th:nth-child(3),
 .admin-users-table td:nth-child(3),
 .admin-users-table.edit-mode th:nth-child(3),
@@ -9407,7 +9361,7 @@ main:has(.auth-page) {
   width: 15% !important;
 }
 
-/* Slightly widen Role after narrowing Email. */
+/* Role column remains wide enough for centered badges after Email is tightened. */
 .admin-users-table th:nth-child(4),
 .admin-users-table td:nth-child(4),
 .admin-users-table.edit-mode th:nth-child(4),

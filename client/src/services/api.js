@@ -4,6 +4,8 @@ const API_BASE =
     ? "http://localhost:3000"
     : window.location.origin);
 
+// Vite dev serves React on 5173 while the Express API runs on 3000.
+// In production or same-origin hosting, requests stay on the current origin.
 let authToken = "";
 
 export function setAuthToken(token) {

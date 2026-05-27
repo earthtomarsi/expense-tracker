@@ -70,6 +70,7 @@ function TrashIcon() {
   );
 }
 
+// The details modal has its own edit guard so closing or paginating never drops draft changes silently.
 function UserDetailsModal({ user, activity = [], currentUser, onClose, onUpdateUser, onDeleteUser, onEditStateChange }) {
   const [isEditing, setIsEditing] = useState(false);
   const [draft, setDraft] = useState(() => createDraft(user));
