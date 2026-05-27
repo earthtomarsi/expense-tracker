@@ -1,0 +1,333 @@
+import { useEffect, useState } from "react";
+import { createPortal } from "react-dom";
+import AdminActivityPanel from "./AdminActivityPanel.jsx";
+import AdminUsersPanel from "./AdminUsersPanel.jsx";
+import UserDetailsModal from "./UserDetailsModal.jsx";
+import {
+  createAdminUser,
+  deleteAdminUser,
+  getAdminActivity,
+  getAdminUserActivity,
+  getAdminUsers,
+  updateAdminUser
+} from "../services/api.js";
+
+function formatLastLogin(value) {
+  if (!value) return "Last login: Not available";
+
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return `Last login: ${value}`;
+
+  return `Last login: ${date.toLocaleString("en-US", {
+    year: "numeric",
+    month: "short",
+    day: "numeric",
+    hour: "numeric",
+    minute: "2-digit"
+  })}`;
+}
+
+function AdminDashboard({ currentUser, showToast, onAdminEditStateChange }) {
+  const [activeTab, setActiveTab] = useState("users");
+  const [users, setUsers] = useState([]);
+  const [activity, setActivity] = useState([]);
+  const [selectedUser, setSelectedUser] = useState(null);
+  const [selectedUserActivity, setSelectedUserActivity] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [userEditGuard, setUserEditGuard] = useState({
+    isEditing: false,
+    hasUnsavedChanges: false,
+    discard: null,
+    keepEditing: null
+  });
+  const [detailEditGuard, setDetailEditGuard] = useState({
+    isEditing: false,
+    hasUnsavedChanges: false,
+    discard: null,
+    keepEditing: null
+  });
+  const [pendingTab, setPendingTab] = useState(null);
+
+  const adminUsersCount = users.filter((user) => user.role === "admin").length;
+  const regularUsersCount = users.filter((user) => user.role !== "admin").length;
+
+  const loadAdminData = async () => {
+    const [nextUsers, nextActivity] = await Promise.all([
+      getAdminUsers(),
+      getAdminActivity()
+    ]);
+
+    setUsers(nextUsers);
+    setActivity(nextActivity);
+
+    return [nextUsers, nextActivity];
+  };
+
+  useEffect(() => {
+    let isMounted = true;
+
+    loadAdminData()
+      .catch((error) => {
+        if (isMounted) showToast(error.message, "error");
+      })
+      .finally(() => {
+        if (isMounted) setIsLoading(false);
+      });
+
+    return () => {
+      isMounted = false;
+    };
+  }, [showToast]);
+
+  useEffect(() => {
+    if (!pendingTab) return undefined;
+
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+
+    return () => {
+      document.body.style.overflow = previousOverflow;
+    };
+  }, [pendingTab]);
+
+  useEffect(() => {
+    const activeGuard = detailEditGuard.isEditing ? detailEditGuard : userEditGuard;
+    onAdminEditStateChange?.(activeGuard);
+  }, [detailEditGuard, onAdminEditStateChange, userEditGuard]);
+
+  const getActiveEditGuard = () => (detailEditGuard.isEditing ? detailEditGuard : userEditGuard);
+
+  const requestTabChange = (nextTab) => {
+    if (nextTab === activeTab) return;
+
+    const activeGuard = getActiveEditGuard();
+
+    if (activeGuard.isEditing) {
+      setPendingTab(nextTab);
+      return;
+    }
+
+    setActiveTab(nextTab);
+  };
+
+  const keepEditingUsers = () => {
+    const activeGuard = getActiveEditGuard();
+    setPendingTab(null);
+    activeGuard.keepEditing?.();
+  };
+
+  const leaveUsersWithoutSaving = () => {
+    const nextTab = pendingTab;
+    const activeGuard = getActiveEditGuard();
+    activeGuard.discard?.();
+    setPendingTab(null);
+    if (nextTab) setActiveTab(nextTab);
+  };
+
+  const handleCreateUser = async (payload) => {
+    try {
+      const created = await createAdminUser(payload);
+      setUsers((current) => [created, ...current]);
+      showToast("User created successfully.");
+      await loadAdminData();
+      return true;
+    } catch (error) {
+      showToast(error.message, "error");
+      return false;
+    }
+  };
+
+  const handleUpdateUser = async (id, payload) => {
+    try {
+      const updated = await updateAdminUser(id, payload);
+
+      setUsers((current) =>
+        current.map((user) => (String(user.id) === String(updated.id) ? updated : user))
+      );
+
+      setSelectedUser((current) =>
+        current && String(current.id) === String(updated.id)
+          ? { ...current, ...updated }
+          : current
+      );
+
+      showToast("User updated successfully.");
+      await loadAdminData();
+      return true;
+    } catch (error) {
+      showToast(error.message, "error");
+      return false;
+    }
+  };
+
+  const handleDeleteUser = async (id) => {
+    try {
+      await deleteAdminUser(id);
+      setUsers((current) => current.filter((user) => String(user.id) !== String(id)));
+      setSelectedUser((current) => (current && String(current.id) === String(id) ? null : current));
+      showToast("User removed successfully.");
+      await loadAdminData();
+      return true;
+    } catch (error) {
+      showToast(error.message, "error");
+      return false;
+    }
+  };
+
+  const openUserDetails = async (user) => {
+    try {
+      const userActivity = await getAdminUserActivity(user.id);
+      setSelectedUser(user);
+      setSelectedUserActivity(userActivity);
+    } catch (error) {
+      showToast(error.message, "error");
+    }
+  };
+
+  const displayName = currentUser.name || currentUser.username || "Admin";
+
+  return (
+    <section className="admin-profile-panel">
+      <div className="admin-summary-card">
+        <div className="admin-profile-header">
+          <div>
+            <p className="admin-kicker">Admin dashboard</p>
+            <h3>Hi {displayName}, here's today's account overview.</h3>
+            <p>Edit existing user accounts and review login, logout, and CRUD activity.</p>
+          </div>
+
+          <span className="admin-last-login-pill">
+            {formatLastLogin(currentUser.last_login || currentUser.lastLogin || currentUser.updated_at || currentUser.updatedAt)}
+          </span>
+        </div>
+
+        <div className="admin-overview-grid">
+          <div className="admin-overview-card">
+            <span className="admin-overview-label">Total users</span>
+            <strong>{users.length}</strong>
+            <small>Across all roles</small>
+          </div>
+
+          <div className="admin-overview-card">
+            <span className="admin-overview-label">Admins</span>
+            <strong>{adminUsersCount}</strong>
+            <small>Can manage accounts</small>
+          </div>
+
+          <div className="admin-overview-card">
+            <span className="admin-overview-label">Regular users</span>
+            <strong>{regularUsersCount}</strong>
+            <small>Expense tracking accounts</small>
+          </div>
+
+          <div className="admin-overview-card">
+            <span className="admin-overview-label">Activity events</span>
+            <strong>{activity.length}</strong>
+            <small>Logged user actions</small>
+          </div>
+        </div>
+      </div>
+
+      <section className="admin-management-card">
+        <div className="admin-card-header">
+          <div>
+            <h3>User administration</h3>
+            <p>Review user accounts and activity across Spendflow.</p>
+          </div>
+        </div>
+
+        <div className="admin-management-tabs">
+          {[
+            ["users", "Users", `${users.length} ${users.length === 1 ? "count" : "counts"}`],
+            ["activity", "User activity", `${activity.length} ${activity.length === 1 ? "event" : "events"}`]
+          ].map(([tab, label, subLabel]) => (
+            <button
+              key={tab}
+              className={activeTab === tab ? "admin-management-tab active" : "admin-management-tab"}
+              type="button"
+              onClick={() => requestTabChange(tab)}
+            >
+              <span>{label}</span>
+              <small>{subLabel}</small>
+            </button>
+          ))}
+        </div>
+
+        {isLoading ? (
+          <div className="status-message">Loading admin data...</div>
+        ) : (
+          <div className="admin-management-workspace">
+            {activeTab === "users" && (
+              <AdminUsersPanel
+                users={users}
+                currentUser={currentUser}
+                onCreateUser={handleCreateUser}
+                onUpdateUser={handleUpdateUser}
+                onDeleteUser={handleDeleteUser}
+                onOpenDetails={openUserDetails}
+                onEditStateChange={setUserEditGuard}
+                showToast={showToast}
+              />
+            )}
+
+            {activeTab === "activity" && <AdminActivityPanel activity={activity} />}
+          </div>
+        )}
+      </section>
+
+      <UserDetailsModal
+        user={selectedUser}
+        activity={selectedUserActivity}
+        currentUser={currentUser}
+        onUpdateUser={handleUpdateUser}
+        onDeleteUser={handleDeleteUser}
+        onEditStateChange={setDetailEditGuard}
+        onClose={() => {
+          setSelectedUser(null);
+          setSelectedUserActivity([]);
+        }}
+      />
+
+      {pendingTab && createPortal(
+        <div className="unsaved-changes-modal show admin-tab-unsaved-modal" role="presentation" onMouseDown={(event) => event.stopPropagation()}>
+          <div
+            className="unsaved-changes-dialog-card admin-tab-unsaved-dialog-card"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="admin-tab-unsaved-title"
+            aria-describedby="admin-tab-unsaved-message"
+          >
+            <button
+              className="unsaved-changes-close-btn"
+              type="button"
+              aria-label="Close unsaved changes confirmation"
+              onClick={keepEditingUsers}
+            >
+              ×
+            </button>
+
+            <div className="unsaved-changes-icon" aria-hidden="true">!</div>
+
+            <div className="unsaved-changes-copy">
+              <h3 id="admin-tab-unsaved-title">Unsaved changes</h3>
+              <p id="admin-tab-unsaved-message">Are you sure you want to leave the Users tab?</p>
+              <p>Your user edits will be lost.</p>
+            </div>
+
+            <div className="unsaved-changes-actions">
+              <button className="table-action-btn primary" type="button" onClick={keepEditingUsers}>
+                Keep editing
+              </button>
+              <button className="table-action-btn secondary" type="button" onClick={leaveUsersWithoutSaving}>
+                Leave without saving
+              </button>
+            </div>
+          </div>
+        </div>,
+        document.body
+      )}
+    </section>
+  );
+}
+
+export default AdminDashboard;

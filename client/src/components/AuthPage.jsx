@@ -1,0 +1,153 @@
+import { useState } from "react";
+import { login, register } from "../services/api.js";
+
+function AuthPage({ onAuthSuccess, showToast }) {
+  const [mode, setMode] = useState("login");
+  const [form, setForm] = useState({
+    name: "",
+    username: "",
+    email: "",
+    password: ""
+  });
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [error, setError] = useState("");
+
+  const updateField = (field, value) => {
+    setForm((current) => ({ ...current, [field]: value }));
+    setError("");
+  };
+
+  const handleSubmit = async (event) => {
+    event.preventDefault();
+    const formData = new FormData(event.currentTarget);
+    const submitted = {
+      name: String(formData.get("name") || "").trim(),
+      login: String(formData.get("login") || "").trim(),
+      username: String(formData.get("username") || "").trim(),
+      email: String(formData.get("email") || "").trim(),
+      password: String(formData.get("password") || "")
+    };
+
+    setIsSubmitting(true);
+    setError("");
+
+    try {
+      if (mode === "login") {
+        const result = await login({
+          login: submitted.login,
+          password: submitted.password
+        });
+        onAuthSuccess(result);
+        return;
+      }
+
+      await register({
+        name: submitted.name,
+        username: submitted.username,
+        email: submitted.email,
+        password: submitted.password
+      });
+
+      const result = await login({
+        login: submitted.username || submitted.email,
+        password: submitted.password
+      });
+      onAuthSuccess(result);
+      showToast("Account created successfully.");
+    } catch (submitError) {
+      setError(submitError.message);
+      showToast(submitError.message, "error");
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  return (
+    <section className="auth-page">
+      <div className="auth-copy">
+        <p className="auth-kicker">Welcome to Spendflow</p>
+        <h2>Hi there, ready to start tracking your spending?</h2>
+        <p>
+          Log in or register to manage your expenses, review spending patterns, and keep your account activity connected to your profile.
+        </p>
+      </div>
+
+      <div className="auth-card">
+        <div className="auth-tabs" role="tablist" aria-label="Authentication mode">
+          <button
+            className={mode === "login" ? "auth-tab active" : "auth-tab"}
+            type="button"
+            onClick={() => setMode("login")}
+          >
+            Log in
+          </button>
+          <button
+            className={mode === "register" ? "auth-tab active" : "auth-tab"}
+            type="button"
+            onClick={() => setMode("register")}
+          >
+            Register
+          </button>
+        </div>
+
+        <form className="auth-form" onSubmit={handleSubmit}>
+          {mode === "register" && (
+            <label>
+              Name
+              <input
+                name="name"
+                value={form.name}
+                onChange={(event) => updateField("name", event.target.value)}
+                placeholder="First name"
+              />
+            </label>
+          )}
+
+          <label>
+            {mode === "login" ? "Email or username" : "Username"}
+            <input
+              name={mode === "login" ? "login" : "username"}
+              value={form.username}
+              onChange={(event) => updateField("username", event.target.value)}
+              placeholder={mode === "login" ? "Email or username" : "Username"}
+              autoComplete="username"
+            />
+          </label>
+
+          {mode === "register" && (
+            <label>
+              Email
+              <input
+                type="email"
+                name="email"
+                value={form.email}
+                onChange={(event) => updateField("email", event.target.value)}
+                placeholder="Email"
+              />
+            </label>
+          )}
+
+          <label>
+            Password
+            <input
+              type="password"
+              name="password"
+              value={form.password}
+              onChange={(event) => updateField("password", event.target.value)}
+              placeholder="Password"
+              autoComplete={mode === "login" ? "current-password" : "new-password"}
+            />
+          </label>
+
+          {error && <p className="error-text">{error}</p>}
+
+          <button className="auth-submit-btn" type="submit" disabled={isSubmitting}>
+            {isSubmitting ? "Please wait..." : mode === "login" ? "Log in" : "Create account"}
+          </button>
+        </form>
+      </div>
+    </section>
+  );
+}
+
+export default AuthPage;
