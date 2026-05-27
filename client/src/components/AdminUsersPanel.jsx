@@ -11,7 +11,9 @@ const sortOptions = [
   ["name-asc", "Name: A to Z"],
   ["name-desc", "Name: Z to A"],
   ["username-asc", "Username: A to Z"],
-  ["username-desc", "Username: Z to A"]
+  ["username-desc", "Username: Z to A"],
+  ["created-desc", "Created: Newest first"],
+  ["created-asc", "Created: Oldest first"]
 ];
 
 function formatDate(value) {
@@ -285,10 +287,14 @@ function AdminUsersPanel({ users, currentUser, onUpdateUser, onDeleteUser, onOpe
         const bName = String(b.name || "").toLowerCase();
         const aUsername = String(a.username || "").toLowerCase();
         const bUsername = String(b.username || "").toLowerCase();
+        const aCreated = new Date(a.created_at || a.createdAt || 0).getTime() || 0;
+        const bCreated = new Date(b.created_at || b.createdAt || 0).getTime() || 0;
 
         if (sort === "name-desc") return bName.localeCompare(aName);
         if (sort === "username-asc") return aUsername.localeCompare(bUsername) || aName.localeCompare(bName);
         if (sort === "username-desc") return bUsername.localeCompare(aUsername) || aName.localeCompare(bName);
+        if (sort === "created-asc") return aCreated - bCreated || aName.localeCompare(bName);
+        if (sort === "created-desc") return bCreated - aCreated || aName.localeCompare(bName);
 
         return aName.localeCompare(bName) || aUsername.localeCompare(bUsername);
       });

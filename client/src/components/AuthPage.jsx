@@ -88,7 +88,7 @@ function AuthPage({ onAuthSuccess, showToast }) {
               <input
                 value={form.name}
                 onChange={(event) => updateField("name", event.target.value)}
-                placeholder="Marsi"
+                placeholder="First name"
               />
             </label>
           )}
@@ -98,7 +98,7 @@ function AuthPage({ onAuthSuccess, showToast }) {
             <input
               value={form.username}
               onChange={(event) => updateField("username", event.target.value)}
-              placeholder={mode === "login" ? "admin or admin@example.com" : "marsi"}
+              placeholder={mode === "login" ? "Email or username" : "Username"}
               autoComplete="username"
             />
           </label>
@@ -110,7 +110,7 @@ function AuthPage({ onAuthSuccess, showToast }) {
                 type="email"
                 value={form.email}
                 onChange={(event) => updateField("email", event.target.value)}
-                placeholder="marsi@example.com"
+                placeholder="Email"
               />
             </label>
           )}
@@ -121,7 +121,7 @@ function AuthPage({ onAuthSuccess, showToast }) {
               type="password"
               value={form.password}
               onChange={(event) => updateField("password", event.target.value)}
-              placeholder="password123"
+              placeholder="Password"
               autoComplete={mode === "login" ? "current-password" : "new-password"}
             />
           </label>
